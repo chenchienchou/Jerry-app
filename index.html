@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="全糖清運雷達">
+<meta name="theme-color" content="#121214">
+<title>全糖清運雷達 — 台南垃圾車即時追蹤</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"></script>
+<style>
+:root {
+  --bg: #121214;
+  --bg2: #1a1a1f;
+  --card: rgba(25,25,30,0.75);
+  --card-border: rgba(255,255,255,0.08);
+  --text: #F8F9FA;
+  --text2: #A0AEC0;
+  --accent: #00FF88;
+  --accent2: #00CC6E;
+  --amber: #FFD700;
+  --red: #FF4D4D;
+  --glass: rgba(25,25,30,0.85);
+  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  --nav-h: 64px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --font: 'Inter', 'Noto Sans TC', sans-serif;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --moving: #00FF88;
+  --idle: #FFD700;
+  --returning: #FF4D4D;
+  --offline: #718096;
+}
+[data-theme="light"] {
+  --bg: #F8F9FA;
+  --bg2: #FFFFFF;
+  --card: #FFFFFF;
+  --card-border: #E9ECEF;
+  --text: #212529;
+  --text2: #6C757D;
+  --glass: rgba(248,249,250,0.9);
+  --shadow: 0 8px 32px rgba(0,0,0,0.05);
+  --card-border: 1px solid #E9ECEF;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased}
+/* ---- LAYOUT ---- */
+#app{display:flex;flex-direction:column;height:100%;position:relative;overflow:hidden}
+#topbar{position:fixed;top:0;left:0;right:0;z-index:1000;height:56px;display:flex;align-items:center;padding:0 16px;gap:12px;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--card-border)}
+#map{position:fixed;top:56px;left:0;right:0;bottom:calc(var(--nav-h) + var(--safe-b));z-index:1;transition:opacity .3s,transform .3s}
+#panel{position:fixed;top:56px;left:0;right:0;bottom:calc(var(--nav-h) + var(--safe-b));z-index:500;background:var(--bg);overflow-y:auto;transform:translateY(100%);opacity:0;transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .3s;pointer-events:none}
+#panel.show{transform:translateY(0);opacity:1;pointer-events:auto}
+#settings{position:fixed;top:56px;left:0;right:0;bottom:calc(var(--nav-h) + var(--safe-b));z-index:600;background:var(--bg);overflow-y:auto;transform:translateY(100%);opacity:0;transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .3s;pointer-events:none}
+#settings.show{transform:translateY(0);opacity:1;pointer-events:auto}
+#bottomnav{position:fixed;bottom:0;left:0;right:0;z-index:2000;height:calc(var(--nav-h) + var(--safe-b));padding-bottom:var(--safe-b);display:flex;align-items:center;justify-content:space-around;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--card-border)}
+.tab-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;flex:1;height:100%;cursor:pointer;background:none;border:none;color:var(--text2);font-family:var(--font);font-size:11px;font-weight:500;transition:color .2s,transform .15s;padding:8px 0;-webkit-tap-highlight-color:transparent}
+.tab-btn.active{color:var(--accent)}
+.tab-btn:active{transform:scale(0.9)}
+.tab-btn svg{width:22px;height:22px;stroke-width:1.7;transition:transform .2s}
+.tab-btn.active svg{transform:scale(1.1)}
+/* ---- TOPBAR CONTENTS ---- */
+#logo{font-size:16px;font-weight:700;color:var(--text);letter-spacing:-.3px;white-space:nowrap}
+#logo span{color:var(--accent)}
+#search-wrap{flex:1;position:relative;max-width:200px}
+#search-input{width:100%;height:34px;border-radius:20px;border:1px solid var(--card-border);background:var(--card);color:var(--text);font-family:var(--font);font-size:13px;padding:0 12px;outline:none;transition:border .2s}
+#search-input:focus{border-color:var(--accent)}
+#search-input::placeholder{color:var(--text2)}
+#refresh-info{display:flex;flex-direction:column;align-items:flex-end;gap:1px;min-width:48px}
+#countdown{font-size:12px;font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums}
+#countdown.urgent{color:var(--red);animation:pulse-red 1s infinite}
+#progress-bar-wrap{width:48px;height:3px;border-radius:2px;background:rgba(255,255,255,0.1);overflow:hidden}
+#progress-bar{height:100%;border-radius:2px;background:linear-gradient(90deg,#00FF88,#00BFFF,#FFD700,#FF4D4D);transition:width .5s linear}
+#progress-bar.urgent{animation:pulse-bar .5s infinite alternate}
+/* ---- TODAY BANNER ---- */
+#today-banner{background:linear-gradient(135deg,rgba(0,255,136,0.12),rgba(0,191,255,0.08));border:1px solid rgba(0,255,136,0.2);border-radius:var(--radius-sm);padding:6px 12px;font-size:12px;font-weight:500;color:var(--accent);display:flex;align-items:center;gap:6px;margin:8px 12px 0;flex-shrink:0}
+/* ---- WEATHER BAR ---- */
+#weather-bar{margin:8px 12px 4px;padding:8px 12px;background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius-sm);display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)}
+#weather-bar .weather-alert{color:var(--amber);font-weight:600}
+/* ---- CHIPS ---- */
+#chips-wrap{padding:6px 12px 6px;overflow-x:auto;display:flex;gap:6px;scrollbar-width:none;flex-shrink:0}
+#chips-wrap::-webkit-scrollbar{display:none}
+.chip{white-space:nowrap;padding:5px 12px;border-radius:20px;border:1px solid var(--card-border);background:var(--card);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;flex-shrink:0}
+.chip.active{background:rgba(0,255,136,0.15);border-color:var(--accent);color:var(--accent);box-shadow:0 0 12px rgba(0,255,136,0.3)}
+.chip:active{transform:scale(0.95)}
+/* ---- VEHICLE CARDS ---- */
+#card-list{padding:0 12px 8px;display:flex;flex-direction:column;gap:8px}
+.vcard{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);padding:12px;display:flex;gap:12px;align-items:flex-start;box-shadow:var(--shadow);cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden}
+.vcard:active{transform:scale(0.98)}
+.vcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--moving)}
+.vcard[data-status=idle]::before{background:var(--idle)}
+.vcard[data-status=returning]::before{background:var(--returning)}
+.vcard[data-status=offline]::before{background:var(--offline);opacity:.5}
+.vcard[data-status=offline]{opacity:.6}
+.vcard-icon{flex-shrink:0;width:40px;height:40px;display:flex;align-items:center;justify-content:center}
+.vcard-body{flex:1;min-width:0}
+.vcard-plate{font-size:15px;font-weight:700;color:var(--text);letter-spacing:.3px}
+.vcard-route{font-size:12px;color:var(--text2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vcard-meta{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--moving);flex-shrink:0;animation:blink-dot 2s infinite}
+.vcard[data-status=idle] .status-dot{background:var(--idle);animation:none}
+.vcard[data-status=returning] .status-dot{background:var(--returning)}
+.vcard[data-status=offline] .status-dot{background:var(--offline);animation:none}
+.status-text{font-size:11px;font-weight:600}
+.status-text.moving{color:var(--moving)}
+.status-text.idle{color:var(--idle)}
+.status-text.returning{color:var(--returning)}
+.status-text.offline{color:var(--offline)}
+.vcard-time{font-size:11px;color:var(--text2);margin-left:auto}
+.vcard-actions{display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0}
+.btn-heart{background:none;border:none;cursor:pointer;padding:4px;color:var(--text2);transition:color .2s;-webkit-tap-highlight-color:transparent}
+.btn-heart.fav{color:var(--red);animation:heart-pop .3s}
+.btn-heart svg{width:18px;height:18px}
+.btn-share{background:none;border:none;cursor:pointer;padding:4px;color:var(--text2);transition:color .2s}
+.btn-share svg{width:18px;height:18px}
+.badge-done{position:absolute;top:8px;right:8px;background:var(--offline);color:var(--bg);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.5px}
+.tag-class{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;background:rgba(0,255,136,0.1);color:var(--accent);border:1px solid rgba(0,255,136,0.2)}
+.tag-class.recycle{background:rgba(0,191,255,0.1);color:#00BFFF;border-color:rgba(0,191,255,0.2)}
+.section-header{font-size:13px;font-weight:700;color:var(--text2);padding:12px 12px 4px;letter-spacing:.5px;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+/* ---- SETTINGS PAGE ---- */
+#settings{padding-bottom:16px}
+.s-section{margin:12px 16px 0;background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);overflow:hidden}
+.s-row{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;border-bottom:1px solid var(--card-border);transition:background .15s}
+.s-row:last-child{border-bottom:none}
+.s-row:active{background:rgba(255,255,255,0.04)}
+.s-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.s-label{flex:1}
+.s-label-main{font-size:14px;font-weight:600;color:var(--text)}
+.s-label-sub{font-size:12px;color:var(--text2);margin-top:1px}
+.s-arrow svg{width:16px;height:16px;color:var(--text2)}
+.toggle-track{width:44px;height:26px;border-radius:13px;background:rgba(255,255,255,0.12);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle-track.on{background:var(--accent2)}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s,transform .2s;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
+.toggle-track.on .toggle-thumb{left:21px}
+/* disclaimer */
+#disclaimer-wrap{margin:12px 16px;background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);overflow:hidden}
+#disclaimer-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer}
+#disclaimer-header span{font-size:13px;font-weight:600;color:var(--text2)}
+#disclaimer-header svg{width:16px;height:16px;color:var(--text2);transition:transform .3s}
+#disclaimer-header.open svg{transform:rotate(180deg)}
+#disclaimer-body{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.4,0,.2,1)}
+#disclaimer-body.open{max-height:300px}
+#disclaimer-body p{padding:0 16px 14px;font-size:12px;color:var(--text2);line-height:1.7}
+/* ---- WEATHER SETTINGS ---- */
+#weather-settings{margin:12px 16px 0;background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);padding:14px 16px}
+#weather-settings .ws-title{font-size:13px;font-weight:700;color:var(--text2);margin-bottom:10px;letter-spacing:.5px}
+#weather-big{display:flex;align-items:center;gap:12px}
+.weather-icon{font-size:36px}
+.weather-right{}
+.weather-temp{font-size:28px;font-weight:700;color:var(--text);line-height:1}
+.weather-desc{font-size:13px;color:var(--text2);margin-top:2px}
+.weather-alerts{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.weather-alert-card{padding:8px 12px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;line-height:1.5}
+.weather-alert-card.rain{background:rgba(0,191,255,0.12);color:#00BFFF;border:1px solid rgba(0,191,255,0.2)}
+.weather-alert-card.hot{background:rgba(255,215,0,0.12);color:var(--amber);border:1px solid rgba(255,215,0,0.2)}
+.weather-alert-card.humid{background:rgba(255,77,77,0.1);color:var(--red);border:1px solid rgba(255,77,77,0.2)}
+/* ---- MODAL ---- */
+#modal-overlay{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+#modal-overlay.show{opacity:1;pointer-events:auto}
+#modal-box{background:var(--bg2);border:1px solid var(--card-border);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:24px 20px 32px;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1)}
+#modal-overlay.show #modal-box{transform:translateY(0)}
+.modal-handle{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.2);margin:0 auto 20px}
+#modal-box h2{font-size:20px;font-weight:700;margin-bottom:18px;color:var(--text)}
+.guide-step{display:flex;gap:12px;margin-bottom:16px;align-items:flex-start}
+.step-num{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#00BFFF);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#000;flex-shrink:0}
+.step-text{}
+.step-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px}
+.step-desc{font-size:12px;color:var(--text2);line-height:1.5}
+#modal-close{margin-top:20px;width:100%;height:46px;border-radius:23px;border:none;background:var(--accent);color:#000;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s}
+#modal-close:active{opacity:.8}
+/* ---- OFFLINE TIMETABLE ---- */
+#offline-banner{display:none;position:fixed;top:56px;left:0;right:0;background:rgba(255,77,77,0.12);border-bottom:1px solid rgba(255,77,77,0.3);padding:8px 16px;font-size:12px;color:var(--red);font-weight:600;z-index:800;text-align:center}
+/* ---- MAP CUSTOM ---- */
+.leaflet-control-attribution{display:none!important}
+.leaflet-control-zoom{display:none!important}
+.truck-marker{position:relative;cursor:pointer}
+.truck-marker svg{filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5))}
+/* ---- ANIMATIONS ---- */
+@keyframes blink-dot{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes pulse-red{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes pulse-bar{0%{filter:brightness(1)}100%{filter:brightness(1.5)}}
+@keyframes heart-pop{0%{transform:scale(1)}40%{transform:scale(1.4)}100%{transform:scale(1)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fade-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.vcard{animation:fade-in .3s both}
+/* ---- LOCATE BTN ---- */
+#btn-locate{position:fixed;right:16px;bottom:calc(var(--nav-h) + var(--safe-b) + 16px);z-index:900;width:48px;height:48px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,255,136,0.4);transition:transform .15s,box-shadow .15s}
+#btn-locate:active{transform:scale(0.92);box-shadow:0 2px 10px rgba(0,255,136,0.2)}
+#btn-locate svg{width:22px;height:22px;color:#000}
+/* ---- NEARBY BTN ---- */
+#btn-nearby{background:var(--card);border:1px solid var(--accent);color:var(--accent);font-family:var(--font);font-size:12px;font-weight:600;padding:6px 14px;border-radius:20px;cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
+#btn-nearby:active{transform:scale(0.95)}
+/* ---- LOADING ---- */
+#loading{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .5s}
+#loading.hide{opacity:0;pointer-events:none}
+.load-icon{font-size:48px;animation:spin 1.5s linear infinite}
+.load-text{font-size:16px;font-weight:600;color:var(--text2)}
+/* ---- REST DAY BANNER ---- */
+#rest-banner{display:none;background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.3);border-radius:var(--radius-sm);margin:8px 12px 0;padding:8px 12px;font-size:12px;font-weight:600;color:var(--amber);text-align:center}
+/* ---- EMPTY STATE ---- */
+#empty-state{display:none;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;gap:12px;color:var(--text2)}
+#empty-state .e-icon{font-size:48px}
+#empty-state .e-text{font-size:14px;text-align:center;line-height:1.6}
+/* LIGHT MODE overrides */
+[data-theme="light"] .s-row:active{background:rgba(0,0,0,0.03)}
+[data-theme="light"] #loading{background:var(--bg)}
+[data-theme="light"] .vcard{box-shadow:0 2px 12px rgba(0,0,0,0.06)}
+</style>
+</head>
+<body>
+<!-- LOADING SCREEN -->
+<div id="loading">
+  <div class="load-icon">🚛</div>
+  <div class="load-text">全糖清運雷達 啟動中…</div>
+</div>
+
+<!-- OFFLINE BANNER -->
+<div id="offline-banner">📡 網路離線中，顯示仁德區靜態備用課表</div>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div id="logo">全糖<span>清運</span></div>
+  <div id="search-wrap">
+    <input id="search-input" type="text" placeholder="搜尋車牌或路段…" autocomplete="off" autocorrect="off" spellcheck="false">
+  </div>
+  <div id="refresh-info">
+    <div id="countdown">30s</div>
+    <div id="progress-bar-wrap"><div id="progress-bar" style="width:100%"></div></div>
+  </div>
+</div>
+
+<!-- MAP -->
+<div id="map"></div>
+
+<!-- LOCATE BUTTON -->
+<button id="btn-locate" title="定位我的位置">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="4 2"/>
+  </svg>
+</button>
+
+<!-- PANEL: LIST VIEW -->
+<div id="panel">
+  <div id="rest-banner">📅 今日為收運休息日，垃圾車不出勤</div>
+  <div id="today-banner">⏳ 載入中…</div>
+  <div id="weather-bar"><span>⛅</span><span id="weather-inline">天氣資料讀取中…</span></div>
+  <div id="chips-wrap">
+    <button class="chip active" data-dist="all">全部</button>
+    <button class="chip" data-dist="仁德區">仁德區</button>
+    <button class="chip" data-dist="東區">東區</button>
+    <button class="chip" data-dist="南區">南區</button>
+    <button class="chip" data-dist="北區">北區</button>
+    <button class="chip" data-dist="安平區">安平區</button>
+    <button class="chip" data-dist="安南區">安南區</button>
+    <button class="chip" data-dist="永康區">永康區</button>
+    <button class="chip" data-dist="歸仁區">歸仁區</button>
+    <button class="chip" data-dist="新化區">新化區</button>
+    <button class="chip" data-dist="中正路">中正路</button>
+    <button class="chip" data-dist="中山路">中山路</button>
+    <button class="chip" data-dist="一甲里">一甲里</button>
+    <button class="chip" data-dist="成功里">成功里</button>
+    <button id="btn-nearby" class="chip">📍 搜尋周邊車輛</button>
+  </div>
+  <div id="card-list">
+    <div id="empty-state">
+      <div class="e-icon">🚫</div>
+      <div class="e-text">目前沒有符合條件的車輛<br>請嘗試其他篩選條件</div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS PAGE -->
+<div id="settings">
+  <div style="padding:16px 16px 4px;font-size:20px;font-weight:700;color:var(--text)">⚙️ 控制中心</div>
+
+  <div id="weather-settings">
+    <div class="ws-title">☀️ 天氣與空品警戒</div>
+    <div id="weather-big">
+      <div class="weather-icon" id="w-icon">⛅</div>
+      <div class="weather-right">
+        <div class="weather-temp"><span id="w-temp">—</span>°C</div>
+        <div class="weather-desc" id="w-desc">讀取中…</div>
+      </div>
+    </div>
+    <div class="weather-alerts" id="w-alerts"></div>
+  </div>
+
+  <div class="s-section">
+    <div class="s-row" id="btn-tutorial">
+      <div class="s-icon" style="background:rgba(0,255,136,0.12)">❓</div>
+      <div class="s-label"><div class="s-label-main">使用教學導覽</div><div class="s-label-sub">三步驟快速上手</div></div>
+      <div class="s-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
+    </div>
+    <div class="s-row" id="btn-torch">
+      <div class="s-icon" style="background:rgba(255,215,0,0.12)">🔦</div>
+      <div class="s-label"><div class="s-label-main">實體手電筒</div><div class="s-label-sub" id="torch-status">點擊開啟閃光燈</div></div>
+      <div class="toggle-track" id="torch-toggle"><div class="toggle-thumb"></div></div>
+    </div>
+    <div class="s-row" id="btn-theme">
+      <div class="s-icon" style="background:rgba(0,191,255,0.12)">🌓</div>
+      <div class="s-label"><div class="s-label-main">切換明暗模式</div><div class="s-label-sub" id="theme-status">目前：深色模式</div></div>
+      <div class="toggle-track" id="theme-toggle"><div class="toggle-thumb"></div></div>
+    </div>
+  </div>
+
+  <div class="s-section">
+    <div class="s-row">
+      <div class="s-icon" style="background:rgba(255,77,77,0.12)">🗑️</div>
+      <div class="s-label"><div class="s-label-main">清除今日任務記憶</div><div class="s-label-sub">重設所有「今日已倒垃圾」標記</div></div>
+      <div class="s-arrow" id="btn-clear-done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
+    </div>
+    <div class="s-row">
+      <div class="s-icon" style="background:rgba(0,255,136,0.12)">📊</div>
+      <div class="s-label"><div class="s-label-main">資料來源</div><div class="s-label-sub">臺南市政府資料開放平台 Open API</div></div>
+    </div>
+  </div>
+
+  <div id="disclaimer-wrap">
+    <div id="disclaimer-header" onclick="toggleDisclaimer()">
+      <span>⚠️ 免責條款</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div id="disclaimer-body">
+      <p>本系統為愛好者獨立開發之免費開源工具。地圖上顯示之垃圾車與回收車位置，皆為即時請求「臺南市政府資料開放平台」之公開 GPS API 數據。實際清運時間與位置可能因路況、天候、機台訊號而有所延遲，請以環保局實際收運狀況為準。本工具不保證資料之絕對即時性，亦不負擔任何因錯過垃圾車所衍生之責任。</p>
+    </div>
+  </div>
+
+  <div style="height:16px"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav id="bottomnav">
+  <button class="tab-btn" id="tab-radar" onclick="switchTab('radar')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/><path d="M6.3 6.3a8 8 0 000 11.4m11.4 0a8 8 0 000-11.4M3.5 3.5a12 12 0 000 17m17 0a12 12 0 000-17"/>
+    </svg>
+    <span>即時雷達</span>
+  </button>
+  <button class="tab-btn" id="tab-list" onclick="switchTab('list')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="18" height="4" rx="2"/><rect x="3" y="10" width="18" height="4" rx="2"/><rect x="3" y="17" width="12" height="4" rx="2"/>
+    </svg>
+    <span>動態清單</span>
+  </button>
+  <button class="tab-btn" id="tab-settings" onclick="switchTab('settings')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+    </svg>
+    <span>控制中心</span>
+  </button>
+</nav>
+
+<!-- TUTORIAL MODAL -->
+<div id="modal-overlay" onclick="closeModal(event)">
+  <div id="modal-box">
+    <div class="modal-handle"></div>
+    <h2>🗺️ 三步驟快速上手</h2>
+    <div class="guide-step">
+      <div class="step-num">1</div>
+      <div class="step-text">
+        <div class="step-title">📍 開啟定位</div>
+        <div class="step-desc">點擊畫面右下角的綠色準心按鈕，允許定位後地圖自動移動至您目前所在位置，方便確認附近垃圾車動態。</div>
+      </div>
+    </div>
+    <div class="guide-step">
+      <div class="step-num">2</div>
+      <div class="step-text">
+        <div class="step-title">🏷️ 快搜行政區或路段</div>
+        <div class="step-desc">點選下方膠囊標籤切換行政區（仁德、東區…），或使用頂部搜尋框輸入車牌、路名快速篩選。也可點「📍 搜尋周邊車輛」一鍵過濾半徑 500 公尺內車輛。</div>
+      </div>
+    </div>
+    <div class="guide-step">
+      <div class="step-num">3</div>
+      <div class="step-text">
+        <div class="step-title">❤️ 收藏車輛鎖定追蹤</div>
+        <div class="step-desc">點擊車輛卡片右側的愛心圖示加入收藏，車輛置頂顯示。倒完垃圾後點「今日已倒垃圾」按鈕，當天停止通知並貼上完成標章。</div>
+      </div>
+    </div>
+    <button id="modal-close" onclick="closeModalBtn()">了解了，開始使用 🚀</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONSTANTS & STATE
+// ============================================================
+const API_URL = 'https://data.tainan.gov.tw/api/action/datastore_search?resource_id=9c8a8bda-080c-4ea6-9b56-d4de4d9fc571&limit=100';
+const WEATHER_URL = 'https://api.open-meteo.com/v1/forecast?latitude=22.9908&longitude=120.2133&current=temperature_2m,relative_humidity_2m,rain,weather_code';
+const REFRESH_SEC = 30;
+const STALE_MIN = 10;
+const NEARBY_RADIUS_M = 500;
+
+let map, markerCluster;
+let vehicles = [];
+let markers = {}; // plate -> {marker, prevLat, prevLng, target}
+let favorites = JSON.parse(localStorage.getItem('rdr_fav') || '[]');
+let doneTrucks = JSON.parse(localStorage.getItem('rdr_done') || '{}');
+let activeDistrict = localStorage.getItem('rdr_dist') || 'all';
+let searchText = '';
+let currentTab = 'radar';
+let torchOn = false;
+let torchStream = null;
+let weatherData = null;
+let countdownVal = REFRESH_SEC;
+let countdownTimer = null;
+let refreshTimer = null;
+let isOnline = navigator.onLine;
+let userLat = null, userLng = null;
+let isNearbyMode = false;
+
+// ============================================================
+// OFFLINE STATIC TIMETABLE (仁德區備用)
+// ============================================================
+const OFFLINE_SCHEDULE = [
+  {time:'06:30',route:'仁德區 中正路一段',type:'garbage'},
+  {time:'07:00',route:'仁德區 中山路',type:'garbage'},
+  {time:'07:30',route:'仁德區 一甲里環狀線',type:'recycle'},
+  {time:'08:00',route:'仁德區 成功里',type:'garbage'},
+  {time:'08:30',route:'仁德區 保安村',type:'garbage'},
+  {time:'16:00',route:'仁德區 中正路二段',type:'garbage'},
+  {time:'16:30',route:'仁德區 仁義路',type:'recycle'},
+  {time:'17:00',route:'仁德區 中山路夜班',type:'garbage'},
+  {time:'17:30',route:'仁德區 一甲里夜班',type:'garbage'},
+  {time:'18:00',route:'仁德區 成功里夜班',type:'recycle'},
+  {time:'18:30',route:'仁德區 保安村夜班',type:'garbage'},
+  {time:'19:00',route:'仁德區 仁德中心區',type:'garbage'},
+];
+
+// ============================================================
+// DAY-OF-WEEK COLLECTION INFO
+// ============================================================
+const COLLECTION_INFO = {
+  0: {icon:'😴', label:'週日停收', detail:'今日為收運休息日，垃圾車不出勤', rest:true},
+  1: {icon:'📦', label:'週一收運：紙類回收 + 一般垃圾', detail:'今日收運紙類、紙板、紙容器，請一併攜出', rest:false},
+  2: {icon:'♻️', label:'週二收運：塑膠類回收 + 一般垃圾', detail:'今日收運塑膠瓶罐、塑膠袋（乾淨）', rest:false},
+  3: {icon:'😴', label:'週三停收', detail:'每週三為清潔隊員休假日，請提前備妥', rest:true},
+  4: {icon:'🔋', label:'週四收運：電子廢棄物 + 一般垃圾', detail:'今日收運電池、燈管、小型電器', rest:false},
+  5: {icon:'🥫', label:'週五收運：金屬/玻璃回收 + 一般垃圾', detail:'今日收運鐵鋁罐、玻璃瓶', rest:false},
+  6: {icon:'🛍️', label:'週六收運：廚餘回收 + 一般垃圾', detail:'今日收運廚餘，請分類裝袋', rest:false},
+};
+
+// ============================================================
+// WEATHER CODE MAPPING
+// ============================================================
+function wxIcon(code){
+  if(code===0) return '☀️';
+  if(code<=2) return '⛅';
+  if(code<=3) return '☁️';
+  if(code<=48) return '🌫️';
+  if(code<=57) return '🌧️';
+  if(code<=67) return '🌧️';
+  if(code<=77) return '🌨️';
+  if(code<=82) return '🌦️';
+  if(code<=86) return '❄️';
+  if(code<=99) return '⛈️';
+  return '🌡️';
+}
+function wxDesc(code){
+  if(code===0) return '晴天';
+  if(code<=2) return '多雲';
+  if(code<=3) return '陰天';
+  if(code<=48) return '霧';
+  if(code<=57) return '毛毛雨';
+  if(code<=67) return '降雨';
+  if(code<=77) return '降雪';
+  if(code<=82) return '陣雨';
+  if(code<=86) return '大雪';
+  if(code<=99) return '雷雨';
+  return '未知';
+}
+
+// ============================================================
+// SVG TRUCK ICONS
+// ============================================================
+function garbageTruckSVG(rotation, opacity){
+  const op = opacity||1;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="52" height="32" viewBox="0 0 52 32" style="transform:rotate(${rotation}deg);opacity:${op}">
+    <!-- Body -->
+    <rect x="2" y="8" width="36" height="18" rx="3" fill="#FFCC00" stroke="#E6A800" stroke-width="1"/>
+    <!-- Cab -->
+    <rect x="30" y="4" width="14" height="14" rx="3" fill="#FFA500" stroke="#E6A800" stroke-width="1"/>
+    <!-- Window -->
+    <rect x="33" y="6" width="8" height="7" rx="1.5" fill="rgba(150,220,255,0.8)"/>
+    <!-- Compressor back -->
+    <path d="M2 10 Q0 14 0 18 L2 18 Z" fill="#CC9900"/>
+    <rect x="1" y="14" width="3" height="4" rx="1" fill="#999"/>
+    <!-- Stripe -->
+    <rect x="2" y="20" width="36" height="3" rx="0" fill="rgba(0,0,0,0.12)"/>
+    <!-- Front lights -->
+    <circle cx="45" cy="11" r="2" fill="#FFFACC" stroke="#FFD700" stroke-width="0.5"/>
+    <circle cx="45" cy="18" r="1.5" fill="#FF6666"/>
+    <!-- Wheels -->
+    <circle cx="10" cy="27" r="4" fill="#222" stroke="#555" stroke-width="1"/>
+    <circle cx="10" cy="27" r="1.5" fill="#666"/>
+    <circle cx="24" cy="27" r="4" fill="#222" stroke="#555" stroke-width="1"/>
+    <circle cx="24" cy="27" r="1.5" fill="#666"/>
+    <circle cx="38" cy="27" r="4" fill="#222" stroke="#555" stroke-width="1"/>
+    <circle cx="38" cy="27" r="1.5" fill="#666"/>
+  </svg>`;
+}
+
+function recycleTruckSVG(rotation, opacity){
+  const op = opacity||1;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="52" height="32" viewBox="0 0 52 32" style="transform:rotate(${rotation}deg);opacity:${op}">
+    <!-- Body -->
+    <rect x="2" y="8" width="36" height="18" rx="3" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="1"/>
+    <!-- Cab -->
+    <rect x="30" y="4" width="14" height="14" rx="3" fill="#F0F0F0" stroke="#CCCCCC" stroke-width="1"/>
+    <!-- Window -->
+    <rect x="33" y="6" width="8" height="7" rx="1.5" fill="rgba(150,220,255,0.8)"/>
+    <!-- Recycle symbol (side panel) -->
+    <text x="9" y="22" font-size="13" fill="#22CC66" font-family="sans-serif">♻</text>
+    <!-- Green stripe -->
+    <rect x="2" y="8" width="36" height="3" rx="0" fill="#22CC66" opacity="0.8"/>
+    <!-- Front lights -->
+    <circle cx="45" cy="11" r="2" fill="#FFFACC" stroke="#FFD700" stroke-width="0.5"/>
+    <circle cx="45" cy="18" r="1.5" fill="#FF6666"/>
+    <!-- Wheels -->
+    <circle cx="10" cy="27" r="4" fill="#222" stroke="#555" stroke-width="1"/>
+    <circle cx="10" cy="27" r="1.5" fill="#666"/>
+    <circle cx="24" cy="27" r="4" fill="#222" stroke="#555" stroke-width="1"/>
+    <circle cx="24" cy="27" r="1.5" fill="#666"/>
+    <circle cx="38" cy="27" r="4" fill="#222" stroke="#555" stroke-width="1"/>
+    <circle cx="38" cy="27" r="1.5" fill="#666"/>
+  </svg>`;
+}
+
+function makeTruckIcon(type, rotation, opacity){
+  const svg = type==='recycle' ? recycleTruckSVG(rotation, opacity) : garbageTruckSVG(rotation, opacity);
+  return L.divIcon({
+    html: svg,
+    className: 'truck-marker',
+    iconSize: [52, 32],
+    iconAnchor: [26, 27],
+    popupAnchor: [0, -30]
+  });
+}
+
+// ============================================================
+// INIT MAP
+// ============================================================
+function initMap(){
+  map = L.map('map', {
+    center: [22.9908, 120.2133],
+    zoom: 13,
+    zoomControl: false,
+    attributionControl: false
+  });
+
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  setMapTiles(isDark);
+
+  markerCluster = L.markerClusterGroup({
+    maxClusterRadius: 60,
+    iconCreateFunction: function(cluster){
+      const n = cluster.getChildCount();
+      return L.divIcon({
+        html: `<div style="width:40px;height:40px;border-radius:50%;background:rgba(0,255,136,0.85);border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#000;box-shadow:0 2px 12px rgba(0,255,136,0.4)">${n}</div>`,
+        className: '',
+        iconSize: [40,40],
+        iconAnchor: [20,20]
+      });
+    }
+  });
+  map.addLayer(markerCluster);
+}
+
+function setMapTiles(dark){
+  if(map._tileLayer) map.removeLayer(map._tileLayer);
+  const url = dark
+    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+  map._tileLayer = L.tileLayer(url, {maxZoom:19}).addTo(map);
+}
+
+// ============================================================
+// BEARING CALCULATION
+// ============================================================
+function bearing(lat1,lng1,lat2,lng2){
+  const toRad = d => d * Math.PI / 180;
+  const toDeg = r => r * 180 / Math.PI;
+  const dLng = toRad(lng2-lng1);
+  const y = Math.sin(dLng)*Math.cos(toRad(lat2));
+  const x = Math.cos(toRad(lat1))*Math.sin(toRad(lat2)) - Math.sin(toRad(lat1))*Math.cos(toRad(lat2))*Math.cos(dLng);
+  return (toDeg(Math.atan2(y,x))+360)%360;
+}
+
+function haversine(lat1,lng1,lat2,lng2){
+  const R=6371000;
+  const dLat=(lat2-lat1)*Math.PI/180;
+  const dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// ============================================================
+// SMOOTH SLIDE TO
+// ============================================================
+function slideTo(marker, toLat, toLng, durationMs){
+  const fromLat = marker.getLatLng().lat;
+  const fromLng = marker.getLatLng().lng;
+  if(Math.abs(fromLat-toLat)<0.000001 && Math.abs(fromLng-toLng)<0.000001) return;
+  const start = performance.now();
+  function step(now){
+    const t = Math.min((now-start)/durationMs, 1);
+    const ease = t<0.5 ? 2*t*t : -1+(4-2*t)*t;
+    const lat = fromLat + (toLat-fromLat)*ease;
+    const lng = fromLng + (toLng-fromLng)*ease;
+    marker.setLatLng([lat,lng]);
+    if(t<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// ============================================================
+// VEHICLE STATUS
+// ============================================================
+function getStatus(v){
+  const now = new Date();
+  let vTime;
+  try{ vTime = new Date(v.time||v.gpstime||v.DATETIME); }
+  catch(e){ return 'offline'; }
+  if(isNaN(vTime)) return 'offline';
+  const diffMin = (now-vTime)/60000;
+  if(diffMin > STALE_MIN) return 'offline';
+  const speed = parseFloat(v.speed||v.SPEED||0);
+  if(speed > 5) return 'moving';
+  if(speed > 0) return 'idle';
+  return 'idle';
+}
+
+function getOpacity(v){
+  const status = getStatus(v);
+  return status==='offline' ? 0.4 : 1;
+}
+
+function getVehicleType(v){
+  const plate = (v.plate||v.PLATENO||v.car_id||'').toString();
+  const route = (v.route||v.LINENAME||v.route_name||'').toString();
+  if(/回收|資源|recycl/i.test(plate+route)) return 'recycle';
+  return 'garbage';
+}
+
+function parsePlate(v){
+  return v.plate||v.PLATENO||v.car_id||v.carid||'未知車牌';
+}
+
+function parseRoute(v){
+  return v.route||v.LINENAME||v.route_name||v.area||'台南市清運路線';
+}
+
+function parseLat(v){
+  return parseFloat(v.lat||v.LAT||v.latitude||0);
+}
+
+function parseLng(v){
+  return parseFloat(v.lng||v.LNG||v.lon||v.longitude||0);
+}
+
+function parseTime(v){
+  return v.time||v.gpstime||v.DATETIME||'';
+}
+
+// ============================================================
+// UPDATE MARKERS
+// ============================================================
+function updateMarkers(list){
+  const visiblePlates = new Set();
+
+  list.forEach(v => {
+    const plate = parsePlate(v);
+    const lat = parseLat(v);
+    const lng = parseLng(v);
+    if(!lat || !lng || lat===0 || lng===0) return;
+
+    visiblePlates.add(plate);
+    const type = getVehicleType(v);
+    const status = getStatus(v);
+    const opacity = getOpacity(v);
+
+    let prevBearing = 90;
+
+    if(markers[plate]){
+      const m = markers[plate];
+      const prevLat = m.marker.getLatLng().lat;
+      const prevLng = m.marker.getLatLng().lng;
+      if(Math.abs(prevLat-lat)>0.0001 || Math.abs(prevLng-lng)>0.0001){
+        prevBearing = bearing(prevLat,prevLng,lat,lng);
+        slideTo(m.marker, lat, lng, 2000);
+      }
+      m.marker.setIcon(makeTruckIcon(type, prevBearing, opacity));
+      m.status = status;
+    } else {
+      const icon = makeTruckIcon(type, 90, opacity);
+      const marker = L.marker([lat,lng], {icon});
+      const popupContent = buildPopup(v, plate, type, status);
+      marker.bindPopup(popupContent, {
+        maxWidth: 240,
+        className: 'truck-popup'
+      });
+      markerCluster.addLayer(marker);
+      markers[plate] = {marker, type, status};
+    }
+  });
+
+  // Remove stale markers
+  Object.keys(markers).forEach(plate => {
+    if(!visiblePlates.has(plate)){
+      markerCluster.removeLayer(markers[plate].marker);
+      delete markers[plate];
+    }
+  });
+}
+
+function buildPopup(v, plate, type, status){
+  const route = parseRoute(v);
+  const time = parseTime(v);
+  const typeLabel = type==='recycle'?'♻️ 資源回收車':'🚛 垃圾清運車';
+  const statusLabel = status==='moving'?'移動中':status==='idle'?'定點停車':'離線/逾時';
+  return `<div style="font-family:var(--font);padding:4px;min-width:160px">
+    <div style="font-weight:700;font-size:14px;margin-bottom:4px">${plate}</div>
+    <div style="font-size:12px;color:#888;margin-bottom:6px">${typeLabel}</div>
+    <div style="font-size:12px;margin-bottom:2px">${route}</div>
+    <div style="font-size:11px;color:#999;margin-top:4px">${statusLabel}</div>
+    ${time?`<div style="font-size:10px;color:#999;margin-top:2px">更新：${time}</div>`:''}
+  </div>`;
+}
+
+// ============================================================
+// FETCH DATA
+// ============================================================
+async function fetchVehicles(){
+  if(!isOnline){
+    showOfflineTimetable();
+    return;
+  }
+  try{
+    const r = await fetch(API_URL, {signal: AbortSignal.timeout(8000)});
+    const json = await r.json();
+    const records = json?.result?.records || [];
+    vehicles = records.filter(v => parseLat(v) && parseLng(v));
+    updateMarkers(vehicles);
+    renderList();
+    document.getElementById('offline-banner').style.display='none';
+    console.log('[Radar] 已更新', vehicles.length, '輛車');
+  } catch(e){
+    console.log('[Radar] fetch 失敗:', e.message);
+    if(!isOnline) showOfflineTimetable();
+  }
+}
+
+// ============================================================
+// OFFLINE TIMETABLE
+// ============================================================
+function showOfflineTimetable(){
+  document.getElementById('offline-banner').style.display='block';
+  const now = new Date();
+  const nowMin = now.getHours()*60+now.getMinutes();
+  const container = document.getElementById('card-list');
+  container.innerHTML = '<div class="section-header">📋 仁德區靜態備用課表（離線模式）</div>';
+
+  const sorted = OFFLINE_SCHEDULE.map(s => {
+    const [h,m] = s.time.split(':').map(Number);
+    const absMin = h*60+m;
+    const diff = Math.abs(absMin-nowMin);
+    return {...s, absMin, diff};
+  }).sort((a,b)=>a.absMin-b.absMin);
+
+  sorted.forEach(s => {
+    const near = s.diff<=15;
+    const past = s.absMin < nowMin;
+    const card = document.createElement('div');
+    card.className = 'vcard';
+    card.setAttribute('data-status', past?'offline':near?'moving':'idle');
+    card.style.cssText = near?'border:1px solid rgba(0,255,136,0.4);box-shadow:0 0 16px rgba(0,255,136,0.12)':'';
+    card.innerHTML = `
+      <div class="vcard-icon">${s.type==='recycle'?recycleTruckSVG(90,1):garbageTruckSVG(90,1)}</div>
+      <div class="vcard-body">
+        <div class="vcard-plate">${s.time} ${s.route}</div>
+        <div class="vcard-meta">
+          <div class="status-dot"></div>
+          <span class="status-text ${near&&!past?'moving':past?'offline':'idle'}">${near&&!past?'📍 即將到來':past?'已過':'待收運'}</span>
+          ${near&&!past?'<span style="font-size:11px;color:var(--accent);font-weight:700">▶ 接近現在時段</span>':''}
+        </div>
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+// ============================================================
+// RENDER LIST
+// ============================================================
+function renderList(){
+  const container = document.getElementById('card-list');
+  container.innerHTML = '';
+
+  let list = [...vehicles];
+
+  // Filter by district/chip
+  if(activeDistrict && activeDistrict !== 'all'){
+    list = list.filter(v => {
+      const route = parseRoute(v).toLowerCase();
+      const plate = parsePlate(v).toLowerCase();
+      return route.includes(activeDistrict) || plate.includes(activeDistrict);
+    });
+  }
+
+  // Filter by search
+  if(searchText.trim()){
+    const q = searchText.trim().toLowerCase();
+    list = list.filter(v => {
+      return parsePlate(v).toLowerCase().includes(q) || parseRoute(v).toLowerCase().includes(q);
+    });
+  }
+
+  // Filter by nearby
+  if(isNearbyMode && userLat && userLng){
+    list = list.filter(v => {
+      const d = haversine(userLat,userLng,parseLat(v),parseLng(v));
+      return d <= NEARBY_RADIUS_M;
+    });
+  }
+
+  if(list.length===0){
+    const empty = document.getElementById('empty-state');
+    const e2 = empty.cloneNode(true);
+    e2.style.display='flex';
+    container.appendChild(e2);
+    return;
+  }
+
+  const now = new Date();
+
+  // Sort: favorites first, then by time
+  list.sort((a,b) => {
+    const af = favorites.includes(parsePlate(a))?0:1;
+    const bf = favorites.includes(parsePlate(b))?0:1;
+    return af-bf;
+  });
+
+  // Split early/late
+  const hour = now.getHours();
+  const early = list.filter(v => {
+    const t = parseTime(v);
+    if(!t) return true;
+    const h = new Date(t).getHours();
+    return h < 14;
+  });
+  const late = list.filter(v => {
+    const t = parseTime(v);
+    if(!t) return false;
+    const h = new Date(t).getHours();
+    return h >= 14;
+  });
+
+  const primary = hour < 14 ? early : late;
+  const secondary = hour < 14 ? late : early;
+
+  if(primary.length){
+    const hdr = document.createElement('div');
+    hdr.className = 'section-header';
+    hdr.innerHTML = hour<14?'☀️ 早班（優先顯示）':'🌙 夜班（優先顯示）';
+    container.appendChild(hdr);
+    primary.forEach((v,i) => container.appendChild(buildCard(v,i)));
+  }
+
+  if(secondary.length){
+    const hdr = document.createElement('div');
+    hdr.className = 'section-header';
+    hdr.innerHTML = hour<14?'🌙 夜班':'☀️ 早班';
+    container.appendChild(hdr);
+    secondary.forEach((v,i) => container.appendChild(buildCard(v,i+50)));
+  }
+}
+
+function buildCard(v, idx){
+  const plate = parsePlate(v);
+  const route = parseRoute(v);
+  const type = getVehicleType(v);
+  const status = getStatus(v);
+  const time = parseTime(v);
+  const isFav = favorites.includes(plate);
+  const isDone = isDoneTruck(plate);
+  const lat = parseLat(v);
+  const lng = parseLng(v);
+
+  const card = document.createElement('div');
+  card.className = 'vcard';
+  card.setAttribute('data-status', status);
+  card.style.animationDelay = (idx*0.04)+'s';
+
+  let statusLabel, statusClass;
+  if(status==='moving'){statusLabel='移動中';statusClass='moving';}
+  else if(status==='idle'){statusLabel='定點停車';statusClass='idle';}
+  else if(status==='returning'){statusLabel='返回途中';statusClass='returning';}
+  else{statusLabel='離線/逾時';statusClass='offline';}
+
+  let timeAgo = '';
+  if(time){
+    try{
+      const d = new Date(time);
+      const diff = Math.round((new Date()-d)/60000);
+      if(diff<1) timeAgo='剛剛';
+      else if(diff<60) timeAgo=diff+'分前';
+      else timeAgo=Math.floor(diff/60)+'時前';
+    }catch(e){}
+  }
+
+  const truckSvg = type==='recycle' ? recycleTruckSVG(90,1) : garbageTruckSVG(90,1);
+  const typeTag = type==='recycle'
+    ? '<span class="tag-class recycle">♻ 回收車</span>'
+    : '<span class="tag-class">🚛 垃圾車</span>';
+
+  card.innerHTML = `
+    ${isDone?'<div class="badge-done">✓ 今日任務完成</div>':''}
+    <div class="vcard-icon">${truckSvg}</div>
+    <div class="vcard-body">
+      <div class="vcard-plate">${plate}</div>
+      <div class="vcard-route">${route}</div>
+      <div class="vcard-meta">
+        <div class="status-dot"></div>
+        <span class="status-text ${statusClass}">${statusLabel}</span>
+        ${typeTag}
+        ${timeAgo?`<span class="vcard-time">${timeAgo}</span>`:''}
+      </div>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <button onclick="goToVehicle(${lat},${lng},'${plate}')" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--card-border);background:var(--card);color:var(--accent);cursor:pointer;font-family:var(--font)">📍 地圖定位</button>
+        <button onclick="shareVehicle('${plate}','${route}')" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--card-border);background:var(--card);color:var(--text2);cursor:pointer;font-family:var(--font)">📤 分享</button>
+        ${!isDone?`<button onclick="markDone('${plate}',this)" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,215,0,0.3);background:rgba(255,215,0,0.08);color:var(--amber);cursor:pointer;font-family:var(--font)">✅ 今日已倒垃圾</button>`:''}
+      </div>
+    </div>
+    <div class="vcard-actions">
+      <button class="btn-heart ${isFav?'fav':''}" onclick="toggleFav('${plate}',this)">
+        <svg viewBox="0 0 24 24" fill="${isFav?'currentColor':'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+        </svg>
+      </button>
+    </div>`;
+
+  card.querySelector('.vcard-icon').addEventListener('click', () => goToVehicle(lat,lng,plate));
+  return card;
+}
+
+// ============================================================
+// ACTIONS
+// ============================================================
+function goToVehicle(lat, lng, plate){
+  switchTab('radar');
+  map.setView([lat,lng],16,{animate:true});
+  if(markers[plate]) markers[plate].marker.openPopup();
+}
+
+function toggleFav(plate, btn){
+  const idx = favorites.indexOf(plate);
+  if(idx>=0){ favorites.splice(idx,1); btn.classList.remove('fav'); btn.querySelector('path').setAttribute('fill','none'); }
+  else{ favorites.push(plate); btn.classList.add('fav'); btn.querySelector('path').setAttribute('fill','currentColor'); }
+  localStorage.setItem('rdr_fav', JSON.stringify(favorites));
+  renderList();
+}
+
+function shareVehicle(plate, route){
+  if(navigator.share){
+    navigator.share({title:'全糖清運雷達',text:`🚛 ${plate}（${route}）目前在線，快去倒垃圾！`,url:location.href})
+      .catch(e=>console.log('分享取消:',e));
+  } else {
+    const txt = `🚛 ${plate}（${route}）目前在線！\n全糖清運雷達：${location.href}`;
+    navigator.clipboard?.writeText(txt).then(()=>alert('已複製到剪貼板！'));
+  }
+}
+
+function markDone(plate, btn){
+  const today = new Date().toDateString();
+  if(!doneTrucks[today]) doneTrucks[today] = [];
+  if(!doneTrucks[today].includes(plate)) doneTrucks[today].push(plate);
+  localStorage.setItem('rdr_done', JSON.stringify(doneTrucks));
+  renderList();
+}
+
+function isDoneTruck(plate){
+  const today = new Date().toDateString();
+  return !!(doneTrucks[today] && doneTrucks[today].includes(plate));
+}
+
+window.goToVehicle = goToVehicle;
+window.toggleFav = toggleFav;
+window.shareVehicle = shareVehicle;
+window.markDone = markDone;
+
+// ============================================================
+// WEATHER
+// ============================================================
+async function fetchWeather(){
+  try{
+    const r = await fetch(WEATHER_URL);
+    const json = await r.json();
+    const c = json.current;
+    weatherData = c;
+    updateWeatherUI(c);
+    console.log('[Radar] 天氣資料:', c);
+  } catch(e){
+    console.log('[Radar] 天氣讀取失敗:', e.message);
+  }
+}
+
+function updateWeatherUI(c){
+  if(!c) return;
+  const temp = Math.round(c.temperature_2m);
+  const rain = c.rain||0;
+  const humidity = c.relative_humidity_2m||0;
+  const code = c.weather_code||0;
+  const icon = wxIcon(code);
+  const desc = wxDesc(code);
+
+  // Settings weather
+  document.getElementById('w-icon').textContent = icon;
+  document.getElementById('w-temp').textContent = temp;
+  document.getElementById('w-desc').textContent = `${desc} · 濕度 ${humidity}%`;
+
+  const alertsEl = document.getElementById('w-alerts');
+  alertsEl.innerHTML = '';
+  if(rain>0 || code>=51){
+    alertsEl.innerHTML += `<div class="weather-alert-card rain">🌧️ 警告：台南目前正在下雨！出門請攜帶雨具！</div>`;
+  }
+  if(temp>33){
+    alertsEl.innerHTML += `<div class="weather-alert-card hot">☀️ 提示：目前台南氣溫高達 ${temp}°C，注意防曬！</div>`;
+  }
+  if(temp>30 && humidity>70){
+    alertsEl.innerHTML += `<div class="weather-alert-card humid">😷 提醒：今日天氣悶熱／體感不佳，出門請配戴口罩並快去快回</div>`;
+  }
+
+  // Inline weather bar
+  let alerts = '';
+  if(rain>0||code>=51) alerts += ' 🌧️ 下雨中';
+  if(temp>33) alerts += ` ☀️ ${temp}°C高溫`;
+  document.getElementById('weather-inline').innerHTML =
+    `${icon} ${temp}°C · ${desc} · 濕度${humidity}%<span class="weather-alert">${alerts}</span>`;
+}
+
+// ============================================================
+// COUNTDOWN & PROGRESS BAR
+// ============================================================
+function startCountdown(){
+  if(countdownTimer) clearInterval(countdownTimer);
+  countdownVal = REFRESH_SEC;
+  const cd = document.getElementById('countdown');
+  const bar = document.getElementById('progress-bar');
+  countdownTimer = setInterval(()=>{
+    countdownVal--;
+    cd.textContent = countdownVal+'s';
+    bar.style.width = (countdownVal/REFRESH_SEC*100)+'%';
+    if(countdownVal<=5){
+      cd.classList.add('urgent');
+      bar.classList.add('urgent');
+    } else {
+      cd.classList.remove('urgent');
+      bar.classList.remove('urgent');
+    }
+    if(countdownVal<=0){
+      countdownVal = REFRESH_SEC;
+      fetchVehicles().then(()=>startCountdown());
+    }
+  },1000);
+}
+
+// ============================================================
+// TODAY BANNER
+// ============================================================
+function updateTodayBanner(){
+  const day = new Date().getDay();
+  const info = COLLECTION_INFO[day];
+  const banner = document.getElementById('today-banner');
+  banner.textContent = info.icon + ' ' + info.label;
+
+  const restBanner = document.getElementById('rest-banner');
+  restBanner.style.display = info.rest ? 'block' : 'none';
+}
+
+// ============================================================
+// TAB SWITCHING
+// ============================================================
+function switchTab(tab){
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab)?.classList.add('active');
+
+  const panel = document.getElementById('panel');
+  const settings = document.getElementById('settings');
+  const locate = document.getElementById('btn-locate');
+
+  if(tab==='radar'){
+    panel.classList.remove('show');
+    settings.classList.remove('show');
+    locate.style.display='flex';
+    map.invalidateSize();
+  } else if(tab==='list'){
+    panel.classList.add('show');
+    settings.classList.remove('show');
+    locate.style.display='none';
+    renderList();
+  } else if(tab==='settings'){
+    settings.classList.add('show');
+    panel.classList.remove('show');
+    locate.style.display='none';
+    if(weatherData) updateWeatherUI(weatherData);
+  }
+}
+
+// ============================================================
+// SEARCH & CHIPS
+// ============================================================
+document.getElementById('search-input').addEventListener('input', function(){
+  searchText = this.value;
+  if(currentTab==='list') renderList();
+});
+
+document.querySelectorAll('.chip[data-dist]').forEach(chip => {
+  chip.addEventListener('click', function(){
+    document.querySelectorAll('.chip[data-dist]').forEach(c=>c.classList.remove('active'));
+    this.classList.add('active');
+    activeDistrict = this.dataset.dist;
+    localStorage.setItem('rdr_dist', activeDistrict);
+    isNearbyMode = false;
+    renderList();
+  });
+});
+
+// Restore saved district
+if(activeDistrict && activeDistrict !== 'all'){
+  document.querySelectorAll('.chip[data-dist]').forEach(c=>{
+    if(c.dataset.dist === activeDistrict){ c.classList.add('active'); }
+    else c.classList.remove('active');
+  });
+}
+
+// ============================================================
+// NEARBY
+// ============================================================
+document.getElementById('btn-nearby').addEventListener('click', function(){
+  if(!navigator.geolocation){ alert('無法取得位置，請確認定位權限'); return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    userLat = pos.coords.latitude;
+    userLng = pos.coords.longitude;
+    isNearbyMode = !isNearbyMode;
+    this.textContent = isNearbyMode ? '❌ 取消周邊篩選' : '📍 搜尋周邊車輛';
+    this.style.background = isNearbyMode ? 'rgba(0,255,136,0.15)' : '';
+    renderList();
+    if(isNearbyMode){
+      const nearby = vehicles.filter(v => haversine(userLat,userLng,parseLat(v),parseLng(v))<=NEARBY_RADIUS_M);
+      if(nearby.length){
+        const bounds = L.latLngBounds(nearby.map(v=>[parseLat(v),parseLng(v)]));
+        bounds.extend([userLat,userLng]);
+        map.fitBounds(bounds, {padding:[40,40]});
+      }
+      switchTab('radar');
+    }
+  }, ()=>alert('請允許定位權限以使用周邊搜尋'));
+});
+
+// ============================================================
+// LOCATE BUTTON
+// ============================================================
+document.getElementById('btn-locate').addEventListener('click', () => {
+  if(!navigator.geolocation){ alert('無法取得定位權限'); return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    userLat = pos.coords.latitude;
+    userLng = pos.coords.longitude;
+    map.setView([userLat,userLng],15,{animate:true});
+    L.circle([userLat,userLng],{radius:500,color:'#00FF88',fillColor:'#00FF88',fillOpacity:.08,weight:1.5}).addTo(map);
+    L.marker([userLat,userLng],{
+      icon: L.divIcon({
+        html:'<div style="width:16px;height:16px;border-radius:50%;background:#00FF88;border:3px solid #fff;box-shadow:0 0 12px rgba(0,255,136,0.5)"></div>',
+        className:'',iconSize:[16,16],iconAnchor:[8,8]
+      })
+    }).addTo(map);
+  }, ()=>alert('請允許定位權限'));
+});
+
+// ============================================================
+// TORCH
+// ============================================================
+document.getElementById('btn-torch').addEventListener('click', toggleTorch);
+document.getElementById('torch-toggle').addEventListener('click', toggleTorch);
+
+async function toggleTorch(){
+  if(torchOn){
+    if(torchStream){ torchStream.getTracks().forEach(t=>t.stop()); torchStream=null; }
+    torchOn=false;
+    document.getElementById('torch-toggle').classList.remove('on');
+    document.getElementById('torch-status').textContent='點擊開啟閃光燈';
+  } else {
+    try{
+      torchStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+      const track = torchStream.getVideoTracks()[0];
+      await track.applyConstraints({advanced:[{torch:true}]});
+      torchOn=true;
+      document.getElementById('torch-toggle').classList.add('on');
+      document.getElementById('torch-status').textContent='手電筒開啟中（點擊關閉）';
+    } catch(e){
+      console.log('[Radar] 手電筒錯誤:', e.message);
+      alert('無法開啟手電筒，請確認相機權限或裝置是否支援');
+    }
+  }
+}
+
+// ============================================================
+// THEME TOGGLE
+// ============================================================
+let isDark = true;
+document.getElementById('btn-theme').addEventListener('click', toggleTheme);
+document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+
+function toggleTheme(){
+  isDark = !isDark;
+  document.documentElement.setAttribute('data-theme', isDark?'dark':'light');
+  document.getElementById('theme-toggle').classList.toggle('on', !isDark);
+  document.getElementById('theme-status').textContent = isDark?'目前：深色模式':'目前：明亮模式';
+  setMapTiles(isDark);
+  localStorage.setItem('rdr_theme', isDark?'dark':'light');
+}
+
+// Restore theme
+const savedTheme = localStorage.getItem('rdr_theme');
+if(savedTheme === 'light'){
+  isDark = false;
+  document.documentElement.setAttribute('data-theme','light');
+  document.getElementById('theme-toggle').classList.add('on');
+  document.getElementById('theme-status').textContent='目前：明亮模式';
+}
+
+// ============================================================
+// DISCLAIMER TOGGLE
+// ============================================================
+function toggleDisclaimer(){
+  const hdr = document.getElementById('disclaimer-header');
+  const body = document.getElementById('disclaimer-body');
+  hdr.classList.toggle('open');
+  body.classList.toggle('open');
+}
+window.toggleDisclaimer = toggleDisclaimer;
+
+// ============================================================
+// MODAL
+// ============================================================
+document.getElementById('btn-tutorial').addEventListener('click', ()=>{
+  document.getElementById('modal-overlay').classList.add('show');
+});
+function closeModal(e){
+  if(e.target===document.getElementById('modal-overlay')){
+    document.getElementById('modal-overlay').classList.remove('show');
+  }
+}
+function closeModalBtn(){
+  document.getElementById('modal-overlay').classList.remove('show');
+}
+window.closeModal = closeModal;
+window.closeModalBtn = closeModalBtn;
+
+// ============================================================
+// CLEAR DONE
+// ============================================================
+document.getElementById('btn-clear-done').addEventListener('click', ()=>{
+  doneTrucks = {};
+  localStorage.removeItem('rdr_done');
+  renderList();
+  alert('已清除所有今日任務記憶');
+});
+
+// ============================================================
+// ONLINE/OFFLINE
+// ============================================================
+window.addEventListener('online', ()=>{
+  isOnline = true;
+  document.getElementById('offline-banner').style.display='none';
+  fetchVehicles();
+  console.log('[Radar] 恢復連線');
+});
+window.addEventListener('offline', ()=>{
+  isOnline = false;
+  console.log('[Radar] 網路斷線');
+  showOfflineTimetable();
+});
+
+// ============================================================
+// SEARCH INPUT TRIGGERS LIST
+// ============================================================
+document.getElementById('search-input').addEventListener('focus', ()=>{
+  if(currentTab==='radar') switchTab('list');
+});
+
+// ============================================================
+// BOOT
+// ============================================================
+async function boot(){
+  initMap();
+  updateTodayBanner();
+  await fetchVehicles();
+  fetchWeather();
+  setInterval(fetchWeather, 10*60*1000);
+  startCountdown();
+
+  // Set initial chip
+  document.querySelectorAll('.chip[data-dist]').forEach(c=>{
+    c.classList.toggle('active', c.dataset.dist === activeDistrict);
+  });
+
+  // Show first tab
+  switchTab('radar');
+  document.getElementById('tab-radar').classList.add('active');
+
+  // Show first-time tutorial
+  if(!localStorage.getItem('rdr_seen')){
+    setTimeout(()=>{
+      document.getElementById('modal-overlay').classList.add('show');
+      localStorage.setItem('rdr_seen','1');
+    }, 1500);
+  }
+
+  // Hide loading
+  setTimeout(()=>{
+    document.getElementById('loading').classList.add('hide');
+    setTimeout(()=>document.getElementById('loading').remove(), 600);
+  }, 800);
+
+  console.log('[Radar] 全糖清運雷達啟動完成 🚛');
+}
+
+boot();
+</script>
+</body>
+</html>
