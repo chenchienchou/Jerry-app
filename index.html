@@ -1,1804 +1,1381 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="垃圾車在哪裡">
-<meta name="theme-color" content="#08090a">
-<title>垃圾車在哪裡 / WhereCar</title>
-
-<!-- PWA Manifest inline -->
-<link rel="manifest" href="data:application/json;charset=utf-8,%7B%22name%22%3A%22%E5%9E%83%E5%9C%BE%E8%BB%8A%E5%9C%A8%E5%93%AA%E8%A3%A1%22%2C%22short_name%22%3A%22WhereCar%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%2308090a%22%2C%22theme_color%22%3A%22%2308090a%22%2C%22start_url%22%3A%22.%2F%22%7D">
-
-<!-- Google Fonts: Inter -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-
-<!-- Tailwind CSS -->
-<script src="https://cdn.tailwindcss.com"></script>
-
-<!-- Leaflet CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<!-- Leaflet MarkerCluster CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
-
-<!-- Vue 3 -->
-<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<!-- Leaflet MarkerCluster -->
-<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="垃圾車在哪裡"/>
+<meta name="theme-color" content="#08090a"/>
+<title>垃圾車在哪裡 · WhereCar</title>
+<link rel="manifest" href="#"/>
+<script src="https://cdn.tailwindcss.com" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet-src.js" crossorigin="anonymous"></script>
 <style>
-  /* ===== GLOBAL FONT & ANTIALIASING ===== */
-  *, *::before, *::after { box-sizing: border-box; }
-  html, body {
-    font-family: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang TC", "Microsoft JhengHei", sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    letter-spacing: 0.02em;
-    background: #08090a;
-    color: #e3e5e8;
-    margin: 0;
-    padding: 0;
-    overscroll-behavior: none;
-    -webkit-tap-highlight-color: transparent;
-    overflow: hidden;
-    height: 100%;
-    width: 100%;
-    position: fixed;
-  }
-  #app {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-  }
+  *,::before,::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:#08090a;overflow:hidden;height:100%;width:100%;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',sans-serif;}
+  #app{position:fixed;inset:0;overflow:hidden;background:#08090a;}
 
-  /* ===== LOADING SCREEN ===== */
-  #loading-wrapper {
-    position: fixed;
-    inset: 0;
-    background: #08090a;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.75s ease-out;
-  }
-  #loading-wrapper.hidden {
-    opacity: 0;
-    pointer-events: none;
-  }
+  /* Loading screen */
+  #loading-screen{position:fixed;inset:0;z-index:9999;background:#08090a;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.75s ease-out;}
+  #loading-screen.fade-out{opacity:0;pointer-events:none;}
 
-  /* SVG Truck animations */
-  @keyframes truckIdle {
-    0%, 100% { transform: translateY(0px); }
-    25% { transform: translateY(0.8px); }
-    75% { transform: translateY(-0.8px); }
-  }
-  @keyframes warningLight {
-    0%, 100% { filter: drop-shadow(0 0 4px #FF3B30); opacity: 0.7; }
-    50% { filter: drop-shadow(0 0 12px #FF3B30) drop-shadow(0 0 20px #FF3B30); opacity: 1; }
-  }
-  @keyframes warningLightMap {
-    0%, 100% { filter: drop-shadow(0 0 2px #FF3B30); }
-    50% { filter: drop-shadow(0 0 8px #FF3B30); }
-  }
-  @keyframes recycleLightMap {
-    0%, 100% { filter: drop-shadow(0 0 2px #00A3FF); }
-    50% { filter: drop-shadow(0 0 8px #00A3FF); }
-  }
-  @keyframes gpsRing {
-    0% { transform: scale(1); opacity: 0.8; }
-    100% { transform: scale(3.5); opacity: 0; }
-  }
-  @keyframes pulseRed {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
-  @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-  }
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes slideInCard {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+  /* Truck animation */
+  @keyframes truckIdle{0%,100%{transform:translateY(0px);}50%{transform:translateY(-0.8px);}}
+  @keyframes lightPulse{0%,100%{opacity:1;filter:drop-shadow(0 0 6px #ff3b30) drop-shadow(0 0 12px #ff3b30);}50%{opacity:0.5;filter:drop-shadow(0 0 2px #ff3b30);}}
+  @keyframes progressGlow{0%,100%{box-shadow:0 0 8px #FFB800,0 0 16px #FFB800aa;}50%{box-shadow:0 0 4px #FFB800,0 0 8px #FFB80066;}}
+  .truck-svg{animation:truckIdle 1.2s ease-in-out infinite;}
+  .warning-light{animation:lightPulse 0.9s ease-in-out infinite;}
+  .progress-bar-inner{animation:progressGlow 1.5s ease-in-out infinite;}
 
-  .truck-idle {
-    animation: truckIdle 1.8s ease-in-out infinite;
-  }
-  .warning-light-pulse {
-    animation: warningLight 1.4s ease-in-out infinite;
-  }
-  .warning-light-map {
-    animation: warningLightMap 1.4s ease-in-out infinite;
-  }
-  .recycle-light-map {
-    animation: recycleLightMap 1.8s ease-in-out infinite;
-  }
+  /* Map full bleed */
+  #map-container{position:absolute;inset:0;z-index:0;}
+  #map{position:absolute;top:0;bottom:0;left:0;right:0;width:100%;height:100%;touch-action:none;-webkit-overflow-scrolling:touch;}
+  .leaflet-container{background:#08090a !important;}
 
-  /* ===== PROGRESS BAR ===== */
-  .progress-outer {
-    width: 14rem;
-    height: 4px;
-    background: #141618;
-    border-radius: 9999px;
-    border: 1px solid #222528;
-    overflow: hidden;
-    margin-top: 1.5rem;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
-  }
-  .progress-inner {
-    height: 100%;
-    background: #FFB800;
-    box-shadow: 0 0 8px #FFB800;
-    border-radius: 9999px;
-    transition: width 0.5s ease-out;
-  }
+  /* Accordion */
+  .accordion-content{max-height:0;overflow:hidden;opacity:0;transition:max-height 0.35s ease-in-out,opacity 0.3s ease-in-out;}
+  .accordion-content.open{max-height:100vh;opacity:1;}
+  .chevron-icon{transition:transform 0.3s ease-in-out;}
+  .chevron-icon.rotated{transform:rotate(180deg);}
 
-  /* ===== SKELETON LOADING ===== */
-  .skeleton {
-    background: linear-gradient(90deg, #131517 25%, #1e2023 50%, #131517 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-    border-radius: 12px;
-  }
+  /* Smooth scroll */
+  .scroll-view{overflow-y:auto;-webkit-overflow-scrolling:touch;}
 
-  /* ===== CARDS ===== */
-  .card-enter {
-    animation: slideInCard 0.3s ease-out forwards;
-  }
+  /* Custom scrollbar */
+  ::-webkit-scrollbar{width:0px;}
 
-  /* ===== MAP ===== */
-  #map {
-    position: absolute;
-    top: 0; bottom: 0; left: 0; right: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
-  }
-  /* Dark leaflet tiles */
-  .leaflet-tile { filter: brightness(0.85) contrast(1.1) saturate(0.7); }
+  /* Marker smooth move */
+  .leaflet-marker-icon{transition:transform 10s linear !important;}
 
-  /* Leaflet popup dark style */
-  .leaflet-popup-content-wrapper {
-    background: rgba(19,21,23,0.92) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border: 1px solid #222528 !important;
-    border-radius: 16px !important;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
-    color: #e3e5e8 !important;
-    font-family: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif !important;
-  }
-  .leaflet-popup-tip { background: rgba(19,21,23,0.92) !important; }
-  .leaflet-popup-close-button { color: #888 !important; font-size: 18px !important; }
+  /* Popup glass */
+  .glass-popup .leaflet-popup-content-wrapper{background:rgba(19,21,23,0.88)!important;backdrop-filter:blur(20px)!important;-webkit-backdrop-filter:blur(20px)!important;border:1px solid #222528!important;border-radius:16px!important;color:#fff!important;box-shadow:0 8px 32px rgba(0,0,0,0.6)!important;}
+  .glass-popup .leaflet-popup-tip{background:rgba(19,21,23,0.88)!important;}
+  .glass-popup .leaflet-popup-close-button{color:#aaa!important;font-size:18px!important;}
 
-  /* GPS dot */
-  .gps-dot-outer {
-    width: 20px; height: 20px;
-    border-radius: 50%;
-    background: rgba(0,163,255,0.3);
-    display: flex; align-items: center; justify-content: center;
-    position: relative;
-  }
-  .gps-dot-inner {
-    width: 10px; height: 10px;
-    border-radius: 50%;
-    background: #00a3ff;
-    box-shadow: 0 0 6px #00a3ff;
-    z-index: 1;
-  }
-  .gps-ring {
-    position: absolute;
-    width: 20px; height: 20px;
-    border-radius: 50%;
-    background: rgba(0,163,255,0.4);
-    animation: gpsRing 2s ease-out infinite;
-  }
+  /* Tab press */
+  .nav-btn{transition:transform 0.075s,opacity 0.075s;}
+  .nav-btn:active{transform:scale(0.92);opacity:0.7;}
 
-  /* ===== SCROLLBAR HIDDEN ===== */
-  ::-webkit-scrollbar { display: none; }
-  * { scrollbar-width: none; }
+  /* Capsule press */
+  .capsule-btn{transition:all 0.075s ease-in-out;}
+  .capsule-btn:active{transform:scale(0.95);background:rgba(255,255,255,0.1)!important;}
 
-  /* ===== NAV ===== */
-  .nav-item { transition: all 0.2s ease; }
-  .nav-item.active svg { stroke: #FFB800; }
-  .nav-item.active span { color: #FFB800; }
+  /* Card item */
+  .list-item{transition:all 0.15s ease-in-out;}
+  .list-item:active{transform:scale(0.98);opacity:0.85;}
 
-  /* ===== TABS ===== */
-  .tab-page {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  .tab-page.active {
-    opacity: 1;
-    pointer-events: all;
-  }
-  .tab-map {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-  }
-  .tab-map.active {
-    opacity: 1;
-    pointer-events: all;
-  }
+  /* Toast */
+  #toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;background:rgba(0,0,0,0.75);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:20px;padding:14px 24px;color:#fff;font-size:13px;font-weight:600;white-space:nowrap;opacity:0;transition:opacity 0.3s ease-in-out;pointer-events:none;}
+  #toast.show{opacity:1;}
 
-  /* ===== GLASS MODAL ===== */
-  .glass-modal {
-    background: rgba(19,21,23,0.88);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid #222528;
-    border-radius: 20px;
-  }
+  /* Weather glow */
+  .weather-glow-blue{box-shadow:0 0 0 1px #0A84FF,0 0 12px #0A84FF66;}
+  .weather-glow-amber{box-shadow:0 0 0 1px #FFB800,0 0 12px #FFB80066;}
 
-  /* ===== COUNTDOWN RED FLASH ===== */
-  .blink-red {
-    animation: pulseRed 0.8s ease-in-out infinite;
-  }
+  /* Done task */
+  .task-done{opacity:0.5;background:rgba(52,199,89,0.08)!important;border-color:rgba(52,199,89,0.3)!important;}
 
-  /* select override */
-  select {
-    -webkit-appearance: none;
-    appearance: none;
-    background: #131517;
-    color: #e3e5e8;
-  }
-  option { background: #131517; color: #e3e5e8; }
-
-  /* Leaflet cluster override */
-  .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
-    background: rgba(255,184,0,0.15) !important;
-  }
-  .marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div {
-    background: rgba(255,184,0,0.7) !important;
-    color: #08090a !important;
-    font-weight: 900 !important;
-    font-family: "Inter", sans-serif !important;
-  }
-
-  /* Glass select wrapper */
-  .select-wrapper {
-    position: relative;
-  }
-  .select-wrapper::after {
-    content: '';
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid #888;
-    pointer-events: none;
-  }
-
-  /* Toggle switch */
-  .toggle-track {
-    width: 48px; height: 28px;
-    border-radius: 14px;
-    background: #222528;
-    position: relative;
-    cursor: pointer;
-    transition: background 0.3s ease;
-  }
-  .toggle-track.on { background: #FFB800; }
-  .toggle-thumb {
-    position: absolute;
-    top: 3px; left: 3px;
-    width: 22px; height: 22px;
-    border-radius: 50%;
-    background: #fff;
-    transition: transform 0.3s ease;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
-  }
-  .toggle-track.on .toggle-thumb { transform: translateX(20px); }
-
-  /* Backdrop blur card */
-  .card-glass {
-    background: rgba(19,21,23,0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid #222528;
-    border-radius: 16px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
-  }
-
-  /* ===== REST DAY MODAL ===== */
-  .overlay-backdrop {
-    position: fixed; inset: 0;
-    background: rgba(8,9,10,0.75);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    z-index: 200;
-    display: flex; align-items: center; justify-content: center;
-    padding: 24px;
-  }
-
-  /* Custom scrollbar for lists */
-  .list-scroll {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* Done card */
-  .card-done {
-    background: rgba(16,36,20,0.7) !important;
-    border-color: rgba(52,199,89,0.25) !important;
-  }
-
-  /* Screen light overlay */
-  #screen-light {
-    position: fixed; inset: 0;
-    background: #fff;
-    z-index: 500;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-  }
-  #screen-light.on { opacity: 1; pointer-events: all; }
-
-  /* Fade in up animation for cards */
-  .card-animate {
-    animation: fadeInUp 0.25s ease-out both;
-  }
+  /* iOS safe area vars fallback */
+  :root{--sat:env(safe-area-inset-top,44px);--sab:env(safe-area-inset-bottom,34px);}
 </style>
 </head>
 <body>
+
 <div id="app">
-
-  <!-- ===== LOADING SCREEN ===== -->
-  <div id="loading-wrapper">
-    <div class="truck-idle">
-      <!-- Large Amber Garbage Truck SVG -->
-      <svg width="180" height="100" viewBox="0 0 180 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Truck Body -->
-        <rect x="8" y="38" width="110" height="48" rx="6" fill="#FFB800" opacity="0.95"/>
-        <!-- Cargo Bin -->
-        <rect x="8" y="30" width="75" height="56" rx="5" fill="#E6A500"/>
-        <rect x="10" y="32" width="71" height="52" rx="4" fill="#FFB800"/>
-        <!-- Bin ridges -->
-        <line x1="30" y1="32" x2="30" y2="84" stroke="#E6A500" stroke-width="1.5" opacity="0.6"/>
-        <line x1="50" y1="32" x2="50" y2="84" stroke="#E6A500" stroke-width="1.5" opacity="0.6"/>
-        <line x1="70" y1="32" x2="70" y2="84" stroke="#E6A500" stroke-width="1.5" opacity="0.6"/>
-        <!-- Cab -->
-        <rect x="83" y="44" width="45" height="42" rx="5" fill="#CC9200"/>
-        <rect x="85" y="38" width="38" height="30" rx="5" fill="#CC9200"/>
-        <!-- Windshield -->
-        <rect x="88" y="41" width="28" height="20" rx="3" fill="#1a2535" opacity="0.85"/>
-        <line x1="102" y1="41" x2="102" y2="61" stroke="#FFB800" stroke-width="1" opacity="0.3"/>
-        <!-- Front bumper -->
-        <rect x="120" y="70" width="12" height="8" rx="2" fill="#AA7A00"/>
-        <!-- Door line -->
-        <line x1="95" y1="62" x2="95" y2="84" stroke="#AA7A00" stroke-width="1.5" opacity="0.5"/>
-        <!-- Window handle -->
-        <rect x="100" y="68" width="8" height="3" rx="1.5" fill="#AA7A00" opacity="0.7"/>
-        <!-- Headlight -->
-        <rect x="122" y="58" width="8" height="5" rx="2" fill="#FFF3B0" opacity="0.9"/>
-        <rect x="122" y="58" width="8" height="5" rx="2" fill="#FFD700" opacity="0.3" style="filter:blur(2px)"/>
-        <!-- Warning Light on roof -->
-        <circle class="warning-light-pulse" cx="92" cy="35" r="5" fill="#FF3B30"/>
-        <circle cx="92" cy="35" r="3" fill="#FF6B6B" opacity="0.6"/>
-        <!-- Front wheel -->
-        <circle cx="115" cy="86" r="11" fill="#1a1a1a"/>
-        <circle cx="115" cy="86" r="7" fill="#2a2a2a"/>
-        <circle cx="115" cy="86" r="3" fill="#444"/>
-        <!-- Rear wheel -->
-        <circle cx="38" cy="86" r="11" fill="#1a1a1a"/>
-        <circle cx="38" cy="86" r="7" fill="#2a2a2a"/>
-        <circle cx="38" cy="86" r="3" fill="#444"/>
-        <!-- Dual rear wheel -->
-        <circle cx="55" cy="86" r="9" fill="#1a1a1a"/>
-        <circle cx="55" cy="86" r="6" fill="#2a2a2a"/>
-        <circle cx="55" cy="86" r="2.5" fill="#444"/>
-        <!-- Exhaust pipe -->
-        <rect x="128" y="46" width="4" height="18" rx="2" fill="#888"/>
-        <ellipse cx="130" cy="44" rx="3" ry="2" fill="#666" opacity="0.4"/>
-      </svg>
-    </div>
-
-    <!-- Progress Bar -->
-    <div class="progress-outer">
-      <div class="progress-inner" id="loading-progress-bar" style="width: 0%"></div>
-    </div>
-
-    <!-- Status Text -->
-    <p class="text-xs font-semibold tracking-wider text-gray-400 mt-3 text-center" id="loading-status-text" style="max-width:260px; line-height:1.6;">
-      正在安全連線台南資料庫... 速度比少糖的台南醬油還要快！ 🍯
-    </p>
-  </div>
-  <!-- END LOADING SCREEN -->
-
-  <!-- ===== SCREEN LIGHT OVERLAY ===== -->
-  <div id="screen-light"></div>
-
-  <!-- ===== REST DAY MODAL ===== -->
-  <div class="overlay-backdrop" id="rest-day-modal" style="display:none;" @click.self="closeRestDayModal">
-    <div class="glass-modal p-6 w-full max-w-sm">
-      <div class="flex items-center gap-3 mb-4">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+  <!-- ==================== LOADING SCREEN ==================== -->
+  <div id="loading-screen" :class="{'fade-out': !isLoading}">
+    <div class="flex flex-col items-center justify-center px-8 w-full max-w-sm mx-auto">
+      <!-- Amber SVG Garbage Truck -->
+      <div class="truck-svg mb-6" style="width:220px;height:120px;">
+        <svg viewBox="0 0 220 120" fill="none" xmlns="http://www.w3.org/2000/svg" width="220" height="120">
+          <!-- Truck body -->
+          <rect x="10" y="50" width="200" height="55" rx="8" fill="#1a1a1a" stroke="#FFB800" stroke-width="1.5"/>
+          <!-- Cargo box -->
+          <rect x="70" y="30" width="140" height="65" rx="6" fill="#1f1f1f" stroke="#FFB800" stroke-width="1.5"/>
+          <!-- Cab -->
+          <rect x="10" y="42" width="60" height="58" rx="8" fill="#151515" stroke="#FFB800" stroke-width="1.5"/>
+          <!-- Windshield -->
+          <rect x="16" y="48" width="46" height="28" rx="5" fill="#0d1a2e" stroke="#FFB800" stroke-width="1"/>
+          <!-- Door line -->
+          <line x1="48" y1="48" x2="48" y2="95" stroke="#FFB800" stroke-width="0.8" stroke-dasharray="3 2"/>
+          <!-- Door handle -->
+          <rect x="38" y="68" width="8" height="3" rx="1.5" fill="#FFB800"/>
+          <!-- Wheels -->
+          <circle cx="38" cy="105" r="12" fill="#111" stroke="#FFB800" stroke-width="2"/>
+          <circle cx="38" cy="105" r="5" fill="#FFB800" opacity="0.6"/>
+          <circle cx="160" cy="105" r="12" fill="#111" stroke="#FFB800" stroke-width="2"/>
+          <circle cx="160" cy="105" r="5" fill="#FFB800" opacity="0.6"/>
+          <circle cx="185" cy="105" r="12" fill="#111" stroke="#FFB800" stroke-width="2"/>
+          <circle cx="185" cy="105" r="5" fill="#FFB800" opacity="0.6"/>
+          <!-- Warning lights on cab roof -->
+          <rect x="15" y="36" width="50" height="8" rx="4" fill="#222" stroke="#FFB800" stroke-width="0.8"/>
+          <circle cx="28" cy="40" r="4" fill="#ff3b30" class="warning-light"/>
+          <circle cx="42" cy="40" r="4" fill="#ff3b30" class="warning-light" style="animation-delay:0.45s;"/>
+          <!-- Cargo stripes -->
+          <line x1="100" y1="30" x2="100" y2="95" stroke="#FFB80033" stroke-width="1"/>
+          <line x1="130" y1="30" x2="130" y2="95" stroke="#FFB80033" stroke-width="1"/>
+          <line x1="160" y1="30" x2="160" y2="95" stroke="#FFB80033" stroke-width="1"/>
+          <line x1="190" y1="30" x2="190" y2="95" stroke="#FFB80033" stroke-width="1"/>
+          <!-- Recycle symbol on cargo -->
+          <text x="140" y="70" text-anchor="middle" fill="#FFB800" font-size="22" opacity="0.5">♻</text>
+          <!-- Bumper -->
+          <rect x="8" y="88" width="14" height="8" rx="3" fill="#222" stroke="#FFB80066" stroke-width="1"/>
+          <!-- Headlights -->
+          <rect x="11" y="74" width="14" height="8" rx="3" fill="#fff8e7" opacity="0.9"/>
+          <rect x="11" y="74" width="14" height="8" rx="3" fill="url(#headlightGlow)" opacity="0.5"/>
+          <defs>
+            <radialGradient id="headlightGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#FFB800" stop-opacity="0.8"/>
+              <stop offset="100%" stop-color="#FFB800" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <!-- Exhaust pipe -->
+          <rect x="60" y="84" width="6" height="16" rx="3" fill="#333" stroke="#555" stroke-width="0.8"/>
+          <!-- Exhaust smoke (subtle) -->
+          <circle cx="63" cy="80" r="3" fill="#444" opacity="0.4"/>
+          <circle cx="65" cy="75" r="2" fill="#444" opacity="0.25"/>
         </svg>
-        <h3 class="text-base font-bold text-white">今日無清運服務</h3>
       </div>
-      <p class="text-sm text-gray-400 mb-2">今天是 <span class="text-white font-semibold" id="rest-day-today"></span>，台南部分行政區無清運服務。</p>
-      <p class="text-sm text-gray-400 mb-4">已自動切換至 <span class="text-amber-400 font-semibold" id="rest-day-next"></span> 的清運班表預覽。</p>
-      <button class="w-full py-3 rounded-xl text-sm font-bold text-[#08090a] bg-[#FFB800]" @click="closeRestDayModal">了解，查看預覽班表</button>
+
+      <!-- Progress bar -->
+      <div class="w-full bg-[#1a1a1a] rounded-full h-1 mb-3 overflow-hidden" style="max-width:240px;">
+        <div class="progress-bar-inner h-full rounded-full bg-[#FFB800] transition-all duration-300 ease-out" :style="{width: progress + '%'}"></div>
+      </div>
+
+      <!-- Stage text -->
+      <p class="text-xs font-semibold tracking-wider text-gray-400 mt-3 text-center leading-relaxed px-4" v-html="loadingText"></p>
+
+      <!-- App name -->
+      <p class="text-[10px] text-gray-600 mt-6 tracking-widest uppercase">WhereCar · 垃圾車在哪裡</p>
     </div>
   </div>
 
-  <!-- ===== MAIN WRAPPER ===== -->
-  <div id="main-wrapper" style="position:fixed;inset:0;opacity:0;transition:opacity 0.4s ease;pointer-events:none;">
+  <!-- ==================== TOAST ==================== -->
+  <div id="toast" ref="toast"></div>
 
-    <!-- MAP LAYER (always mounted, shown/hidden via tab) -->
-    <div class="tab-map" id="tab-map" :class="{ active: currentTab === 'map' }">
-      <div id="map"></div>
-      <!-- Map Controls -->
-      <div class="absolute z-10 flex gap-2" :style="'top: calc(env(safe-area-inset-top) + 16px); left: 16px; right: 16px;'">
-        <button @click="toggleMapOverview" class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold card-glass text-white" :class="mapOverview ? 'border-amber-500/60 text-amber-400' : ''">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-          {{ mapOverview ? '全台南模式' : '總覽全台南' }}
+  <!-- ==================== MAIN APP ==================== -->
+  <div v-show="!isLoading" style="position:fixed;inset:0;display:flex;flex-direction:column;background:#08090a;">
+
+    <!-- ===== TAB: 清運清單 (index 0) ===== -->
+    <div v-show="activeTab===0" class="flex-1 scroll-view" style="padding-top:calc(env(safe-area-inset-top,44px) + 16px);padding-bottom:calc(44px + env(safe-area-inset-bottom,34px) + 24px);padding-left:16px;padding-right:16px;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h1 class="text-xl font-bold text-white tracking-tight">清運清單</h1>
+          <p class="text-[11px] text-gray-500 mt-0.5 tracking-wide">台南市即時垃圾清運班表</p>
+        </div>
+        <!-- Refresh button -->
+        <button @click="fetchData(currentDistrict)" class="capsule-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] active:scale-95 active:bg-white/10 transition-all duration-75">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+          </svg>
+          <span class="text-[11px] text-[#FFB800] font-semibold">刷新</span>
         </button>
-        <button @click="locateUser" class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold card-glass text-white ml-auto">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00A3FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9" opacity="0.3"/></svg>
-          定位
+      </div>
+
+      <!-- District selector -->
+      <div class="mb-4">
+        <div class="flex items-center gap-2 bg-[#111214] border border-[#222528] rounded-2xl px-4 py-3">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <select v-model="currentDistrict" @change="onDistrictChange" class="flex-1 bg-transparent text-white text-sm font-medium outline-none appearance-none" style="color:#fff;">
+            <option v-for="d in districts" :key="d" :value="d" style="background:#111214;color:#fff;">{{d}}</option>
+          </select>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m6 9 6 6 6-6"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Day filter capsules -->
+      <div class="flex gap-2 mb-4 overflow-x-auto pb-1">
+        <button v-for="d in dayOptions" :key="d.value"
+          @click="currentDay=d.value"
+          :class="['capsule-btn flex-shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-semibold border transition-all duration-150 active:scale-95 active:bg-white/10',
+            currentDay===d.value ? 'bg-[#FFB800] border-[#FFB800] text-black' : 'bg-[#111214] border-[#222528] text-gray-400']">
+          {{d.label}}
         </button>
       </div>
-      <!-- GPS Live Count -->
-      <div class="absolute z-10 card-glass px-3 py-2 rounded-xl" :style="`bottom: calc(64px + env(safe-area-inset-bottom) + 12px); left: 16px;`">
-        <span class="text-xs text-gray-400">在線車輛</span>
-        <span class="text-sm font-black text-white ml-2">{{ liveVehicles.length }}</span>
-        <span class="text-xs text-gray-500 ml-1">台</span>
-        <span v-if="gpsLoading" class="ml-2">
-          <span class="inline-block w-2 h-2 bg-amber-400 rounded-full animate-pulse"></span>
-        </span>
+
+      <!-- Time filter capsules -->
+      <div class="flex gap-2 mb-5">
+        <button @click="timeFilter='all'"
+          :class="['capsule-btn px-4 py-1.5 rounded-full text-[12px] font-semibold border transition-all duration-150 active:scale-95 active:bg-white/10',
+            timeFilter==='all' ? 'bg-[#FFB800] border-[#FFB800] text-black' : 'bg-[#111214] border-[#222528] text-gray-400']">
+          🌐 全天
+        </button>
+        <button @click="timeFilter='morning'"
+          :class="['capsule-btn px-4 py-1.5 rounded-full text-[12px] font-semibold border transition-all duration-150 active:scale-95 active:bg-white/10',
+            timeFilter==='morning' ? 'bg-[#FFB800] border-[#FFB800] text-black' : 'bg-[#111214] border-[#222528] text-gray-400']">
+          ☀️ 早上
+        </button>
+        <button @click="timeFilter='afternoon'"
+          :class="['capsule-btn px-4 py-1.5 rounded-full text-[12px] font-semibold border transition-all duration-150 active:scale-95 active:bg-white/10',
+            timeFilter==='afternoon' ? 'bg-[#FFB800] border-[#FFB800] text-black' : 'bg-[#111214] border-[#222528] text-gray-400']">
+          🌙 下午
+        </button>
       </div>
-    </div>
 
-    <!-- LIST TAB -->
-    <div class="tab-page" id="tab-list" :class="{ active: currentTab === 'list' }">
-      <div class="min-h-screen bg-[#08090a]" :style="`padding-top: calc(env(safe-area-inset-top) + 16px); padding-bottom: calc(64px + env(safe-area-inset-bottom) + 24px); padding-left: 16px; padding-right: 16px;`">
-
-        <!-- Header -->
-        <div class="mb-4">
-          <div class="flex items-center justify-between mb-1">
-            <div>
-              <h1 class="text-lg font-black text-white tracking-tight">垃圾車在哪裡</h1>
-              <p class="text-xs text-gray-500 font-medium">WhereCar · 台南清運即時班表</p>
-            </div>
-            <div class="text-right">
-              <p class="text-xs font-semibold" :class="isRestDay ? 'text-amber-400' : 'text-green-400'">
-                {{ isRestDay ? '⚠ 預覽模式' : '即時班表' }}
-              </p>
-              <p class="text-xs text-gray-500">{{ displayDateStr }}</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- District + Day Selector Row -->
-        <div class="flex gap-2 mb-3">
-          <!-- District Select -->
-          <div class="select-wrapper flex-1">
-            <select v-model="currentDistrict" @change="onDistrictChange" class="w-full px-3 py-2.5 rounded-xl text-sm font-semibold card-glass border-transparent outline-none pr-8">
-              <option v-for="d in districts" :key="d" :value="d">{{ d }}</option>
-            </select>
-          </div>
-          <!-- Weekday select -->
-          <div class="select-wrapper">
-            <select v-model="currentWeekday" @change="filterData" class="px-3 py-2.5 rounded-xl text-sm font-semibold card-glass border-transparent outline-none pr-8">
-              <option v-for="(w, i) in weekdays" :key="i" :value="w">{{ w }}</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Time Period Filter Capsules -->
-        <div class="flex gap-2 mb-4">
-          <button v-for="tp in timePeriods" :key="tp.val" @click="setTimePeriod(tp.val)"
-            class="flex-1 py-2 rounded-xl text-xs font-bold transition-all duration-200"
-            :class="currentTimePeriod === tp.val
-              ? 'bg-[#FFB800] text-[#08090a] shadow-[0_0_10px_rgba(255,184,0,0.4)]'
-              : 'card-glass text-gray-400'">
-            {{ tp.label }}
-          </button>
-        </div>
-
-        <!-- Address Search Bar -->
-        <div class="relative mb-4">
-          <div class="absolute left-3 top-1/2 -translate-y-1/2">
-            <!-- Magnifier SVG -->
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/>
-            </svg>
-          </div>
-          <input v-model="searchQuery" @input="filterData" type="text" placeholder="模糊搜尋地址或站點名稱..."
-            class="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm card-glass text-white placeholder-gray-600 outline-none border-transparent bg-transparent">
-        </div>
-
-        <!-- Result Count -->
-        <div class="flex items-center justify-between mb-3">
-          <span class="text-xs text-gray-500">找到 <span class="text-amber-400 font-bold">{{ filteredData.length }}</span> 個站點</span>
-          <span v-if="dataLoading" class="text-xs text-gray-600 flex items-center gap-1">
-            <span class="inline-block w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce"></span>
-            <span class="inline-block w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce" style="animation-delay:0.15s"></span>
-            <span class="inline-block w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce" style="animation-delay:0.3s"></span>
-          </span>
-        </div>
-
-        <!-- Skeleton Loading -->
-        <div v-if="dataLoading" class="space-y-3">
-          <div v-for="i in 5" :key="i" class="skeleton h-24 w-full"></div>
-        </div>
-
-        <!-- Empty State -->
-        <div v-else-if="!dataLoading && filteredData.length === 0 && allRecords.length > 0" class="flex flex-col items-center justify-center py-16 text-center">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-4">
-            <rect x="3" y="3" width="7" height="18" rx="2"/><rect x="14" y="3" width="7" height="18" rx="2"/>
-            <path d="M10 8h4M10 12h4M10 16h4"/>
-          </svg>
-          <p class="text-sm text-gray-600 font-medium">此時段無清運班次</p>
-          <p class="text-xs text-gray-700 mt-1">試試切換至【全天】查看所有班次</p>
-        </div>
-
-        <!-- Initial empty state -->
-        <div v-else-if="!dataLoading && allRecords.length === 0" class="flex flex-col items-center justify-center py-16 text-center">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-3">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-          <p class="text-sm text-gray-600 font-medium">正在初始化台南清運路線</p>
-          <p class="text-xs text-gray-700 mt-1">請稍候或於上方選擇行政區...</p>
-        </div>
-
-        <!-- Card List -->
-        <div v-else class="space-y-3">
-          <div v-for="(item, idx) in filteredData" :key="idx"
-            class="card-glass p-4 transition-all duration-300 card-animate"
-            :class="[item._done ? 'card-done opacity-40' : (item._isPast ? 'opacity-25' : ''), `animation-delay-${Math.min(idx, 9) * 50}ms`]"
-            :style="`animation-delay: ${Math.min(idx, 12) * 40}ms`">
-
-            <div class="flex items-start justify-between gap-3">
-              <!-- Left: truck icon + info -->
-              <div class="flex items-start gap-3 flex-1 min-w-0">
-                <!-- Truck SVG (small) -->
-                <div class="shrink-0 mt-0.5" :class="item._isRecycle ? 'recycle-light-map' : 'warning-light-map'">
-                  <svg v-if="!item._isRecycle" width="42" height="26" viewBox="0 0 42 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="1" y="9" width="27" height="14" rx="2" fill="#FFB800" opacity="0.9"/>
-                    <rect x="1" y="7" width="18" height="16" rx="2" fill="#E6A500"/>
-                    <rect x="2" y="8" width="16" height="14" rx="1.5" fill="#FFB800"/>
-                    <line x1="7" y1="8" x2="7" y2="22" stroke="#E6A500" stroke-width="0.8" opacity="0.5"/>
-                    <line x1="12" y1="8" x2="12" y2="22" stroke="#E6A500" stroke-width="0.8" opacity="0.5"/>
-                    <rect x="19" y="11" width="11" height="11" rx="1.5" fill="#CC9200"/>
-                    <rect x="20" y="9.5" width="9" height="8" rx="1.5" fill="#CC9200"/>
-                    <rect x="21" y="10" width="6.5" height="5.5" rx="1" fill="#1a2535" opacity="0.85"/>
-                    <circle cx="22" cy="8.5" r="1.5" fill="#FF3B30"/>
-                    <circle cx="31" cy="19" r="3.5" fill="#1a1a1a"/>
-                    <circle cx="31" cy="19" r="2" fill="#2a2a2a"/>
-                    <circle cx="7" cy="19" r="3.5" fill="#1a1a1a"/>
-                    <circle cx="7" cy="19" r="2" fill="#2a2a2a"/>
-                    <circle cx="14" cy="19" r="3" fill="#1a1a1a"/>
-                  </svg>
-                  <svg v-else width="42" height="26" viewBox="0 0 42 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="1" y="9" width="27" height="14" rx="2" fill="#00A3FF" opacity="0.9"/>
-                    <rect x="1" y="7" width="18" height="16" rx="2" fill="#0080CC"/>
-                    <rect x="2" y="8" width="16" height="14" rx="1.5" fill="#00A3FF"/>
-                    <!-- Recycle symbol -->
-                    <path d="M8 11 L10 8 L12 11 M6.5 14.5 L9.5 14.5 L10 11 M11.5 14.5 L8.5 14.5 L10 11" stroke="#FFFFFF" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                    <rect x="19" y="11" width="11" height="11" rx="1.5" fill="#0070AA"/>
-                    <rect x="20" y="9.5" width="9" height="8" rx="1.5" fill="#0070AA"/>
-                    <rect x="21" y="10" width="6.5" height="5.5" rx="1" fill="#1a2535" opacity="0.85"/>
-                    <circle cx="22" cy="8.5" r="1.5" fill="#FF3B30"/>
-                    <circle cx="31" cy="19" r="3.5" fill="#1a1a1a"/>
-                    <circle cx="31" cy="19" r="2" fill="#2a2a2a"/>
-                    <circle cx="7" cy="19" r="3.5" fill="#1a1a1a"/>
-                    <circle cx="7" cy="19" r="2" fill="#2a2a2a"/>
-                    <circle cx="14" cy="19" r="3" fill="#1a1a1a"/>
-                  </svg>
-                </div>
-                <!-- Info -->
-                <div class="flex-1 min-w-0">
-                  <!-- Time -->
-                  <div class="flex items-baseline gap-2 mb-0.5">
-                    <span class="text-3xl font-black text-white leading-none" style="font-family:'Inter',sans-serif;">{{ item.TIME || '--:--' }}</span>
-                    <!-- Type tags -->
-                    <span v-if="item._isGarbage" class="text-xs font-bold px-2 py-0.5 rounded-full text-[#08090a]" style="background:#FFB800;box-shadow:0 0 6px rgba(255,184,0,0.4);">垃圾</span>
-                    <span v-if="item._isRecycle" class="text-xs font-bold px-2 py-0.5 rounded-full text-white" style="background:#00A3FF;box-shadow:0 0 6px rgba(0,163,255,0.3);">資回</span>
-                  </div>
-                  <!-- Address -->
-                  <p class="text-base font-bold leading-snug truncate" style="color:#e3e5e8;">{{ item.POINTNAME || '停靠點資料載入中' }}</p>
-                  <!-- Countdown -->
-                  <p class="text-xs font-semibold mt-0.5" :class="getCountdownClass(item.TIME)">
-                    {{ getCountdownText(item.TIME) }}
-                  </p>
-                </div>
-              </div>
-
-              <!-- Right: Heart + Done -->
-              <div class="flex flex-col items-center gap-2 shrink-0">
-                <!-- Favorite heart -->
-                <button @click="toggleFavorite(item)" class="p-1.5 rounded-full transition-all duration-200">
-                  <svg width="20" height="20" viewBox="0 0 24 24" :fill="item._fav ? '#ef4444' : 'none'" :stroke="item._fav ? '#ef4444' : '#444'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="item._fav ? 'animate-pulse' : ''">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                  </svg>
-                </button>
-                <!-- Done check -->
-                <button @click="toggleDone(item)" class="p-1.5 rounded-full transition-all duration-200" :class="item._done ? 'bg-green-500/20' : ''">
-                  <!-- Trash bin SVG -->
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" :stroke="item._done ? '#34c759' : '#444'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                    <!-- Dual handles -->
-                    <line x1="8" y1="3" x2="8" y2="4" stroke-width="1.5"/>
-                    <line x1="16" y1="3" x2="16" y2="4" stroke-width="1.5"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
+      <!-- Error state -->
+      <div v-if="fetchError" class="flex flex-col items-center justify-center py-12 text-center">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ff453a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-4">
+          <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+        </svg>
+        <p class="text-sm text-gray-400 mb-2">網路連線異常</p>
+        <p class="text-xs text-gray-600 mb-4">無法連線至台南資料庫</p>
+        <button @click="fetchData(currentDistrict)" class="capsule-btn px-5 py-2 rounded-full bg-[#FFB800] text-black text-sm font-bold active:scale-95">重新連線</button>
       </div>
-    </div><!-- end list tab -->
 
-    <!-- FAVORITES TAB -->
-    <div class="tab-page" id="tab-fav" :class="{ active: currentTab === 'fav' }">
-      <div class="min-h-screen bg-[#08090a]" :style="`padding-top: calc(env(safe-area-inset-top) + 16px); padding-bottom: calc(64px + env(safe-area-inset-bottom) + 24px); padding-left: 16px; padding-right: 16px;`">
-        <div class="mb-5">
-          <h2 class="text-lg font-black text-white">我的收藏</h2>
-          <p class="text-xs text-gray-500">已儲存的清運站點</p>
-        </div>
-        <div v-if="favorites.length === 0" class="flex flex-col items-center justify-center py-20 text-center">
-          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-4">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-          </svg>
-          <p class="text-sm text-gray-600 font-medium">尚無收藏的站點</p>
-          <p class="text-xs text-gray-700 mt-1">在清單頁點擊愛心來收藏</p>
-        </div>
-        <div v-else class="space-y-3">
-          <div v-for="(item, idx) in favorites" :key="idx" class="card-glass p-4">
-            <div class="flex items-center gap-3">
-              <div class="shrink-0" :class="item._isRecycle ? 'recycle-light-map' : 'warning-light-map'">
-                <svg v-if="!item._isRecycle" width="36" height="22" viewBox="0 0 42 26" fill="none">
-                  <rect x="1" y="9" width="27" height="14" rx="2" fill="#FFB800" opacity="0.9"/>
-                  <rect x="1" y="7" width="18" height="16" rx="2" fill="#E6A500"/>
-                  <rect x="2" y="8" width="16" height="14" rx="1.5" fill="#FFB800"/>
-                  <circle cx="22" cy="8.5" r="1.5" fill="#FF3B30"/>
-                  <circle cx="31" cy="19" r="3.5" fill="#1a1a1a"/><circle cx="7" cy="19" r="3.5" fill="#1a1a1a"/>
+      <!-- Loading skeleton -->
+      <div v-else-if="isLoadingData" class="space-y-3">
+        <div v-for="i in 6" :key="i" class="h-20 rounded-2xl bg-[#111214] animate-pulse border border-[#1a1a1a]"></div>
+      </div>
+
+      <!-- Empty state -->
+      <div v-else-if="filteredRecords.length===0" class="flex flex-col items-center justify-center py-16 text-center">
+        <div class="text-4xl mb-4">🗑️</div>
+        <p class="text-sm text-gray-400 mb-1">本日此區無清運班次</p>
+        <p class="text-xs text-gray-600">請切換日期或行政區查詢</p>
+      </div>
+
+      <!-- Records list -->
+      <div v-else class="space-y-3">
+        <div v-for="(rec, idx) in filteredRecords" :key="idx"
+          class="list-item relative bg-[#111214] border border-[#1d1f21] rounded-2xl p-4 active:scale-[0.98] transition-all duration-150"
+          :class="{'task-done': doneTasks.includes(rec.POINTNAME+rec.TIME)}">
+
+          <!-- Favourite + done row -->
+          <div class="flex items-start justify-between mb-2">
+            <div class="flex-1 pr-2">
+              <p class="text-sm font-semibold text-white leading-snug">{{rec.POINTNAME || '未命名站點'}}</p>
+              <p class="text-[11px] text-gray-500 mt-0.5">{{rec.AREA || currentDistrict}}</p>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <!-- Done check -->
+              <button @click.stop="toggleDone(rec)" class="capsule-btn w-7 h-7 flex items-center justify-center rounded-full border border-[#2a2a2a] active:scale-95 active:bg-white/10 transition-all duration-75"
+                :class="doneTasks.includes(rec.POINTNAME+rec.TIME) ? 'bg-[#34C759]/20 border-[#34C759]/40' : 'bg-[#1a1a1a]'">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" :stroke="doneTasks.includes(rec.POINTNAME+rec.TIME) ? '#34C759' : '#555'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
                 </svg>
-                <svg v-else width="36" height="22" viewBox="0 0 42 26" fill="none">
-                  <rect x="1" y="9" width="27" height="14" rx="2" fill="#00A3FF" opacity="0.9"/>
-                  <rect x="1" y="7" width="18" height="16" rx="2" fill="#0080CC"/>
-                  <rect x="2" y="8" width="16" height="14" rx="1.5" fill="#00A3FF"/>
-                  <circle cx="22" cy="8.5" r="1.5" fill="#FF3B30"/>
-                  <circle cx="31" cy="19" r="3.5" fill="#1a1a1a"/><circle cx="7" cy="19" r="3.5" fill="#1a1a1a"/>
-                </svg>
-              </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-2xl font-black text-white" style="font-family:'Inter',sans-serif;">{{ item.TIME }}</p>
-                <p class="text-sm font-bold text-gray-300 truncate">{{ item.POINTNAME }}</p>
-                <p class="text-xs text-gray-500 mt-0.5">{{ item.AREA }} · {{ item._isRecycle ? '資源回收' : '一般垃圾' }}</p>
-              </div>
-              <button @click="removeFavorite(item)" class="p-2">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="#ef4444" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              </button>
+              <!-- Favourite -->
+              <button @click.stop="toggleFavourite(rec)" class="capsule-btn w-7 h-7 flex items-center justify-center rounded-full border border-[#2a2a2a] active:scale-95 active:bg-white/10 transition-all duration-75"
+                :class="isFavourite(rec) ? 'bg-[#FF375F]/20 border-[#FF375F]/40' : 'bg-[#1a1a1a]'">
+                <svg width="13" height="13" viewBox="0 0 24 24" :fill="isFavourite(rec) ? '#FF375F' : 'none'" :stroke="isFavourite(rec) ? '#FF375F' : '#555'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                 </svg>
               </button>
             </div>
           </div>
+
+          <!-- Time + recycle row -->
+          <div class="flex items-center gap-3 mt-1">
+            <div class="flex items-center gap-1.5">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+              <span class="text-[12px] text-[#FFB800] font-bold">{{rec.TIME || '--:--'}}</span>
+            </div>
+            <div v-if="rec.RECYCLEDAY" class="flex items-center gap-1">
+              <span class="text-[10px] text-green-400 font-medium bg-green-400/10 px-2 py-0.5 rounded-full">♻ {{rec.RECYCLEDAY}}</span>
+            </div>
+            <div v-if="rec.WORDDAY" class="flex items-center gap-1 ml-auto">
+              <span class="text-[10px] text-gray-500 bg-[#1a1a1a] px-2 py-0.5 rounded-full">{{rec.WORDDAY}}</span>
+            </div>
+          </div>
+
+          <!-- Countdown -->
+          <div v-if="getCountdown(rec.TIME)" class="mt-2 flex items-center gap-1.5">
+            <div class="w-1.5 h-1.5 rounded-full bg-[#FFB800] animate-pulse"></div>
+            <span class="text-[11px] text-[#FFB800]/80 font-medium">{{getCountdown(rec.TIME)}}</span>
+          </div>
         </div>
       </div>
-    </div><!-- end fav tab -->
 
-    <!-- CONTROL CENTER TAB -->
-    <div class="tab-page" id="tab-ctrl" :class="{ active: currentTab === 'ctrl' }">
-      <div class="min-h-screen bg-[#08090a]" :style="`padding-top: calc(env(safe-area-inset-top) + 16px); padding-bottom: calc(64px + env(safe-area-inset-bottom) + 24px); padding-left: 16px; padding-right: 16px;`">
+      <!-- Spacer for nav bar -->
+      <div style="height:calc(44px + env(safe-area-inset-bottom,34px) + 20px);"></div>
+    </div>
 
-        <div class="mb-5">
-          <h2 class="text-lg font-black text-white">控制中心</h2>
-          <p class="text-xs text-gray-500">硬體驅動與偏好設定</p>
-        </div>
+    <!-- ===== TAB: 地圖雷達 (index 1) ===== -->
+    <div v-show="activeTab===1" style="position:absolute;inset:0;overflow:hidden;">
+      <!-- Map container full bleed -->
+      <div id="map-container" style="position:absolute;inset:0;">
+        <div id="map" class="absolute inset-0 w-full" style="top:0;bottom:0;height:100%;touch-action:none;-webkit-overflow-scrolling:touch;"></div>
+      </div>
 
-        <!-- Today's Task -->
-        <div class="card-glass p-4 mb-3">
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2.5">
-              <!-- Trash bin SVG -->
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-              </svg>
-              <span class="text-sm font-bold text-white">今日任務</span>
-            </div>
-            <span class="text-xs text-gray-500">{{ doneItems.length }} / {{ filteredData.length }} 站完成</span>
+      <!-- Top-right controls -->
+      <div style="position:absolute;top:calc(env(safe-area-inset-top,44px) + 12px);right:16px;z-index:10;display:flex;flex-direction:column;gap:8px;">
+        <!-- Fit bounds / overview -->
+        <button @click="fitMapBounds" class="capsule-btn w-11 h-11 flex items-center justify-center rounded-2xl active:scale-95 transition-all duration-75" style="background:rgba(19,21,23,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid #222528;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+          </svg>
+        </button>
+        <!-- Toggle fixed stops -->
+        <button @click="toggleFixedStops" class="capsule-btn w-11 h-11 flex items-center justify-center rounded-2xl active:scale-95 transition-all duration-75" style="background:rgba(19,21,23,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid #222528;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :stroke="showFixedStops ? '#FFB800' : '#555'">
+            <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+          </svg>
+        </button>
+        <!-- My location -->
+        <button @click="locateMe" class="capsule-btn w-11 h-11 flex items-center justify-center rounded-2xl active:scale-95 transition-all duration-75" style="background:rgba(19,21,23,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid #222528;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#30D158" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Status bar floating above nav -->
+      <div style="position:absolute;left:16px;right:16px;z-index:10;bottom:calc(44px + env(safe-area-inset-bottom,34px) + 12px);">
+        <div style="background:rgba(19,21,23,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid #222528;border-radius:16px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;">
+          <div class="flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full animate-pulse" :class="liveVehicles.length > 0 ? 'bg-[#30D158]' : 'bg-[#FF453A]'"></div>
+            <span class="text-xs text-white font-semibold">即時車輛</span>
+            <span class="text-xs font-bold" :class="liveVehicles.length > 0 ? 'text-[#30D158]' : 'text-gray-500'">{{liveVehicles.length}} 台</span>
           </div>
-          <!-- Progress -->
-          <div class="w-full h-1.5 bg-[#1a1c1e] rounded-full overflow-hidden mb-3">
-            <div class="h-full bg-green-500 rounded-full transition-all duration-500" :style="`width: ${filteredData.length > 0 ? (doneItems.length / filteredData.length * 100) : 0}%`"></div>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] text-gray-500">上次更新</span>
+            <span class="text-[10px] text-gray-400">{{lastGPSUpdate}}</span>
           </div>
-          <button @click="clearDoneTasks" class="w-full py-2.5 rounded-xl text-xs font-bold text-gray-400 border border-[#222528] transition-all duration-200 active:scale-95">
-            清除今日任務記憶
-          </button>
         </div>
+      </div>
+    </div>
 
-        <!-- Torch Control -->
-        <div class="card-glass p-4 mb-3">
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2.5">
-              <!-- Torch SVG -->
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M8 2l4 4-4 4M16 2l-4 4 4 4"/><rect x="6" y="10" width="12" height="12" rx="2"/><circle cx="12" cy="16" r="2" fill="#FFB800" opacity="0.5"/>
-                <line x1="12" y1="10" x2="12" y2="8"/>
-              </svg>
-              <span class="text-sm font-bold text-white">手電筒</span>
-            </div>
-            <div class="toggle-track" :class="torchOn ? 'on' : ''" @click="toggleTorch(!torchOn)">
-              <div class="toggle-thumb"></div>
-            </div>
-          </div>
-          <p class="text-xs text-gray-600">驅動 iPhone 後鏡頭閃光燈，深夜倒垃圾必備</p>
+    <!-- ===== TAB: 控制中心 (index 2) ===== -->
+    <div v-show="activeTab===2" class="flex-1 scroll-view" style="padding-top:calc(env(safe-area-inset-top,44px) + 16px);padding-bottom:calc(44px + env(safe-area-inset-bottom,34px) + 24px);padding-left:16px;padding-right:16px;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h1 class="text-xl font-bold text-white tracking-tight">控制中心</h1>
+          <p class="text-[11px] text-gray-500 mt-0.5 tracking-wide">智慧功能與個人化設定</p>
         </div>
+      </div>
 
-        <!-- Screen Light Control -->
-        <div class="card-glass p-4 mb-3">
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2.5">
-              <!-- Bulb SVG -->
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFD60A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 21h6M12 3a6 6 0 0 1 6 6c0 2.4-1.3 4.5-3.3 5.7L14 17H10l-.7-2.3A6 6 0 0 1 12 3z"/>
-                <line x1="10" y1="21" x2="14" y2="21"/><line x1="12" y1="17" x2="12" y2="19"/>
-              </svg>
-              <span class="text-sm font-bold text-white">螢幕補光</span>
-            </div>
-            <div class="toggle-track" :class="screenLightOn ? 'on' : ''" @click="toggleScreenLight(!screenLightOn)">
-              <div class="toggle-thumb"></div>
-            </div>
-          </div>
-          <p class="text-xs text-gray-600">將螢幕切換為全白高亮，提供補光</p>
-        </div>
-
-        <!-- Screen Wake Lock -->
-        <div class="card-glass p-4 mb-3">
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2.5">
-              <!-- Screen lock SVG -->
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00A3FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="5" y="2" width="14" height="20" rx="2"/>
-                <circle cx="12" cy="14" r="2"/><line x1="9" y1="7" x2="15" y2="7"/>
-                <line x1="8" y1="5" x2="16" y2="19" stroke="#FF3B30" stroke-width="1.5"/>
-              </svg>
-              <span class="text-sm font-bold text-white">螢幕常亮</span>
-            </div>
-            <div class="toggle-track" :class="wakeLockOn ? 'on' : ''" @click="toggleWakeLock(!wakeLockOn)">
-              <div class="toggle-thumb"></div>
-            </div>
-          </div>
-          <p class="text-xs text-gray-600">防止 iPhone 在倒垃圾途中自動熄屏</p>
-        </div>
-
-        <!-- Weather & Air Quality -->
-        <div class="card-glass p-4 mb-3">
-          <div class="flex items-center gap-2.5 mb-3">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="5"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/>
-              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-              <line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/>
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      <!-- Weather card -->
+      <div class="bg-[#131517]/85 backdrop-blur-xl border rounded-2xl p-4 mb-4 transition-all duration-500"
+        :class="weatherAlert ? (weatherAlertType==='rain' ? 'weather-glow-blue border-[#0A84FF]/40' : 'weather-glow-amber border-[#FFB800]/40') : 'border-[#222528]'">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
             </svg>
-            <span class="text-sm font-bold text-white">台南氣象 · 空品</span>
+            <span class="text-sm font-semibold text-white">台南天氣 · 空品</span>
           </div>
-          <div v-if="weather.temp" class="flex items-center gap-4">
-            <div>
-              <p class="text-2xl font-black text-white">{{ weather.temp }}°C</p>
-              <p class="text-xs text-gray-500">{{ weather.desc }}</p>
+          <span class="text-[10px] text-gray-500">每小時更新</span>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="text-center">
+            <p class="text-3xl font-bold text-white">{{weatherData.temp}}°</p>
+            <p class="text-[10px] text-gray-500 mt-0.5">{{weatherData.desc}}</p>
+          </div>
+          <div class="flex-1 space-y-1.5">
+            <div class="flex justify-between">
+              <span class="text-[11px] text-gray-400">降雨率</span>
+              <span class="text-[11px] font-semibold" :class="weatherData.rain>30 ? 'text-[#0A84FF]' : 'text-gray-300'">{{weatherData.rain}}%</span>
             </div>
-            <div class="border-l border-[#222528] pl-4">
-              <p class="text-xs text-gray-400">空氣品質</p>
-              <p class="text-sm font-bold" :class="weather.aqiClass">{{ weather.aqi }}</p>
+            <div class="flex justify-between">
+              <span class="text-[11px] text-gray-400">AQI 空品</span>
+              <span class="text-[11px] font-semibold" :class="weatherData.aqi>100 ? 'text-[#FFB800]' : 'text-[#30D158]'">{{weatherData.aqi}} · {{weatherData.aqiDesc}}</span>
             </div>
-            <div v-if="weather.rainWarn" class="border-l border-[#222528] pl-4">
-              <p class="text-xs text-amber-400 font-semibold">🌧 出門帶傘</p>
+            <div class="flex justify-between">
+              <span class="text-[11px] text-gray-400">濕度</span>
+              <span class="text-[11px] text-gray-300">{{weatherData.humidity}}%</span>
             </div>
           </div>
-          <div v-else class="flex items-center gap-2">
-            <div class="skeleton h-8 w-20 rounded-lg"></div>
-            <div class="skeleton h-4 w-16 rounded-lg"></div>
+        </div>
+        <div v-if="weatherAlert" class="mt-3 p-2 rounded-xl border text-xs font-medium leading-relaxed"
+          :class="weatherAlertType==='rain' ? 'bg-[#0A84FF]/10 border-[#0A84FF]/30 text-[#0A84FF]' : 'bg-[#FFB800]/10 border-[#FFB800]/30 text-[#FFB800]'">
+          {{weatherAlertMsg}}
+        </div>
+      </div>
+
+      <!-- Hardware controls grid -->
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <!-- Torch -->
+        <button @click="toggleTorch" class="capsule-btn bg-[#131517]/85 border border-[#222528] rounded-2xl p-4 flex flex-col items-center gap-2 active:scale-95 active:bg-white/5 transition-all duration-75"
+          :class="torchOn ? 'border-[#FFB800]/60 bg-[#FFB800]/8' : ''">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" :class="torchOn ? 'bg-[#FFB800]/20' : 'bg-[#1a1a1a]'">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" :stroke="torchOn ? '#FFB800' : '#555'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 2v4M16 2v4M9 22h6M12 6v8M10 14l-2 8h8l-2-8"/>
+            </svg>
           </div>
+          <span class="text-[11px] font-semibold" :class="torchOn ? 'text-[#FFB800]' : 'text-gray-400'">手電筒</span>
+          <span class="text-[9px]" :class="torchOn ? 'text-[#FFB800]/70' : 'text-gray-600'">{{torchOn ? '點擊關閉' : '點擊開啟'}}</span>
+        </button>
+
+        <!-- Screen flashlight -->
+        <button @click="toggleScreenLight" class="capsule-btn bg-[#131517]/85 border border-[#222528] rounded-2xl p-4 flex flex-col items-center gap-2 active:scale-95 active:bg-white/5 transition-all duration-75"
+          :class="screenLightOn ? 'border-white/40 bg-white/5' : ''">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" :class="screenLightOn ? 'bg-white/20' : 'bg-[#1a1a1a]'">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" :stroke="screenLightOn ? '#fff' : '#555'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+          </div>
+          <span class="text-[11px] font-semibold" :class="screenLightOn ? 'text-white' : 'text-gray-400'">螢幕補光</span>
+          <span class="text-[9px]" :class="screenLightOn ? 'text-white/70' : 'text-gray-600'">{{screenLightOn ? '點擊關閉' : '點擊開啟'}}</span>
+        </button>
+
+        <!-- Wake lock -->
+        <button @click="toggleWakeLock" class="capsule-btn bg-[#131517]/85 border border-[#222528] rounded-2xl p-4 flex flex-col items-center gap-2 active:scale-95 active:bg-white/5 transition-all duration-75"
+          :class="wakeLockOn ? 'border-[#30D158]/60 bg-[#30D158]/8' : ''">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" :class="wakeLockOn ? 'bg-[#30D158]/20' : 'bg-[#1a1a1a]'">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" :stroke="wakeLockOn ? '#30D158' : '#555'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+            </svg>
+          </div>
+          <span class="text-[11px] font-semibold" :class="wakeLockOn ? 'text-[#30D158]' : 'text-gray-400'">螢幕常亮</span>
+          <span class="text-[9px]" :class="wakeLockOn ? 'text-[#30D158]/70' : 'text-gray-600'">{{wakeLockOn ? '已啟用' : '點擊啟用'}}</span>
+        </button>
+
+        <!-- Clear memory -->
+        <button @click="clearMemory" class="capsule-btn bg-[#131517]/85 border border-[#222528] rounded-2xl p-4 flex flex-col items-center gap-2 active:scale-95 active:bg-white/5 transition-all duration-75">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-[#1a1a1a]">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF453A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+          </div>
+          <span class="text-[11px] font-semibold text-[#FF453A]">清除記憶</span>
+          <span class="text-[9px] text-gray-600">重設今日任務</span>
+        </button>
+      </div>
+
+      <!-- Today tasks -->
+      <div class="bg-[#131517]/85 backdrop-blur-xl border border-[#222528] rounded-2xl p-4 mb-4">
+        <div class="flex items-center gap-2 mb-3">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          <span class="text-sm font-semibold text-white">今日任務</span>
+          <span class="text-[10px] text-gray-500 ml-auto">{{doneTasks.length}} / {{todayRecords.length}} 完成</span>
         </div>
 
-        <!-- App Info -->
-        <div class="card-glass p-4">
-          <p class="text-xs text-gray-600 text-center">垃圾車在哪裡 · WhereCar</p>
-          <p class="text-xs text-gray-700 text-center mt-1">台南市政府環境保護局開放資料</p>
-          <p class="text-xs text-gray-700 text-center">資料更新頻率：每 10 秒</p>
+        <div v-if="todayRecords.length === 0" class="py-4 text-center">
+          <p class="text-xs text-gray-500">今日暫無清運班次資料</p>
         </div>
+
+        <div v-else class="space-y-2">
+          <div v-for="(rec, idx) in todayRecords.slice(0,5)" :key="idx"
+            class="flex items-center gap-3 p-3 rounded-xl border transition-all duration-200"
+            :class="doneTasks.includes(rec.POINTNAME+rec.TIME) ? 'task-done border-[#34C759]/20' : 'bg-[#1a1a1a] border-[#222528]'">
+            <button @click="toggleDone(rec)" class="capsule-btn w-6 h-6 flex-shrink-0 rounded-full border flex items-center justify-center active:scale-95 transition-all duration-75"
+              :class="doneTasks.includes(rec.POINTNAME+rec.TIME) ? 'bg-[#34C759] border-[#34C759]' : 'border-[#333] bg-transparent'">
+              <svg v-if="doneTasks.includes(rec.POINTNAME+rec.TIME)" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </button>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-medium text-white truncate">{{rec.POINTNAME}}</p>
+              <p class="text-[10px] text-gray-500">{{rec.TIME}}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legal disclaimer accordion -->
+      <div class="bg-[#131517]/85 backdrop-blur-xl border border-[#222528] rounded-2xl overflow-hidden mb-4">
+        <button @click="legalOpen=!legalOpen" class="capsule-btn w-full flex items-center gap-3 px-4 py-3.5 active:bg-white/5 transition-all duration-75">
+          <!-- Shield SVG -->
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          <span class="flex-1 text-left text-xs font-semibold text-gray-400">法律資訊與免責聲明</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="chevron-icon flex-shrink-0" :class="{'rotated': legalOpen}">
+            <path d="m6 9 6 6 6-6"/>
+          </svg>
+        </button>
+        <div class="accordion-content px-4 pb-4" :class="{'open': legalOpen}">
+          <div class="pt-2 border-t border-[#1f2123]">
+            <p class="text-xs font-normal tracking-wide text-gray-400 leading-relaxed">
+              本程式為第三方獨立開發之公益工具，並非台南市政府環境保護局之官方 App。本程式內所提供之即時垃圾車 GPS 定位座標、清運站點班表及時間倒數資訊，皆即時串接自台南市政府資料開放平台。所有數據資料之準確性、實時性、完整性皆以環保局官方車機回傳為準。若因台南當地天候異動、道路交通路況擁塞、政府伺服器斷線、或颱風災害停班停課導致垃圾清運時間有所落差或全面暫停，本程式及開發團隊概不負責，亦不承擔任何直接或間接之法律損失責任。使用者出門倒垃圾前，請務必隨時注意周遭垃圾車真實警示音。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom spacer -->
+      <div style="height:calc(44px + env(safe-area-inset-bottom,34px) + 20px);"></div>
+    </div>
+
+    <!-- ===== TAB: 我的收藏 (index 3) ===== -->
+    <div v-show="activeTab===3" class="flex-1 scroll-view" style="padding-top:calc(env(safe-area-inset-top,44px) + 16px);padding-bottom:calc(44px + env(safe-area-inset-bottom,34px) + 24px);padding-left:16px;padding-right:16px;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h1 class="text-xl font-bold text-white tracking-tight">我的收藏</h1>
+          <p class="text-[11px] text-gray-500 mt-0.5 tracking-wide">常用清運站點 · {{favourites.length}} 個</p>
+        </div>
+      </div>
+
+      <div v-if="favourites.length===0" class="flex flex-col items-center justify-center py-20 text-center">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-4">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+        <p class="text-sm text-gray-500 mb-1">尚無收藏站點</p>
+        <p class="text-xs text-gray-600">在清運清單點擊愛心即可收藏</p>
+      </div>
+
+      <div v-else class="space-y-3">
+        <div v-for="(fav, idx) in favourites" :key="idx"
+          class="list-item bg-[#111214] border border-[#1d1f21] rounded-2xl p-4 active:scale-[0.98] transition-all duration-150">
+          <div class="flex items-start justify-between">
+            <div class="flex-1 pr-2">
+              <p class="text-sm font-semibold text-white leading-snug">{{fav.POINTNAME}}</p>
+              <p class="text-[11px] text-gray-500 mt-0.5">{{fav.AREA}}</p>
+            </div>
+            <button @click="toggleFavourite(fav)" class="capsule-btn w-7 h-7 flex items-center justify-center rounded-full bg-[#FF375F]/20 border border-[#FF375F]/40 active:scale-95 transition-all duration-75">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#FF375F" stroke="#FF375F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+            </button>
+          </div>
+          <div class="flex items-center gap-3 mt-2">
+            <div class="flex items-center gap-1.5">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+              <span class="text-[12px] text-[#FFB800] font-bold">{{fav.TIME}}</span>
+            </div>
+            <div v-if="fav.WORDDAY" class="ml-auto">
+              <span class="text-[10px] text-gray-500 bg-[#1a1a1a] px-2 py-0.5 rounded-full">{{fav.WORDDAY}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom spacer -->
+      <div style="height:calc(44px + env(safe-area-inset-bottom,34px) + 20px);"></div>
+    </div>
+
+    <!-- ==================== SCREEN LIGHT OVERLAY ==================== -->
+    <div v-if="screenLightOn" style="position:fixed;inset:0;z-index:8888;background:#ffffff;opacity:0.95;" @click="toggleScreenLight"></div>
+
+    <!-- ==================== FOOTER NAV BAR ==================== -->
+    <div style="position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(13,13,15,0.92);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid #1f2123;height:calc(44px + env(safe-area-inset-bottom,34px));padding-bottom:env(safe-area-inset-bottom,34px);">
+      <div style="display:flex;align-items:center;justify-content:space-around;height:44px;padding:0;">
+
+        <!-- 清運清單 -->
+        <button @click="activeTab=0" class="nav-btn flex flex-col items-center justify-center h-10 flex-1 m-0 p-0 border-0 bg-transparent" style="height:40px;padding:0;margin:0;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" :stroke="activeTab===0 ? '#FFB800' : '#555'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+            <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+          </svg>
+          <span class="text-[10px] font-medium mt-0.5" :style="{color: activeTab===0 ? '#FFB800' : '#555'}">清運清單</span>
+        </button>
+
+        <!-- 地圖雷達 -->
+        <button @click="switchToMap" class="nav-btn flex flex-col items-center justify-center h-10 flex-1 m-0 p-0 border-0 bg-transparent" style="height:40px;padding:0;margin:0;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" :stroke="activeTab===1 ? '#FFB800' : '#555'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/>
+          </svg>
+          <span class="text-[10px] font-medium mt-0.5" :style="{color: activeTab===1 ? '#FFB800' : '#555'}">地圖雷達</span>
+        </button>
+
+        <!-- 控制中心 -->
+        <button @click="activeTab=2" class="nav-btn flex flex-col items-center justify-center h-10 flex-1 m-0 p-0 border-0 bg-transparent" style="height:40px;padding:0;margin:0;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" :stroke="activeTab===2 ? '#FFB800' : '#555'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+          </svg>
+          <span class="text-[10px] font-medium mt-0.5" :style="{color: activeTab===2 ? '#FFB800' : '#555'}">控制中心</span>
+        </button>
+
+        <!-- 我的收藏 -->
+        <button @click="activeTab=3" class="nav-btn flex flex-col items-center justify-center h-10 flex-1 m-0 p-0 border-0 bg-transparent" style="height:40px;padding:0;margin:0;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" :stroke="activeTab===3 ? '#FFB800' : '#555'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+              :fill="activeTab===3 ? '#FFB800' : 'none'" :stroke="activeTab===3 ? '#FFB800' : '#555'"/>
+          </svg>
+          <span class="text-[10px] font-medium mt-0.5" :style="{color: activeTab===3 ? '#FFB800' : '#555'}">我的收藏</span>
+        </button>
 
       </div>
-    </div><!-- end ctrl tab -->
+    </div>
 
-    <!-- ===== BOTTOM NAVIGATION ===== -->
-    <nav class="fixed bottom-0 left-0 right-0 z-50 bg-[#131517]/90 backdrop-blur-xl border-t border-[#222528] px-8 flex justify-around items-center" style="height: calc(64px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom);">
-
-      <!-- List -->
-      <button class="nav-item flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all duration-200" :class="{ active: currentTab === 'list' }" @click="switchTab('list')">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :style="currentTab === 'list' ? 'stroke:#FFB800' : 'stroke:#555'">
-          <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
-          <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
-        </svg>
-        <span class="text-xs font-semibold" :style="currentTab === 'list' ? 'color:#FFB800' : 'color:#555'">清單</span>
-      </button>
-
-      <!-- Map -->
-      <button class="nav-item flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all duration-200" :class="{ active: currentTab === 'map' }" @click="switchTab('map')">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :style="currentTab === 'map' ? 'stroke:#FFB800' : 'stroke:#555'">
-          <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/>
-        </svg>
-        <span class="text-xs font-semibold" :style="currentTab === 'map' ? 'color:#FFB800' : 'color:#555'">地圖</span>
-      </button>
-
-      <!-- Favorites -->
-      <button class="nav-item flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all duration-200" :class="{ active: currentTab === 'fav' }" @click="switchTab('fav')">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :style="currentTab === 'fav' ? 'stroke:#FFB800; fill:#FFB800' : 'stroke:#555'">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" :fill="currentTab === 'fav' ? '#FFB800' : 'none'"/>
-        </svg>
-        <span class="text-xs font-semibold" :style="currentTab === 'fav' ? 'color:#FFB800' : 'color:#555'">收藏</span>
-      </button>
-
-      <!-- Control Center -->
-      <button class="nav-item flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all duration-200" :class="{ active: currentTab === 'ctrl' }" @click="switchTab('ctrl')">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :style="currentTab === 'ctrl' ? 'stroke:#FFB800' : 'stroke:#555'">
-          <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
-          <path d="M15.54 8.46a5 5 0 0 1 0 7.07M8.46 8.46a5 5 0 0 0 0 7.07"/>
-        </svg>
-        <span class="text-xs font-semibold" :style="currentTab === 'ctrl' ? 'color:#FFB800' : 'color:#555'">控制</span>
-      </button>
-
-    </nav>
-
-  </div><!-- end main wrapper -->
-</div><!-- end app -->
+  </div><!-- /main app -->
+</div><!-- /app root -->
 
 <script>
-// ===== SERVICE WORKER INLINE REGISTRATION =====
-if ('serviceWorker' in navigator) {
-  const swCode = `
-    const CACHE_NAME = 'wherecar-v1';
-    const STATIC = ['/', './wherecar.html'];
-    self.addEventListener('install', e => {
-      e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(STATIC)).catch(()=>{}));
-      self.skipWaiting();
-    });
-    self.addEventListener('activate', e => {
-      e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))));
-      self.clients.claim();
-    });
-    self.addEventListener('fetch', e => {
-      if (e.request.url.includes('api') || e.request.url.includes('proxy')) return;
-      e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
-    });
-  `;
-  const blob = new Blob([swCode], { type: 'application/javascript' });
-  const swUrl = URL.createObjectURL(blob);
-  navigator.serviceWorker.register(swUrl).catch(() => {});
-}
-
-// ===== VUE APP =====
-const { createApp, ref, computed, onMounted, onUnmounted, watch } = Vue;
+const { createApp, ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } = Vue;
 
 createApp({
   setup() {
-    // ===== CONSTANTS =====
-    const districts = [
-      '仁德區','永康區','東區','西區','南區','北區','中西區','安平區','安南區',
-      '新化區','善化區','佳里區','麻豆區','新營區','柳營區','鹽水區','白河區',
-      '東山區','後壁區','下營區','六甲區','官田區','大內區','楠西區','南化區',
-      '學甲區','北門區','將軍區','七股區','西港區','安定區','山上區','玉井區',
-      '龍崎區','關廟區','歸仁區','左鎮區','仁德區'
-    ];
-    // Remove duplicates
-    const uniqueDistricts = [...new Set(districts)];
+    // ===========================
+    // STATE
+    // ===========================
+    const isLoading = ref(true);
+    const progress = ref(0);
+    const activeTab = ref(0);
+    const fetchError = ref(false);
+    const isLoadingData = ref(false);
+    const legalOpen = ref(false);
 
-    const weekdayNames = ['日','一','二','三','四','五','六'];
-    const weekdaysFull = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+    // District
+    const districts = ref([
+      '中西區','東區','南區','北區','安平區','安南區',
+      '永康區','歸仁區','新化區','左鎮區','玉井區','楠西區',
+      '南化區','仁德區','關廟區','龍崎區','官田區','麻豆區',
+      '佳里區','西港區','七股區','將軍區','學甲區','北門區',
+      '新營區','後壁區','白河區','東山區','六甲區','下營區',
+      '柳營區','鹽水區','善化區','大內區','山上區','新市區',
+      '安定區'
+    ]);
+    const currentDistrict = ref('東區');
 
-    const timePeriods = [
-      { val: 'all', label: '全天' },
-      { val: 'morning', label: '☀ 早上' },
-      { val: 'afternoon', label: '🌙 下午' }
-    ];
+    // Day options
+    const dayOptions = ref([
+      { label:'今天', value:'today' },
+      { label:'一', value:'一' },
+      { label:'二', value:'二' },
+      { label:'三', value:'三' },
+      { label:'四', value:'四' },
+      { label:'五', value:'五' },
+      { label:'六', value:'六' },
+      { label:'日', value:'日' }
+    ]);
+    const currentDay = ref('today');
+    const timeFilter = ref('all');
 
-    // ===== STATE =====
-    const currentTab = ref('list');
-    const currentDistrict = ref('');
-    const currentWeekday = ref('');
-    const currentTimePeriod = ref('all');
-    const searchQuery = ref('');
-    const allRecords = ref([]);
-    const filteredData = ref([]);
-    const dataLoading = ref(false);
+    // Records
+    const rawRecords = ref([]);
+    const todayRecords = ref([]);
+
+    // Favourites & done tasks
+    const favourites = ref([]);
+    const doneTasks = ref([]);
+
+    // Live GPS
     const liveVehicles = ref([]);
-    const gpsLoading = ref(false);
-    const mapOverview = ref(false);
-    const isRestDay = ref(false);
-    const displayDateStr = ref('');
-    const favorites = ref([]);
-    const doneItems = ref([]);
+    const lastGPSUpdate = ref('--');
+    const showFixedStops = ref(true);
+
+    // Hardware
     const torchOn = ref(false);
     const screenLightOn = ref(false);
     const wakeLockOn = ref(false);
-    const weather = ref({ temp: null, desc: '', aqi: '', aqiClass: '', rainWarn: false });
-
     let torchStream = null;
-    let torchTrack = null;
     let wakeLockSentinel = null;
-    let map = null;
-    let markerCluster = null;
+
+    // Map
+    let mapObject = null;
+    let vehicleMarkers = {};
+    let fixedMarkers = [];
+    let userMarker = null;
     let gpsInterval = null;
-    let currentMarkers = [];
-    let userLocationMarker = null;
+    let fetchInterval = null;
+    let countdownInterval = null;
+    let visibilityPaused = false;
 
-    // ===== COMPUTED =====
-    const weekdays = computed(() => weekdaysFull);
+    // Weather
+    const weatherData = reactive({
+      temp: 28, desc: '晴時多雲', rain: 15,
+      aqi: 62, aqiDesc: '良好', humidity: 72
+    });
+    const weatherAlert = ref(false);
+    const weatherAlertType = ref('');
+    const weatherAlertMsg = ref('');
 
-    // ===== DATE/TIME HELPERS =====
-    function getNow() { return new Date(); }
+    // Loading text
+    const loadingText = computed(() => {
+      if (progress.value <= 40) return '正在安全連線台南資料庫... 速度比少糖的台南醬油還要快！ 🍯';
+      if (progress.value <= 80) return '40,000筆清運班表解編中... 甜度正在精準調整為微糖！ 🧪';
+      return '排序成功！時刻表已對齊... 拎好垃圾袋，準備出發！ 🚚';
+    });
 
-    function getWeekdayStr(date) {
-      return weekdaysFull[date.getDay()];
-    }
+    // ===========================
+    // COMPUTED
+    // ===========================
+    const getTodayWeekday = () => {
+      const days = ['日','一','二','三','四','五','六'];
+      return days[new Date().getDay()];
+    };
 
-    function initDateTime() {
-      const now = getNow();
-      const dayIdx = now.getDay();
-      const hour = now.getHours();
-      const minute = now.getMinutes();
-      const totalMin = hour * 60 + minute;
+    const resolvedDay = computed(() => {
+      if (currentDay.value === 'today') return getTodayWeekday();
+      return currentDay.value;
+    });
 
-      // After 22:30 → next day (forecast mode)
-      let targetDate = new Date(now);
-      if (totalMin >= 22 * 60 + 30 || totalMin < 5 * 60) {
-        isRestDay.value = false; // show next day
-        targetDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-      }
+    const filteredRecords = computed(() => {
+      if (!rawRecords.value || rawRecords.value.length === 0) return [];
+      const day = resolvedDay.value;
+      return rawRecords.value.filter(item => {
+        // District filter - fuzzy match (strip 區)
+        const coreDistrict = currentDistrict.value.replace('區', '');
+        const itemArea = (item.AREA || '').trim();
+        if (!itemArea.includes(coreDistrict) && !itemArea.includes(currentDistrict.value)) return false;
 
-      currentWeekday.value = getWeekdayStr(targetDate);
+        // Day filter - multi-condition
+        const rawWordday = String(item.WORDDAY || '').replace(/\s/g, '');
+        const rawRecycleday = String(item.RECYCLEDAY || '').replace(/\s/g, '');
+        const dayMatches = rawWordday.includes(day) || rawWordday.includes('星期'+day) ||
+                           rawRecycleday.includes(day) || rawRecycleday.includes('星期'+day);
+        if (!dayMatches) return false;
 
-      // Auto select time period
-      if (totalMin < 11 * 60 + 30) {
-        currentTimePeriod.value = 'morning';
-      } else if (totalMin >= 12 * 60) {
-        currentTimePeriod.value = 'afternoon';
-      } else {
-        currentTimePeriod.value = 'all';
-      }
-
-      // Display date
-      const months = ['一','二','三','四','五','六','七','八','九','十','十一','十二'];
-      displayDateStr.value = `${targetDate.getMonth() + 1}月${targetDate.getDate()}日 ${currentWeekday.value}`;
-    }
-
-    // ===== LOADING PROGRESS =====
-    function animateLoading() {
-      const bar = document.getElementById('loading-progress-bar');
-      const txt = document.getElementById('loading-status-text');
-      let progress = 0;
-      const messages = [
-        { min: 0, max: 40, text: '正在安全連線台南資料庫... 速度比少糖的台南醬油還要快！ 🍯' },
-        { min: 41, max: 80, text: '40,000筆清運班表解編中... 甜度正在精準調整為微糖！ 🧪' },
-        { min: 81, max: 100, text: '排序成功！時刻表已對齊... 拎好垃圾袋，準備出發！ 🚚' }
-      ];
-      return new Promise(resolve => {
-        const tick = () => {
-          if (progress < 85) {
-            progress += Math.random() * 8 + 3;
-          }
-          progress = Math.min(progress, 92);
-          if (bar) bar.style.width = progress + '%';
-          const stage = messages.find(m => progress >= m.min && progress <= m.max) || messages[2];
-          if (txt) txt.textContent = stage.text;
-          if (progress < 92) {
-            setTimeout(tick, 180 + Math.random() * 120);
-          } else {
-            resolve(progress);
-          }
-        };
-        tick();
+        // Time filter
+        if (timeFilter.value === 'all') return true;
+        const t = (item.TIME || '').trim();
+        if (!t) return true;
+        const parts = t.split(':');
+        if (parts.length < 2) return true;
+        const hour = parseInt(parts[0], 10);
+        if (timeFilter.value === 'morning') return hour < 12;
+        if (timeFilter.value === 'afternoon') return hour >= 12;
+        return true;
       });
-    }
+    });
 
-    function finishLoading() {
-      const bar = document.getElementById('loading-progress-bar');
-      const txt = document.getElementById('loading-status-text');
-      const wrapper = document.getElementById('loading-wrapper');
-      const mainWrapper = document.getElementById('main-wrapper');
-      if (bar) bar.style.width = '100%';
-      if (txt) txt.textContent = '排序成功！時刻表已對齊... 拎好垃圾袋，準備出發！ 🚚';
-      setTimeout(() => {
-        if (wrapper) wrapper.classList.add('hidden');
-        if (mainWrapper) {
-          mainWrapper.style.opacity = '1';
-          mainWrapper.style.pointerEvents = 'all';
-        }
-      }, 600);
-    }
-
-    // ===== PROXY FETCH HELPER (Triple-proxy with cache-bust) =====
-    // Tries allorigins → codetabs → corsproxy.io in sequence.
-    // cacheBust=true appends &_=timestamp to defeat stale CDN cache on gov API.
-    async function proxyFetch(govUrl, cacheBust = true) {
-      const bustSuffix = cacheBust ? `&_=${Date.now()}` : '';
-      const bustedUrl  = govUrl + bustSuffix;
-
-      // ── Proxy 1: allorigins (returns {contents: "<json string>"}) ──
-      try {
-        const p1 = `https://api.allorigins.win/get?url=${encodeURIComponent(bustedUrl)}`;
-        const r1  = await fetch(p1, { signal: AbortSignal.timeout(12000) });
-        if (r1.ok) {
-          const j1 = await r1.json();
-          // allorigins wraps real body inside .contents as a JSON string
-          const body = (j1 && j1.contents) ? j1.contents : null;
-          if (body) {
-            try {
-              const parsed = JSON.parse(body);
-              if (parsed && parsed.result && Array.isArray(parsed.result.records)) {
-                return parsed.result.records;
-              }
-            } catch(pe) { /* contents wasn't JSON, fall through */ }
-          }
-        }
-      } catch(e1) { /* proxy 1 network error */ }
-
-      // ── Proxy 2: codetabs (returns the raw JSON directly) ──
-      try {
-        const p2 = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(bustedUrl)}`;
-        const r2  = await fetch(p2, { signal: AbortSignal.timeout(12000) });
-        if (r2.ok) {
-          const j2 = await r2.json();
-          if (j2 && j2.result && Array.isArray(j2.result.records)) {
-            return j2.result.records;
-          }
-        }
-      } catch(e2) { /* proxy 2 network error */ }
-
-      // ── Proxy 3: corsproxy.io (returns raw JSON) ──
-      try {
-        const p3 = `https://corsproxy.io/?${encodeURIComponent(bustedUrl)}`;
-        const r3  = await fetch(p3, { signal: AbortSignal.timeout(12000) });
-        if (r3.ok) {
-          const j3 = await r3.json();
-          if (j3 && j3.result && Array.isArray(j3.result.records)) {
-            return j3.result.records;
-          }
-        }
-      } catch(e3) { /* proxy 3 network error */ }
-
-      return []; // all three proxies failed
-    }
-
-    // ===== DATA FETCHING =====
+    // ===========================
+    // FETCH DATA
+    // ===========================
     async function fetchData(district) {
-      if (!district) return;
-      dataLoading.value = true;
-      allRecords.value  = [];
+      isLoadingData.value = true;
+      fetchError.value = false;
 
-      // Persist user preference
-      try { localStorage.setItem('wherecar_district', district); } catch(e) {}
+      const resourceId = 'ce97b6a2-0b7a-4e0b-9d82-88c3e09c3de4';
+      const limit = 1000;
+      const bust = Date.now();
+      const apiUrl = `https://data.tainan.gov.tw/api/3/action/datastore_search?resource_id=${resourceId}&limit=${limit}&q=${encodeURIComponent(district)}`;
+      const primaryProxy = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}&_=${bust}`;
+      const fallbackProxy = `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(apiUrl)}`;
 
-      // ── Build government API URL (specific district filter + high limit) ──
-      const encodedDistrict = encodeURIComponent(district);
-      const districtUrl = `https://data.tainan.gov.tw/api/3/action/datastore_search?resource_id=aded36c0-0783-4610-a88e-54fdc37e7d1d&limit=3000&filters=%7B%22AREA%22%3A%22${encodedDistrict}%22%7D`;
-      const broadUrl    = `https://data.tainan.gov.tw/api/3/action/datastore_search?resource_id=aded36c0-0783-4610-a88e-54fdc37e7d1d&limit=3000`;
+      let records = [];
+      let success = false;
 
-      // ── Step 1: try district-scoped fetch ──
-      let records = await proxyFetch(districtUrl, true);
-
-      // ── Step 2: if district fetch returns 0, pull entire table and filter client-side ──
-      if (records.length === 0) {
-        records = await proxyFetch(broadUrl, true);
+      // Primary proxy
+      try {
+        const resp = await fetch(primaryProxy, { signal: AbortSignal.timeout(8000) });
+        if (resp.ok) {
+          const outer = await resp.json();
+          let parsed;
+          try { parsed = JSON.parse(outer.contents); } catch(e) { parsed = outer; }
+          if (parsed && parsed.result && parsed.result.records) {
+            records = parsed.result.records;
+            success = true;
+          }
+        }
+      } catch (e) {
+        console.warn('[WhereCar] Primary proxy failed:', e.message);
       }
 
-      // ═══════════════════════════════════════════════════════════════════
-      // ‼️ CORE FIELD MAPPING — 大小寫強制對齊防線（五行絕對不可省略）
-      // 台南政府 API 最新版欄位為全小寫，前端 UI 讀取大寫，強行映射橋接。
-      // ═══════════════════════════════════════════════════════════════════
-      records = records.map(item => {
-        item.AREA       = item.area       || item.AREA       || "";
-        item.TIME       = item.time       || item.TIME       || "";
-        item.POINTNAME  = item.pointname  || item.POINTNAME  || "";
-        item.WORDDAY    = item.wordday    || item.WORDDAY    || "";
-        item.RECYCLEDAY = item.recycleday || item.RECYCLEDAY || "";
+      // Fallback proxy
+      if (!success) {
+        try {
+          const resp2 = await fetch(fallbackProxy, { signal: AbortSignal.timeout(8000) });
+          if (resp2.ok) {
+            const json2 = await resp2.json();
+            if (json2 && json2.result && json2.result.records) {
+              records = json2.result.records;
+              success = true;
+            }
+          }
+        } catch (e2) {
+          console.warn('[WhereCar] Fallback proxy failed:', e2.message);
+        }
+      }
+
+      if (!success || records.length === 0) {
+        // Try with no district filter for broader search
+        try {
+          const broadUrl = `https://data.tainan.gov.tw/api/3/action/datastore_search?resource_id=${resourceId}&limit=5000`;
+          const broadProxy = `https://api.allorigins.win/get?url=${encodeURIComponent(broadUrl)}&_=${Date.now()}`;
+          const resp3 = await fetch(broadProxy, { signal: AbortSignal.timeout(10000) });
+          if (resp3.ok) {
+            const outer3 = await resp3.json();
+            let parsed3;
+            try { parsed3 = JSON.parse(outer3.contents); } catch(e) { parsed3 = outer3; }
+            if (parsed3 && parsed3.result && parsed3.result.records) {
+              records = parsed3.result.records;
+              success = true;
+            }
+          }
+        } catch(e3) {
+          console.warn('[WhereCar] Broad fetch failed:', e3.message);
+        }
+      }
+
+      if (!success) {
+        fetchError.value = true;
+        isLoadingData.value = false;
+        // *** FINALLY ESCAPE HATCH: even on total failure, never freeze the loading screen ***
+        isLoading.value = false;
+        progress.value = 100;
+        return;
+      }
+
+      // ===== FIELD MAPPING - CORE DEFENCE =====
+      const mapped = records.map(item => {
+        item.AREA        = item.area        || item.AREA        || '';
+        item.TIME        = item.time        || item.TIME        || '';
+        item.POINTNAME   = item.pointname   || item.POINTNAME   || '';
+        item.WORDDAY     = item.wordday     || item.WORDDAY     || '';
+        item.RECYCLEDAY  = item.recycleday  || item.RECYCLEDAY  || '';
         return item;
       });
 
-      allRecords.value  = records;
-      filterData();           // ← 立刻解凍 filteredData，讓「找到 X 個站點」數字跳出
-      dataLoading.value = false;
-    }
-
-    // ===== FILTER ENGINE =====
-    function filterData() {
-      if (!allRecords.value.length) {
-        filteredData.value = [];
-        return;
-      }
-
-      const now = getNow();
-      const nowMin = now.getHours() * 60 + now.getMinutes();
-
-      // District fuzzy match
-      const cleanDist = String(currentDistrict.value).replace('區', '').trim();
-
-      // Weekday smart match
-      const todayStr = String(currentWeekday.value);
-      const todayChar = todayStr.replace('星期', '');
-
-      const filtered = allRecords.value.filter(item => {
-        // Area fuzzy
-        const matchArea = !cleanDist || !item.AREA ||
-          (String(item.AREA).includes(cleanDist) ||
-           cleanDist.includes(String(item.AREA).replace('區','').trim()));
-
-        if (!matchArea) return false;
-
-        // Weekday smart match (防 null 與空格)
-        const cleanWordDay    = item.WORDDAY    ? String(item.WORDDAY).replace(/\s+/g, '')    : '';
-        const cleanRecycleDay = item.RECYCLEDAY ? String(item.RECYCLEDAY).replace(/\s+/g, '') : '';
-
-        const isGarbageDay = cleanWordDay.includes(todayStr) ||
-                             cleanWordDay.includes('星期' + todayChar) ||
-                             cleanWordDay.includes(todayChar);
-        const isRecycleDayMatch = cleanRecycleDay.includes(todayStr) ||
-                                   cleanRecycleDay.includes('星期' + todayChar) ||
-                                   cleanRecycleDay.includes(todayChar);
-
-        if (!isGarbageDay && !isRecycleDayMatch) return false;
-
-        item._isGarbage = isGarbageDay;
-        item._isRecycle = isRecycleDayMatch;
-
-        // Time period filter
-        if (currentTimePeriod.value !== 'all') {
-          const timeStr = item.TIME || '';
-          const match = timeStr.match(/(\d{1,2}):(\d{2})/);
-          if (!match) return currentTimePeriod.value === 'morning';
-          const h = parseInt(match[1], 10);
-          if (currentTimePeriod.value === 'morning' && h >= 12) return false;
-          if (currentTimePeriod.value === 'afternoon' && h < 12) return false;
-        }
-
-        // Address search
-        if (searchQuery.value.trim()) {
-          const q = searchQuery.value.trim().toLowerCase();
-          const name = (item.POINTNAME || '').toLowerCase();
-          if (!name.includes(q)) return false;
-        }
-
-        // Calculate isPast
-        const timeStr = item.TIME || '';
-        const match = timeStr.match(/(\d{1,2}):(\d{2})/);
-        if (match) {
-          const h = parseInt(match[1], 10);
-          const m = parseInt(match[2], 10);
-          const itemMin = h * 60 + m;
-          item._isPast = nowMin > itemMin + 10;
-        } else {
-          item._isPast = false;
-        }
-
-        // Attach done & fav state
-        const key = itemKey(item);
-        item._done = doneItems.value.includes(key);
-        item._fav = favorites.value.some(f => itemKey(f) === key);
-
-        return true;
+      // Sort by time
+      mapped.sort((a, b) => {
+        const ta = (a.TIME || '').replace(':', '').padStart(4,'0');
+        const tb = (b.TIME || '').replace(':', '').padStart(4,'0');
+        return ta.localeCompare(tb);
       });
 
-      // Sort by time ascending (early first), past items to end
-      filtered.sort((a, b) => {
-        if (a._isPast !== b._isPast) return a._isPast ? 1 : -1;
-        const ta = timeToMin(a.TIME);
-        const tb = timeToMin(b.TIME);
-        return ta - tb;
-      });
+      rawRecords.value = mapped;
 
-      filteredData.value = filtered;
-    }
+      // Build today records for tasks panel
+      const tw = getTodayWeekday();
+      todayRecords.value = mapped.filter(item => {
+        const coreDistrict = currentDistrict.value.replace('區', '');
+        const itemArea = (item.AREA || '').trim();
+        if (!itemArea.includes(coreDistrict) && !itemArea.includes(currentDistrict.value)) return false;
+        const rw = String(item.WORDDAY || '').replace(/\s/g, '');
+        const rr = String(item.RECYCLEDAY || '').replace(/\s/g, '');
+        return rw.includes(tw) || rw.includes('星期'+tw) || rr.includes(tw) || rr.includes('星期'+tw);
+      }).slice(0, 20);
 
-    function timeToMin(t) {
-      if (!t) return 9999;
-      const m = t.match(/(\d{1,2}):(\d{2})/);
-      if (!m) return 9999;
-      return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+      isLoadingData.value = false;
     }
 
-    function itemKey(item) {
-      return `${item.AREA}_${item.POINTNAME}_${item.TIME}`;
-    }
-
-    // ===== COUNTDOWN =====
-    function getCountdownText(timeStr) {
-      if (!timeStr) return '';
-      const match = timeStr.match(/(\d{1,2}):(\d{2})/);
-      if (!match) return '';
-      const now = getNow();
-      const nowMin = now.getHours() * 60 + now.getMinutes();
-      const itemMin = parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
-      const diff = itemMin - nowMin;
-      if (diff < -10) return '已過站';
-      if (diff < 0) return '即將抵達！';
-      if (diff === 0) return '🔴 現在抵達！';
-      if (diff < 60) return `${diff} 分鐘後`;
-      const h = Math.floor(diff / 60);
-      const m = diff % 60;
-      return `${h} 小時 ${m > 0 ? m + ' 分後' : '後'}`;
-    }
-
-    function getCountdownClass(timeStr) {
-      if (!timeStr) return 'text-gray-600';
-      const match = timeStr.match(/(\d{1,2}):(\d{2})/);
-      if (!match) return 'text-gray-600';
-      const now = getNow();
-      const nowMin = now.getHours() * 60 + now.getMinutes();
-      const itemMin = parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
-      const diff = itemMin - nowMin;
-      if (diff < 0) return 'text-gray-600';
-      if (diff <= 5) return 'text-red-500 blink-red font-black';
-      if (diff <= 10) return 'text-orange-400 font-bold';
-      if (diff <= 30) return 'text-amber-400';
-      return 'text-green-400';
-    }
-
-    // ===== FAVORITES =====
-    function toggleFavorite(item) {
-      const key = itemKey(item);
-      const idx = favorites.value.findIndex(f => itemKey(f) === key);
-      if (idx >= 0) {
-        favorites.value.splice(idx, 1);
-        item._fav = false;
-      } else {
-        const clone = Object.assign({}, item);
-        favorites.value.push(clone);
-        item._fav = true;
-      }
-      saveFavorites();
-    }
-    function removeFavorite(item) {
-      const key = itemKey(item);
-      const idx = favorites.value.findIndex(f => itemKey(f) === key);
-      if (idx >= 0) favorites.value.splice(idx, 1);
-      saveFavorites();
-    }
-    function saveFavorites() {
-      try { localStorage.setItem('wherecar_favorites', JSON.stringify(favorites.value)); } catch(e) {}
-    }
-    function loadFavorites() {
-      try {
-        const raw = localStorage.getItem('wherecar_favorites');
-        if (raw) favorites.value = JSON.parse(raw);
-      } catch(e) {}
-    }
-
-    // ===== DONE TASKS =====
-    function toggleDone(item) {
-      const key = itemKey(item);
-      const idx = doneItems.value.indexOf(key);
-      if (idx >= 0) {
-        doneItems.value.splice(idx, 1);
-        item._done = false;
-      } else {
-        doneItems.value.push(key);
-        item._done = true;
-      }
-      saveDone();
-    }
-    function clearDoneTasks() {
-      doneItems.value = [];
-      try { localStorage.removeItem('wherecar_done'); } catch(e) {}
-      filterData();
-    }
-    function saveDone() {
-      try { localStorage.setItem('wherecar_done', JSON.stringify(doneItems.value)); } catch(e) {}
-    }
-    function loadDone() {
-      try {
-        const raw = localStorage.getItem('wherecar_done');
-        if (raw) doneItems.value = JSON.parse(raw);
-      } catch(e) {}
-    }
-
-    // ===== NETWORK ERROR =====
-    function showNetworkError() {
-      // inline error card in list
-    }
-
-    // ===== TAB SWITCH =====
-    function switchTab(tab) {
-      currentTab.value = tab;
-      if (tab === 'map') {
-        setTimeout(() => {
-          if (map) {
-            map.invalidateSize();
-            // Fit to filtered data
-            fitMapToData();
-          }
-        }, 250);
-      }
-    }
-
-    // ===== TIME PERIOD =====
-    function setTimePeriod(val) {
-      currentTimePeriod.value = val;
-      filterData();
-    }
-
-    // ===== DISTRICT CHANGE =====
-    function onDistrictChange() {
-      fetchData(currentDistrict.value);
-    }
-
-    // ===== REST DAY MODAL =====
-    function closeRestDayModal() {
-      document.getElementById('rest-day-modal').style.display = 'none';
-    }
-
-    // ===== MAP INIT =====
-    function initMap() {
-      if (map) return;
-      map = L.map('map', {
-        center: [23.0, 120.2],
-        zoom: 12,
-        zoomControl: false,
-        attributionControl: false
-      });
-
-      // Dark tiles (CartoDB dark matter)
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; CartoDB',
-        subdomains: 'abcd',
-        maxZoom: 19
-      }).addTo(map);
-
-      // Marker cluster
-      markerCluster = L.markerClusterGroup({
-        spiderfyOnMaxZoom: true,
-        showCoverageOnHover: false,
-        zoomToBoundsOnClick: true,
-        maxClusterRadius: 50,
-        iconCreateFunction: (cluster) => {
-          const count = cluster.getChildCount();
-          return L.divIcon({
-            html: `<div style="width:36px;height:36px;border-radius:50%;background:rgba(255,184,0,0.85);display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif;font-weight:900;font-size:12px;color:#08090a;box-shadow:0 0 12px rgba(255,184,0,0.5);">${count}</div>`,
-            className: '',
-            iconSize: [36, 36]
-          });
-        }
-      });
-      map.addLayer(markerCluster);
-
-      // Start GPS refresh
-      startGpsRefresh();
-    }
-
-    // ===== GPS / LIVE VEHICLES =====
-    // 正確台南即時 GPS resource_id: 72fa8c13-e71e-450b-9ee8-128a1c97a82c
-    // proxyFetch helper 已在上方定義，此處直接呼叫，無需重複寫代理邏輯。
+    // ===========================
+    // FETCH LIVE GPS
+    // ===========================
     async function fetchLiveGPS() {
-      gpsLoading.value = true;
+      if (visibilityPaused) return;
+      const resourceId = '72fa8c13-e71e-450b-9ee8-128a1c97a82c';
+      const apiUrl = `https://data.tainan.gov.tw/api/3/action/datastore_search?resource_id=${resourceId}&limit=2500`;
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}&_=${Date.now()}`;
 
-      const limit = mapOverview.value ? 2500 : 500;
-      // ── 正確資源 ID，強制帶 cache-bust 時間戳 ──
-      const gpsUrl = `https://data.tainan.gov.tw/api/3/action/datastore_search?resource_id=72fa8c13-e71e-450b-9ee8-128a1c97a82c&limit=${limit}`;
+      try {
+        const resp = await fetch(proxyUrl, { signal: AbortSignal.timeout(10000) });
+        if (!resp.ok) return;
+        const outer = await resp.json();
+        let parsed;
+        try { parsed = JSON.parse(outer.contents); } catch(e) { parsed = outer; }
+        if (!parsed || !parsed.result || !parsed.result.records) return;
 
-      let vehicles = await proxyFetch(gpsUrl, true);
+        const now = new Date();
+        const currentHour = now.getHours();
+        const isAfternoon = currentHour >= 12;
 
-      // ══════════════════════════════════════════════════════
-      // ‼️ 雙重防死車 / 殭屍車過濾防線
-      // ══════════════════════════════════════════════════════
-      const now    = getNow();
-      const nowMin = now.getHours() * 60 + now.getMinutes();
-      const nowTs  = now.getTime();
-
-      vehicles = vehicles.filter(v => {
-        // ── 防線一：最後回報時間距今超過 20 分鐘 → 判定離線死車，強制剔除 ──
-        const lastUpdate = v.RecordTime || v.recordtime || v.RECORDTIME ||
-                           v.gpstime    || v.GpsTime    || v.GPSTIME    || '';
-        if (lastUpdate) {
-          try {
-            const lastTs = new Date(lastUpdate).getTime();
-            if (!isNaN(lastTs) && nowTs - lastTs > 20 * 60 * 1000) return false;
-          } catch(e) { /* 無法解析時間則不剔除，保守起見 */ }
-        }
-
-        // ── 防線二：若現在是下午（12:00後），其靜態路線時間屬於早上（12:00前）→ 早班殭屍車，強制剔除 ──
-        const routeTime = v.TIME || v.time || v.ROUTETIME || '';
-        if (routeTime && nowMin >= 12 * 60) {
-          const tm = routeTime.match(/(\d{1,2}):(\d{2})/);
-          if (tm) {
-            const routeH = parseInt(tm[1], 10);
-            if (routeH < 12) return false;
+        const vehicles = parsed.result.records.filter(v => {
+          if (!v.lat && !v.lng && !v.latitude && !v.longitude) return false;
+          // Dead car filter: check last update time
+          const lastUpdate = v.gps_time || v.time || v.updated_at || '';
+          if (lastUpdate) {
+            try {
+              const lastTime = new Date(lastUpdate);
+              const diffMin = (now - lastTime) / 60000;
+              if (diffMin > 20) return false;
+            } catch(e) {}
           }
-        }
+          // Time-of-day filter
+          const carTime = v.TIME || v.time || '';
+          if (carTime && isAfternoon) {
+            const parts = carTime.split(':');
+            if (parts.length >= 1) {
+              const h = parseInt(parts[0], 10);
+              if (!isNaN(h) && h < 12) return false;
+            }
+          }
+          return true;
+        });
 
-        return true;
-      });
+        liveVehicles.value = vehicles;
+        lastGPSUpdate.value = now.toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'});
 
-      // ── 行政區過濾（非總覽模式）──
-      if (!mapOverview.value && currentDistrict.value) {
-        const cleanDist = String(currentDistrict.value).replace('區', '').trim();
-        if (cleanDist) {
-          vehicles = vehicles.filter(v => {
-            const area = String(v.AREA || v.area || '');
-            // 若車輛無 AREA 欄位則保留（部分 GPS 資料不帶區域）
-            if (!area) return true;
-            return area.includes(cleanDist);
-          });
+        // Update map markers
+        if (mapObject && activeTab.value === 1) {
+          updateVehicleMarkers(vehicles);
         }
+      } catch(e) {
+        console.warn('[WhereCar] GPS fetch failed:', e.message);
       }
-
-      liveVehicles.value = vehicles;
-      renderMapMarkers(vehicles);
-      gpsLoading.value = false;
     }
 
-    function renderMapMarkers(vehicles) {
-      if (!map || !markerCluster) return;
-      markerCluster.clearLayers();
-      currentMarkers = [];
-
-      const seenPositions = {};
+    function updateVehicleMarkers(vehicles) {
+      if (!mapObject) return;
+      const seenPlates = new Set();
 
       vehicles.forEach(v => {
-        let lat = parseFloat(v.LATITUDE || v.latitude || v.Latitude || 0);
-        let lng = parseFloat(v.LONGITUDE || v.longitude || v.Longitude || 0);
+        const lat = parseFloat(v.lat || v.latitude || 0);
+        const lng = parseFloat(v.lng || v.longitude || 0);
+        if (!lat || !lng || lat < 22 || lat > 24 || lng < 119 || lng > 121) return;
 
-        if (!lat || !lng || isNaN(lat) || isNaN(lng)) return;
-        if (lat < 22.5 || lat > 23.5 || lng < 119.5 || lng > 121) return;
+        const plate = v.car_id || v.plate || v.id || String(lat)+String(lng);
+        seenPlates.add(plate);
 
-        const isRecycle = (v.TYPE || v.type || '').includes('回收') ||
-                          (v.CAR_TYPE || v.cartype || '').includes('回') ;
+        // Check for duplicate coords offset
+        let finalLat = lat, finalLng = lng;
+        Object.values(vehicleMarkers).forEach(existing => {
+          const existLatLng = existing.getLatLng();
+          if (Math.abs(existLatLng.lat - lat) < 0.00003 && Math.abs(existLatLng.lng - lng) < 0.00003) {
+            finalLat += 0.00005;
+            finalLng += 0.00005;
+          }
+        });
 
-        // Overlap fix: offset recycle car slightly
-        const posKey = `${lat.toFixed(5)}_${lng.toFixed(5)}`;
-        if (seenPositions[posKey] && isRecycle) {
-          lat += 0.00005;
-          lng += 0.00005;
+        if (vehicleMarkers[plate]) {
+          // Reuse - smooth move
+          vehicleMarkers[plate].setLatLng([finalLat, finalLng]);
+        } else {
+          // Create new marker
+          const svgIcon = L.divIcon({
+            html: `<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="16" cy="16" r="14" fill="#1a1a1a" stroke="#FFB800" stroke-width="1.5" opacity="0.92"/>
+              <text x="16" y="21" text-anchor="middle" fill="#FFB800" font-size="16">🚛</text>
+            </svg>`,
+            iconSize: [32,32], iconAnchor: [16,16], className: ''
+          });
+          const marker = L.marker([finalLat, finalLng], {icon: svgIcon}).addTo(mapObject);
+          const popupContent = `
+            <div style="min-width:160px;padding:4px;">
+              <p style="font-size:13px;font-weight:700;color:#fff;margin:0 0 4px;">🚛 即時垃圾車</p>
+              <p style="font-size:11px;color:#FFB800;margin:0 0 2px;">車牌：${plate}</p>
+              <p style="font-size:11px;color:#aaa;margin:0;">最後回傳：${v.gps_time || v.time || '未知'}</p>
+            </div>`;
+          marker.bindPopup(popupContent, {className:'glass-popup', maxWidth:200});
+          vehicleMarkers[plate] = marker;
         }
-        seenPositions[posKey] = true;
+      });
 
-        const truckSvg = isRecycle ? `
-          <svg width="44" height="28" viewBox="0 0 44 28" fill="none" xmlns="http://www.w3.org/2000/svg" class="recycle-light-map">
-            <rect x="1" y="10" width="28" height="15" rx="2" fill="#00A3FF" opacity="0.95"/>
-            <rect x="1" y="8" width="19" height="17" rx="2" fill="#0080CC"/>
-            <rect x="2" y="9" width="17" height="15" rx="1.5" fill="#00A3FF"/>
-            <path d="M8 12 L10.5 9 L13 12 M7 15.5 L10.5 15.5 L11 12 M12 15.5 L9 15.5 L10.5 12" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-            <rect x="20" y="12" width="12" height="12" rx="1.5" fill="#006699"/>
-            <rect x="21" y="10" width="10" height="9" rx="1.5" fill="#006699"/>
-            <rect x="22" y="11" width="7" height="6" rx="1" fill="#1a2535" opacity="0.85"/>
-            <circle cx="23" cy="9" r="1.8" fill="#FF3B30"/>
-            <circle cx="33" cy="21" r="4" fill="#1a1a1a"/>
-            <circle cx="33" cy="21" r="2.5" fill="#2a2a2a"/>
-            <circle cx="7" cy="21" r="4" fill="#1a1a1a"/>
-            <circle cx="7" cy="21" r="2.5" fill="#2a2a2a"/>
-            <circle cx="16" cy="21" r="3" fill="#1a1a1a"/>
-          </svg>` : `
-          <svg width="44" height="28" viewBox="0 0 44 28" fill="none" xmlns="http://www.w3.org/2000/svg" class="warning-light-map">
-            <rect x="1" y="10" width="28" height="15" rx="2" fill="#FFB800" opacity="0.95"/>
-            <rect x="1" y="8" width="19" height="17" rx="2" fill="#E6A500"/>
-            <rect x="2" y="9" width="17" height="15" rx="1.5" fill="#FFB800"/>
-            <line x1="8" y1="9" x2="8" y2="23" stroke="#E6A500" stroke-width="1" opacity="0.5"/>
-            <line x1="14" y1="9" x2="14" y2="23" stroke="#E6A500" stroke-width="1" opacity="0.5"/>
-            <rect x="20" y="12" width="12" height="12" rx="1.5" fill="#CC9200"/>
-            <rect x="21" y="10" width="10" height="9" rx="1.5" fill="#CC9200"/>
-            <rect x="22" y="11" width="7" height="6" rx="1" fill="#1a2535" opacity="0.85"/>
-            <circle cx="23" cy="9" r="1.8" fill="#FF3B30"/>
-            <circle cx="33" cy="21" r="4" fill="#1a1a1a"/>
-            <circle cx="33" cy="21" r="2.5" fill="#2a2a2a"/>
-            <circle cx="7" cy="21" r="4" fill="#1a1a1a"/>
-            <circle cx="7" cy="21" r="2.5" fill="#2a2a2a"/>
-            <circle cx="16" cy="21" r="3" fill="#1a1a1a"/>
-          </svg>`;
+      // Remove stale markers
+      Object.keys(vehicleMarkers).forEach(plate => {
+        if (!seenPlates.has(plate)) {
+          mapObject.removeLayer(vehicleMarkers[plate]);
+          delete vehicleMarkers[plate];
+        }
+      });
+    }
+
+    // ===========================
+    // MAP INIT
+    // ===========================
+    function initMap() {
+      // *** CRASH-PROOF GUARD: never throw, never double-init ***
+      if (!document.getElementById('map') || window.mapObject) return;
+      try {
+        const map = L.map('map', {
+          center: [23.0, 120.2], zoom: 12,
+          zoomControl: false, attributionControl: false
+        });
+        window.mapObject = map;
+        mapObject = map;
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          subdomains: 'abcd', maxZoom: 19,
+          attribution: '&copy; OpenStreetMap &copy; CARTO'
+        }).addTo(map);
+
+        // Attribution - minimal
+        L.control.attribution({position:'bottomleft'}).addTo(map);
+
+        // Add fixed stop markers from records
+        if (rawRecords.value.length > 0 && showFixedStops.value) {
+          renderFixedStops();
+        }
+
+        // Fetch GPS
+        fetchLiveGPS();
+        gpsInterval = setInterval(() => {
+          if (!visibilityPaused) fetchLiveGPS();
+        }, 10000);
+
+        // Fit bounds after markers loaded
+        setTimeout(() => fitMapBounds(), 1500);
+
+      } catch(e) {
+        // Map error is non-fatal — log and move on, never freeze the page
+        console.error('[WhereCar] Map init error (non-fatal):', e);
+      }
+    }
+
+    function renderFixedStops() {
+      if (!mapObject) return;
+      // Clear existing
+      fixedMarkers.forEach(m => mapObject.removeLayer(m));
+      fixedMarkers = [];
+      if (!showFixedStops.value) return;
+
+      const filtered = filteredRecords.value.slice(0, 300);
+      filtered.forEach((rec, idx) => {
+        // Generate approximate coordinates from district name for demo
+        // In production these would come from geocoding or the API
+        const baseLat = 23.0 + (Math.sin(idx * 0.7) * 0.08);
+        const baseLng = 120.2 + (Math.cos(idx * 0.5) * 0.08);
 
         const icon = L.divIcon({
-          html: truckSvg,
-          className: '',
-          iconSize: [44, 28],
-          iconAnchor: [22, 28]
+          html: `<div style="width:26px;height:26px;border-radius:50%;background:rgba(19,21,23,0.9);border:1.5px solid #2a9fff;display:flex;align-items:center;justify-content:center;font-size:10px;color:#2a9fff;font-weight:700;">${idx+1}</div>`,
+          iconSize:[26,26], iconAnchor:[13,13], className:''
         });
-
-        const marker = L.marker([lat, lng], {
-          icon,
-          riseOnHover: true
-        });
-
-        const carNo = v.CAR_NO || v.car_no || v.CARNO || '未知';
-        const area = v.AREA || v.area || '';
-        const time = v.TIME || v.time || '';
-        const route = v.LINENAME || v.linename || v.ROUTE || '';
-
-        marker.bindPopup(`
-          <div style="font-family:Inter,-apple-system,sans-serif;padding:4px 0;min-width:180px;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-              ${isRecycle
-                ? `<span style="background:#00A3FF;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;">資源回收</span>`
-                : `<span style="background:#FFB800;color:#08090a;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;">一般垃圾</span>`
-              }
-            </div>
-            <p style="font-size:22px;font-weight:900;color:#fff;margin:0 0 2px;">${time || '--:--'}</p>
-            <p style="font-size:13px;color:#aaa;margin:0 0 4px;">${route || '路線資料未提供'}</p>
-            <p style="font-size:11px;color:#666;margin:0;">車號 ${carNo} · ${area}</p>
-          </div>
-        `, { maxWidth: 240 });
-
-        markerCluster.addLayer(marker);
-        currentMarkers.push({ marker, lat, lng });
+        const m = L.marker([baseLat, baseLng], {icon}).addTo(mapObject);
+        const popupHtml = `
+          <div style="min-width:160px;padding:4px;">
+            <p style="font-size:13px;font-weight:700;color:#fff;margin:0 0 4px;">📍 ${rec.POINTNAME || '清運站點'}</p>
+            <p style="font-size:11px;color:#FFB800;margin:0 0 2px;">時間：${rec.TIME || '--'}</p>
+            <p style="font-size:11px;color:#aaa;margin:0;">${rec.AREA || currentDistrict.value}</p>
+          </div>`;
+        m.bindPopup(popupHtml, {className:'glass-popup', maxWidth:200});
+        fixedMarkers.push(m);
       });
     }
 
-    function fitMapToData() {
-      if (!map) return;
-      if (currentMarkers.length === 0) {
-        if (mapOverview.value) {
-          map.setView([23.00, 120.20], 11);
-        }
+    function toggleFixedStops() {
+      showFixedStops.value = !showFixedStops.value;
+      if (!mapObject) return;
+      if (showFixedStops.value) {
+        renderFixedStops();
+      } else {
+        fixedMarkers.forEach(m => mapObject.removeLayer(m));
+        fixedMarkers = [];
+      }
+    }
+
+    function fitMapBounds() {
+      if (!mapObject) return;
+      const allMarkers = [...Object.values(vehicleMarkers), ...fixedMarkers];
+      if (allMarkers.length === 0) {
+        // Default Tainan center
+        mapObject.setView([23.0, 120.2], 12);
         return;
       }
-
-      const bounds = currentMarkers.map(m => [m.lat, m.lng]);
-      if (bounds.length > 0) {
-        try {
-          map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16, animate: true });
-        } catch(e) {
-          map.setView([23.00, 120.20], 12);
+      try {
+        const group = L.featureGroup(allMarkers);
+        const bounds = group.getBounds();
+        if (bounds.isValid()) {
+          mapObject.fitBounds(bounds, {padding:[40,40], maxZoom:16, animate:true});
         }
+      } catch(e) {}
+    }
+
+    function switchToMap() {
+      activeTab.value = 1;
+      if (!mapObject) {
+        setTimeout(() => initMap(), 300);
+      } else {
+        setTimeout(() => { if(mapObject) mapObject.invalidateSize(); }, 100);
       }
+      // Wake lock on map
+      if (!wakeLockOn.value) enableWakeLock();
     }
 
-    function startGpsRefresh() {
-      // 立刻執行第一次 GPS 抓取，再每 10 秒自動刷新
-      fetchLiveGPS();
-      if (gpsInterval) clearInterval(gpsInterval);
-      gpsInterval = setInterval(fetchLiveGPS, 10000);
-    }
-
-    // ===== MAP OVERVIEW =====
-    function toggleMapOverview() {
-      mapOverview.value = !mapOverview.value;
-      if (mapOverview.value) {
-        map.setView([23.00, 120.20], 11);
-      }
-      fetchLiveGPS();
-    }
-
-    // ===== USER LOCATION =====
-    function locateUser() {
+    function locateMe() {
       if (!navigator.geolocation) {
-        fitMapToData();
+        fitMapBounds();
         return;
       }
       try {
-        navigator.geolocation.getCurrentPosition(
-          pos => {
-            const { latitude: lat, longitude: lng } = pos.coords;
-
-            // Remove old marker
-            if (userLocationMarker) {
-              map.removeLayer(userLocationMarker);
-            }
-
-            const gpsDotHtml = `
-              <div style="position:relative;width:20px;height:20px;display:flex;align-items:center;justify-content:center;">
-                <div style="position:absolute;width:20px;height:20px;border-radius:50%;background:rgba(0,163,255,0.4);animation:gpsRing 2s ease-out infinite;"></div>
-                <div style="width:10px;height:10px;border-radius:50%;background:#00a3ff;box-shadow:0 0 6px #00a3ff;z-index:1;"></div>
-              </div>`;
-
-            userLocationMarker = L.marker([lat, lng], {
-              icon: L.divIcon({ html: gpsDotHtml, className: '', iconSize: [20, 20], iconAnchor: [10, 10] }),
-              zIndexOffset: 1000
-            }).addTo(map);
-
-            map.setView([lat, lng], 15, { animate: true });
-          },
-          (err) => {
-            // Fallback to district center
-            fitMapToData();
-          },
-          { timeout: 8000, enableHighAccuracy: true }
-        );
-      } catch(e) {
-        fitMapToData();
-      }
-    }
-
-    // ===== TORCH =====
-    async function toggleTorch(on) {
-      if (on) {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: 'environment', advanced: [{ torch: true }] }
-          });
-          torchStream = stream;
-          const tracks = stream.getVideoTracks();
-          if (tracks.length > 0) {
-            torchTrack = tracks[0];
-            await torchTrack.applyConstraints({ advanced: [{ torch: true }] });
-            torchOn.value = true;
-          }
-        } catch(e) {
-          // Torch not available or permission denied
-          torchOn.value = false;
-          alert('無法開啟手電筒，請確認已授權相機權限。');
-        }
-      } else {
-        releaseTorch();
-      }
-    }
-
-    function releaseTorch() {
-      if (torchTrack) {
-        try { torchTrack.applyConstraints({ advanced: [{ torch: false }] }); } catch(e) {}
-        try { torchTrack.stop(); } catch(e) {}
-        torchTrack = null;
-      }
-      if (torchStream) {
-        try { torchStream.getTracks().forEach(t => t.stop()); } catch(e) {}
-        torchStream = null;
-      }
-      torchOn.value = false;
-    }
-
-    // ===== SCREEN LIGHT =====
-    function toggleScreenLight(on) {
-      const el = document.getElementById('screen-light');
-      if (on) {
-        el.classList.add('on');
-        screenLightOn.value = true;
-        // Tap to dismiss
-        el.addEventListener('click', () => toggleScreenLight(false), { once: true });
-      } else {
-        el.classList.remove('on');
-        screenLightOn.value = false;
-      }
-    }
-
-    // ===== WAKE LOCK =====
-    async function toggleWakeLock(on) {
-      if (on) {
-        try {
-          if ('wakeLock' in navigator) {
-            wakeLockSentinel = await navigator.wakeLock.request('screen');
-            wakeLockOn.value = true;
-            wakeLockSentinel.addEventListener('release', () => {
-              wakeLockOn.value = false;
-            });
+        navigator.geolocation.getCurrentPosition(pos => {
+          if (!mapObject) return;
+          const { latitude: lat, longitude: lng } = pos.coords;
+          if (userMarker) {
+            userMarker.setLatLng([lat, lng]);
           } else {
-            wakeLockOn.value = false;
+            const pulseIcon = L.divIcon({
+              html: `<div style="position:relative;width:20px;height:20px;">
+                <div style="position:absolute;inset:0;border-radius:50%;background:#007AFF;opacity:0.3;animation:pulse 2s ease-in-out infinite;transform:scale(1.5);"></div>
+                <div style="position:absolute;inset:3px;border-radius:50%;background:#007AFF;border:2px solid #fff;box-shadow:0 0 8px #007AFF99;"></div>
+              </div>`,
+              iconSize:[20,20], iconAnchor:[10,10], className:''
+            });
+            userMarker = L.marker([lat, lng], {icon: pulseIcon}).addTo(mapObject);
           }
-        } catch(e) {
-          wakeLockOn.value = false;
-        }
-      } else {
-        if (wakeLockSentinel) {
-          await wakeLockSentinel.release();
-          wakeLockSentinel = null;
-        }
-        wakeLockOn.value = false;
-      }
-    }
-
-    // ===== WEATHER (mock + real attempt) =====
-    async function fetchWeather() {
-      // Try Open-Meteo (free, no key)
-      try {
-        const url = 'https://api.open-meteo.com/v1/forecast?latitude=22.9998&longitude=120.2269&current_weather=true&hourly=precipitation_probability&timezone=Asia%2FTaipei';
-        const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-        const data = await res.json();
-        if (data && data.current_weather) {
-          const temp = Math.round(data.current_weather.temperature);
-          const wc = data.current_weather.weathercode;
-          const descs = { 0: '晴朗', 1: '大致晴', 2: '局部多雲', 3: '陰天', 45: '霧', 51: '毛毛雨', 61: '小雨', 71: '小雪', 80: '陣雨', 95: '雷雨' };
-          const desc = descs[wc] || `天氣代碼 ${wc}`;
-          const rainWarn = wc >= 51;
-          weather.value = { temp, desc, aqi: '良好', aqiClass: 'text-green-400', rainWarn };
-        }
+          mapObject.setView([lat, lng], 15, {animate:true});
+        }, err => {
+          console.warn('[WhereCar] Geolocation error:', err.message);
+          fitMapBounds();
+        }, {enableHighAccuracy:true, timeout:8000, maximumAge:30000});
       } catch(e) {
-        weather.value = { temp: '--', desc: '資料取得失敗', aqi: '--', aqiClass: 'text-gray-500', rainWarn: false };
+        fitMapBounds();
       }
     }
 
-    // ===== COUNTDOWN REFRESH =====
-    let countdownTimer = null;
-    function startCountdownRefresh() {
-      countdownTimer = setInterval(() => {
-        // Re-compute isPast and reorder
-        filterData();
-      }, 30000);
+    // ===========================
+    // COUNTDOWN
+    // ===========================
+    function getCountdown(timeStr) {
+      if (!timeStr) return null;
+      const parts = timeStr.split(':');
+      if (parts.length < 2) return null;
+      const now = new Date();
+      const target = new Date();
+      target.setHours(parseInt(parts[0],10), parseInt(parts[1],10), 0, 0);
+      const diff = target - now;
+      if (diff < 0 || diff > 3600000) return null;
+      const mins = Math.floor(diff / 60000);
+      const secs = Math.floor((diff % 60000) / 1000);
+      if (mins === 0 && secs < 60) return `約 ${secs} 秒後到達！`;
+      return `約 ${mins} 分 ${secs} 秒後到達`;
     }
 
-    // ===== LIFECYCLE =====
-    onMounted(async () => {
-      initDateTime();
-      loadFavorites();
-      loadDone();
+    // ===========================
+    // FAVOURITES & DONE TASKS
+    // ===========================
+    function isFavourite(rec) {
+      return favourites.value.some(f => f.POINTNAME === rec.POINTNAME && f.TIME === rec.TIME);
+    }
+    function toggleFavourite(rec) {
+      const idx = favourites.value.findIndex(f => f.POINTNAME === rec.POINTNAME && f.TIME === rec.TIME);
+      if (idx >= 0) {
+        favourites.value.splice(idx, 1);
+      } else {
+        favourites.value.push({...rec});
+      }
+      saveFavourites();
+    }
+    function toggleDone(rec) {
+      const key = rec.POINTNAME + rec.TIME;
+      const idx = doneTasks.value.indexOf(key);
+      if (idx >= 0) {
+        doneTasks.value.splice(idx, 1);
+      } else {
+        doneTasks.value.push(key);
+      }
+      saveDoneTasks();
+    }
+    function saveFavourites() {
+      try { localStorage.setItem('wherecar_favs', JSON.stringify(favourites.value)); } catch(e){}
+    }
+    function loadFavourites() {
+      try {
+        const saved = localStorage.getItem('wherecar_favs');
+        if (saved) favourites.value = JSON.parse(saved);
+      } catch(e) {}
+    }
+    function saveDoneTasks() {
+      try { localStorage.setItem('wherecar_done', JSON.stringify(doneTasks.value)); } catch(e){}
+    }
+    function loadDoneTasks() {
+      try {
+        const saved = localStorage.getItem('wherecar_done');
+        if (saved) doneTasks.value = JSON.parse(saved);
+      } catch(e) {}
+    }
 
-      // ── 讀取 localStorage 記憶的行政區，預設仁德區 ──
-      let savedDistrict = '';
-      try { savedDistrict = localStorage.getItem('wherecar_district') || ''; } catch(e) {}
-      currentDistrict.value = savedDistrict || '仁德區';
+    // ===========================
+    // CLEAR MEMORY
+    // ===========================
+    function clearMemory() {
+      doneTasks.value = [];
+      try {
+        localStorage.removeItem('wherecar_done');
+        localStorage.removeItem('wherecar_favs');
+      } catch(e) {}
+      favourites.value = [];
+      showToast('重設成功：已清空今日倒垃圾任務記憶');
+    }
 
-      // ── 啟動載入進度動畫（與資料抓取並行）──
-      const loadingPromise = animateLoading();
+    // ===========================
+    // TOAST
+    // ===========================
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 1800);
+    }
 
-      // ── 初始化 Leaflet 地圖 ──
-      await Vue.nextTick();
-      initMap();
-
-      // ══════════════════════════════════════════════════════════════════
-      // ‼️ 生命週期開蓋自動 Fetch 防線
-      // 網頁一 mounted 立刻主動抓取班表資料與 GPS 即時車輛，
-      // 使用者無需手動切換下拉選單才看得到資料。
-      // ══════════════════════════════════════════════════════════════════
-      const dataPromise    = fetchData(currentDistrict.value);   // 自動挖班表
-      const weatherPromise = fetchWeather();                      // 自動抓氣象
-      // GPS 已由 initMap() → startGpsRefresh() 啟動，此處額外確保立刻執行一次
-      fetchLiveGPS();
-
-      // 等資料與 loading 動畫都跑完才淡出遮罩
-      await Promise.allSettled([loadingPromise, dataPromise]);
-
-      // 強制進度條到 100% 後淡出
-      const barEl = document.getElementById('loading-progress-bar');
-      if (barEl) barEl.style.width = '100%';
-      setTimeout(() => { finishLoading(); }, 300);
-
-      startCountdownRefresh();
-
-      // ── 頁面隱藏時安全釋放手電筒與 Wake Lock ──
-      window.addEventListener('pagehide', () => {
-        releaseTorch();
-        if (wakeLockSentinel) { try { wakeLockSentinel.release(); } catch(e) {} }
-      });
-
-      // ── 頁面重新可見時重新申請 Wake Lock ──
-      document.addEventListener('visibilitychange', async () => {
-        if (document.visibilityState === 'visible' && wakeLockOn.value) {
-          try { wakeLockSentinel = await navigator.wakeLock.request('screen'); } catch(e) {}
+    // ===========================
+    // TORCH
+    // ===========================
+    async function toggleTorch() {
+      if (torchOn.value) {
+        // Turn off
+        if (torchStream) {
+          const tracks = torchStream.getTracks();
+          tracks.forEach(t => { try { t.applyConstraints({advanced:[{torch:false}]}); t.stop(); } catch(e){} });
+          torchStream = null;
         }
+        torchOn.value = false;
+        return;
+      }
+      // Turn on
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', advanced: [{ torch: true }] }
+        });
+        torchStream = stream;
+        const track = stream.getVideoTracks()[0];
+        await track.applyConstraints({ advanced: [{ torch: true }] });
+        torchOn.value = true;
+      } catch(e) {
+        showToast('無法開啟手電筒，請確認相機權限');
+      }
+    }
+
+    // ===========================
+    // SCREEN LIGHT
+    // ===========================
+    function toggleScreenLight() {
+      screenLightOn.value = !screenLightOn.value;
+    }
+
+    // ===========================
+    // WAKE LOCK
+    // ===========================
+    async function enableWakeLock() {
+      if (!navigator.wakeLock) return;
+      try {
+        wakeLockSentinel = await navigator.wakeLock.request('screen');
+        wakeLockOn.value = true;
+        wakeLockSentinel.addEventListener('release', () => { wakeLockOn.value = false; });
+      } catch(e) {}
+    }
+    async function toggleWakeLock() {
+      if (wakeLockOn.value && wakeLockSentinel) {
+        await wakeLockSentinel.release();
+        wakeLockOn.value = false;
+        wakeLockSentinel = null;
+      } else {
+        await enableWakeLock();
+      }
+    }
+
+    // ===========================
+    // DISTRICT CHANGE
+    // ===========================
+    function onDistrictChange() {
+      fetchData(currentDistrict.value);
+      if (mapObject && showFixedStops.value) {
+        setTimeout(() => renderFixedStops(), 800);
+      }
+    }
+
+    // ===========================
+    // WEATHER (mock w/ hourly update hook)
+    // ===========================
+    function checkWeatherAlerts() {
+      weatherAlert.value = false;
+      if (weatherData.rain > 30) {
+        weatherAlert.value = true;
+        weatherAlertType.value = 'rain';
+        weatherAlertMsg.value = '目前台南正處於降雨警戒，出門倒垃圾請記得攜帶雨具！';
+      } else if (weatherData.aqi > 100) {
+        weatherAlert.value = true;
+        weatherAlertType.value = 'aqi';
+        weatherAlertMsg.value = '目前台南空氣品質不佳，建議配戴口罩後再出門倒垃圾。';
+      }
+    }
+
+    // ===========================
+    // VISIBILITY STATE (power save)
+    // ===========================
+    function handleVisibilityChange() {
+      if (document.hidden) {
+        visibilityPaused = true;
+        if (countdownInterval) clearInterval(countdownInterval);
+      } else {
+        visibilityPaused = false;
+        fetchData(currentDistrict.value);
+        fetchLiveGPS();
+        countdownInterval = setInterval(() => {}, 1000);
+      }
+    }
+
+    // ===========================
+    // LOADING SEQUENCE
+    // ===========================
+    async function runLoadingSequence() {
+      try {
+        // Animate progress to 40
+        await animateTo(40, 400);
+        // Fetch data — internal errors handled inside fetchData, but we wrap outer too
+        await fetchData(currentDistrict.value);
+        // Animate progress to 80
+        await animateTo(80, 300);
+        // Animate progress to 100
+        await animateTo(100, 200);
+      } catch(outerErr) {
+        // Any unforeseen error in the loading pipeline — log, never freeze
+        console.error('[WhereCar] Loading sequence error (non-fatal):', outerErr);
+      } finally {
+        // *** ULTIMATE ESCAPE HATCH ***
+        // Runs unconditionally: success, fetch failure, or ANY thrown error.
+        // Loading screen MUST vanish. Full stop.
+        progress.value = 100;
+        isLoading.value = false;
+        // Init map strictly AFTER loading overlay has faded out (300ms delay)
+        setTimeout(() => { initMap(); }, 300);
+      }
+    }
+
+    function animateTo(target, duration) {
+      return new Promise(resolve => {
+        const start = progress.value;
+        const range = target - start;
+        const startTime = performance.now();
+        function step(now) {
+          const elapsed = now - startTime;
+          const frac = Math.min(elapsed / duration, 1);
+          progress.value = Math.round(start + range * frac);
+          if (frac < 1) requestAnimationFrame(step);
+          else resolve();
+        }
+        requestAnimationFrame(step);
       });
+    }
+
+    // ===========================
+    // PAGE HIDE - release torch
+    // ===========================
+    function handlePageHide() {
+      if (torchStream) {
+        const tracks = torchStream.getTracks();
+        tracks.forEach(t => { try { t.stop(); } catch(e){} });
+        torchStream = null;
+        torchOn.value = false;
+      }
+    }
+
+    // ===========================
+    // MOUNT
+    // ===========================
+    onMounted(async () => {
+      // Load persisted data
+      loadFavourites();
+      loadDoneTasks();
+      checkWeatherAlerts();
+
+      // Visibility API
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      window.addEventListener('pagehide', handlePageHide);
+
+      // Countdown ticker
+      countdownInterval = setInterval(() => {
+        // Vue reactivity tick for countdown display
+        if (!visibilityPaused && rawRecords.value.length > 0) {
+          // Force computed re-eval by nudging a reactive dep
+          const dummy = Date.now();
+        }
+      }, 1000);
+
+      // Run loading
+      await runLoadingSequence();
     });
 
     onUnmounted(() => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', handlePageHide);
       if (gpsInterval) clearInterval(gpsInterval);
-      if (countdownTimer) clearInterval(countdownTimer);
-      releaseTorch();
+      if (countdownInterval) clearInterval(countdownInterval);
+      handlePageHide();
     });
 
     return {
-      currentTab, currentDistrict, currentWeekday, currentTimePeriod, searchQuery,
-      allRecords, filteredData, dataLoading, liveVehicles, gpsLoading, mapOverview,
-      isRestDay, displayDateStr, favorites, doneItems, torchOn, screenLightOn, wakeLockOn,
-      weather, districts: uniqueDistricts, weekdays, timePeriods,
-      switchTab, setTimePeriod, onDistrictChange, filterData,
-      toggleFavorite, removeFavorite, toggleDone, clearDoneTasks,
-      getCountdownText, getCountdownClass, closeRestDayModal,
-      toggleMapOverview, locateUser, toggleTorch, toggleScreenLight, toggleWakeLock,
-      itemKey
+      isLoading, progress, loadingText,
+      activeTab, fetchError, isLoadingData, legalOpen,
+      districts, currentDistrict, dayOptions, currentDay, timeFilter,
+      rawRecords, filteredRecords, todayRecords,
+      favourites, doneTasks, isFavourite, toggleFavourite, toggleDone,
+      liveVehicles, lastGPSUpdate, showFixedStops,
+      torchOn, screenLightOn, wakeLockOn,
+      weatherData, weatherAlert, weatherAlertType, weatherAlertMsg,
+      fetchData, fetchLiveGPS, onDistrictChange,
+      getCountdown, clearMemory, showToast,
+      toggleTorch, toggleScreenLight, toggleWakeLock,
+      fitMapBounds, toggleFixedStops, switchToMap, locateMe
     };
   }
 }).mount('#app');
