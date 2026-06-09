@@ -1039,70 +1039,96 @@ createApp({
       }, 600);
     }
 
+    // ===== PROXY FETCH HELPER (Triple-proxy with cache-bust) =====
+    // Tries allorigins → codetabs → corsproxy.io in sequence.
+    // cacheBust=true appends &_=timestamp to defeat stale CDN cache on gov API.
+    async function proxyFetch(govUrl, cacheBust = true) {
+      const bustSuffix = cacheBust ? `&_=${Date.now()}` : '';
+      const bustedUrl  = govUrl + bustSuffix;
+
+      // ── Proxy 1: allorigins (returns {contents: "<json string>"}) ──
+      try {
+        const p1 = `https://api.allorigins.win/get?url=${encodeURIComponent(bustedUrl)}`;
+        const r1  = await fetch(p1, { signal: AbortSignal.timeout(12000) });
+        if (r1.ok) {
+          const j1 = await r1.json();
+          // allorigins wraps real body inside .contents as a JSON string
+          const body = (j1 && j1.contents) ? j1.contents : null;
+          if (body) {
+            try {
+              const parsed = JSON.parse(body);
+              if (parsed && parsed.result && Array.isArray(parsed.result.records)) {
+                return parsed.result.records;
+              }
+            } catch(pe) { /* contents wasn't JSON, fall through */ }
+          }
+        }
+      } catch(e1) { /* proxy 1 network error */ }
+
+      // ── Proxy 2: codetabs (returns the raw JSON directly) ──
+      try {
+        const p2 = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(bustedUrl)}`;
+        const r2  = await fetch(p2, { signal: AbortSignal.timeout(12000) });
+        if (r2.ok) {
+          const j2 = await r2.json();
+          if (j2 && j2.result && Array.isArray(j2.result.records)) {
+            return j2.result.records;
+          }
+        }
+      } catch(e2) { /* proxy 2 network error */ }
+
+      // ── Proxy 3: corsproxy.io (returns raw JSON) ──
+      try {
+        const p3 = `https://corsproxy.io/?${encodeURIComponent(bustedUrl)}`;
+        const r3  = await fetch(p3, { signal: AbortSignal.timeout(12000) });
+        if (r3.ok) {
+          const j3 = await r3.json();
+          if (j3 && j3.result && Array.isArray(j3.result.records)) {
+            return j3.result.records;
+          }
+        }
+      } catch(e3) { /* proxy 3 network error */ }
+
+      return []; // all three proxies failed
+    }
+
     // ===== DATA FETCHING =====
     async function fetchData(district) {
       if (!district) return;
       dataLoading.value = true;
-      allRecords.value = [];
+      allRecords.value  = [];
 
-      // Save to localStorage
+      // Persist user preference
       try { localStorage.setItem('wherecar_district', district); } catch(e) {}
 
+      // ── Build government API URL (specific district filter + high limit) ──
       const encodedDistrict = encodeURIComponent(district);
-      const targetUrl = `https://data.tainan.gov.tw/api/3/action/datastore_search?resource_id=aded36c0-0783-4610-a88e-54fdc37e7d1d&limit=3000&filters=%7B%22AREA%22%3A%22${encodedDistrict}%22%7D`;
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+      const districtUrl = `https://data.tainan.gov.tw/api/3/action/datastore_search?resource_id=aded36c0-0783-4610-a88e-54fdc37e7d1d&limit=3000&filters=%7B%22AREA%22%3A%22${encodedDistrict}%22%7D`;
+      const broadUrl    = `https://data.tainan.gov.tw/api/3/action/datastore_search?resource_id=aded36c0-0783-4610-a88e-54fdc37e7d1d&limit=3000`;
 
-      // Fallback: try without area filter for broader match
-      const broadUrl = `https://data.tainan.gov.tw/api/3/action/datastore_search?resource_id=aded36c0-0783-4610-a88e-54fdc37e7d1d&limit=3000`;
-      const proxyBroadUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(broadUrl)}`;
+      // ── Step 1: try district-scoped fetch ──
+      let records = await proxyFetch(districtUrl, true);
 
-      let records = [];
-
-      try {
-        // Try specific district first
-        const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(12000) });
-        const raw = await res.json();
-        let parsed;
-        try { parsed = JSON.parse(raw.contents); } catch(e) { parsed = raw; }
-
-        if (parsed && parsed.result && parsed.result.records && parsed.result.records.length > 0) {
-          records = parsed.result.records;
-        } else {
-          // fallback: fetch all and filter client-side
-          const res2 = await fetch(proxyBroadUrl, { signal: AbortSignal.timeout(15000) });
-          const raw2 = await res2.json();
-          let parsed2;
-          try { parsed2 = JSON.parse(raw2.contents); } catch(e) { parsed2 = raw2; }
-          if (parsed2 && parsed2.result && parsed2.result.records) {
-            records = parsed2.result.records;
-          }
-        }
-      } catch(err) {
-        // Second attempt: direct with different proxy
-        try {
-          const alt = `https://corsproxy.io/?${encodeURIComponent(broadUrl)}`;
-          const res3 = await fetch(alt, { signal: AbortSignal.timeout(12000) });
-          const parsed3 = await res3.json();
-          if (parsed3 && parsed3.result && parsed3.result.records) {
-            records = parsed3.result.records;
-          }
-        } catch(e2) {
-          showNetworkError();
-        }
+      // ── Step 2: if district fetch returns 0, pull entire table and filter client-side ──
+      if (records.length === 0) {
+        records = await proxyFetch(broadUrl, true);
       }
 
-      // ===== CORE FIELD MAPPING (大小寫強制對齊防線) =====
+      // ═══════════════════════════════════════════════════════════════════
+      // ‼️ CORE FIELD MAPPING — 大小寫強制對齊防線（五行絕對不可省略）
+      // 台南政府 API 最新版欄位為全小寫，前端 UI 讀取大寫，強行映射橋接。
+      // ═══════════════════════════════════════════════════════════════════
       records = records.map(item => {
-        item.AREA      = item.area      || item.AREA      || "";
-        item.TIME      = item.time      || item.TIME      || "";
-        item.POINTNAME = item.pointname || item.POINTNAME || "";
-        item.WORDDAY   = item.wordday   || item.WORDDAY   || "";
-        item.RECYCLEDAY= item.recycleday|| item.RECYCLEDAY|| "";
+        item.AREA       = item.area       || item.AREA       || "";
+        item.TIME       = item.time       || item.TIME       || "";
+        item.POINTNAME  = item.pointname  || item.POINTNAME  || "";
+        item.WORDDAY    = item.wordday    || item.WORDDAY    || "";
+        item.RECYCLEDAY = item.recycleday || item.RECYCLEDAY || "";
         return item;
       });
 
-      allRecords.value = records;
-      filterData();
+      allRecords.value  = records;
+      filterData();           // ← 立刻解凍 filteredData，讓「找到 X 個站點」數字跳出
       dataLoading.value = false;
     }
 
@@ -1371,62 +1397,59 @@ createApp({
     }
 
     // ===== GPS / LIVE VEHICLES =====
+    // 正確台南即時 GPS resource_id: 72fa8c13-e71e-450b-9ee8-128a1c97a82c
+    // proxyFetch helper 已在上方定義，此處直接呼叫，無需重複寫代理邏輯。
     async function fetchLiveGPS() {
       gpsLoading.value = true;
 
       const limit = mapOverview.value ? 2500 : 500;
-      const targetUrl = `https://data.tainan.gov.tw/api/3/action/datastore_search?resource_id=74d7af0c-5a3f-4fa3-907e-3a918b89c8b3&limit=${limit}`;
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+      // ── 正確資源 ID，強制帶 cache-bust 時間戳 ──
+      const gpsUrl = `https://data.tainan.gov.tw/api/3/action/datastore_search?resource_id=72fa8c13-e71e-450b-9ee8-128a1c97a82c&limit=${limit}`;
 
-      let vehicles = [];
-      try {
-        const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(10000) });
-        const raw = await res.json();
-        let parsed;
-        try { parsed = JSON.parse(raw.contents); } catch(e) { parsed = raw; }
-        if (parsed && parsed.result && parsed.result.records) {
-          vehicles = parsed.result.records;
-        }
-      } catch(e) {
-        // GPS fetch failed silently
-      }
+      let vehicles = await proxyFetch(gpsUrl, true);
 
-      // ===== DUAL DEAD CAR FILTER =====
-      const now = getNow();
+      // ══════════════════════════════════════════════════════
+      // ‼️ 雙重防死車 / 殭屍車過濾防線
+      // ══════════════════════════════════════════════════════
+      const now    = getNow();
       const nowMin = now.getHours() * 60 + now.getMinutes();
-      const nowTs = now.getTime();
+      const nowTs  = now.getTime();
 
-      // Filter out dead cars
       vehicles = vehicles.filter(v => {
-        // Check last update timestamp
-        const lastUpdate = v.RecordTime || v.recordtime || v.RECORDTIME || '';
+        // ── 防線一：最後回報時間距今超過 20 分鐘 → 判定離線死車，強制剔除 ──
+        const lastUpdate = v.RecordTime || v.recordtime || v.RECORDTIME ||
+                           v.gpstime    || v.GpsTime    || v.GPSTIME    || '';
         if (lastUpdate) {
           try {
             const lastTs = new Date(lastUpdate).getTime();
-            if (nowTs - lastTs > 20 * 60 * 1000) return false; // 20 min stale
-          } catch(e) {}
+            if (!isNaN(lastTs) && nowTs - lastTs > 20 * 60 * 1000) return false;
+          } catch(e) { /* 無法解析時間則不剔除，保守起見 */ }
         }
 
-        // Time-based dead car: if PM, exclude AM-only routes
-        const routeTime = v.TIME || v.time || '';
-        if (routeTime) {
-          const match = routeTime.match(/(\d{1,2}):(\d{2})/);
-          if (match) {
-            const routeH = parseInt(match[1], 10);
-            if (nowMin >= 12 * 60 && routeH < 12) return false;
+        // ── 防線二：若現在是下午（12:00後），其靜態路線時間屬於早上（12:00前）→ 早班殭屍車，強制剔除 ──
+        const routeTime = v.TIME || v.time || v.ROUTETIME || '';
+        if (routeTime && nowMin >= 12 * 60) {
+          const tm = routeTime.match(/(\d{1,2}):(\d{2})/);
+          if (tm) {
+            const routeH = parseInt(tm[1], 10);
+            if (routeH < 12) return false;
           }
         }
 
         return true;
       });
 
-      // District filter (non-overview mode)
+      // ── 行政區過濾（非總覽模式）──
       if (!mapOverview.value && currentDistrict.value) {
         const cleanDist = String(currentDistrict.value).replace('區', '').trim();
-        vehicles = vehicles.filter(v => {
-          const area = v.AREA || v.area || '';
-          return !area || String(area).includes(cleanDist) || !cleanDist;
-        });
+        if (cleanDist) {
+          vehicles = vehicles.filter(v => {
+            const area = String(v.AREA || v.area || '');
+            // 若車輛無 AREA 欄位則保留（部分 GPS 資料不帶區域）
+            if (!area) return true;
+            return area.includes(cleanDist);
+          });
+        }
       }
 
       liveVehicles.value = vehicles;
@@ -1548,7 +1571,9 @@ createApp({
     }
 
     function startGpsRefresh() {
+      // 立刻執行第一次 GPS 抓取，再每 10 秒自動刷新
       fetchLiveGPS();
+      if (gpsInterval) clearInterval(gpsInterval);
       gpsInterval = setInterval(fetchLiveGPS, 10000);
     }
 
@@ -1712,45 +1737,48 @@ createApp({
       loadFavorites();
       loadDone();
 
-      // Try to restore saved district
+      // ── 讀取 localStorage 記憶的行政區，預設仁德區 ──
       let savedDistrict = '';
       try { savedDistrict = localStorage.getItem('wherecar_district') || ''; } catch(e) {}
       currentDistrict.value = savedDistrict || '仁德區';
 
-      // Start loading animation
+      // ── 啟動載入進度動畫（與資料抓取並行）──
       const loadingPromise = animateLoading();
 
-      // Init map
+      // ── 初始化 Leaflet 地圖 ──
       await Vue.nextTick();
       initMap();
 
-      // Fetch data + weather
-      const dataPromise = fetchData(currentDistrict.value);
-      const weatherPromise = fetchWeather();
+      // ══════════════════════════════════════════════════════════════════
+      // ‼️ 生命週期開蓋自動 Fetch 防線
+      // 網頁一 mounted 立刻主動抓取班表資料與 GPS 即時車輛，
+      // 使用者無需手動切換下拉選單才看得到資料。
+      // ══════════════════════════════════════════════════════════════════
+      const dataPromise    = fetchData(currentDistrict.value);   // 自動挖班表
+      const weatherPromise = fetchWeather();                      // 自動抓氣象
+      // GPS 已由 initMap() → startGpsRefresh() 啟動，此處額外確保立刻執行一次
+      fetchLiveGPS();
 
+      // 等資料與 loading 動畫都跑完才淡出遮罩
       await Promise.allSettled([loadingPromise, dataPromise]);
 
-      // Finish loading
+      // 強制進度條到 100% 後淡出
       const barEl = document.getElementById('loading-progress-bar');
       if (barEl) barEl.style.width = '100%';
-      setTimeout(() => {
-        finishLoading();
-      }, 300);
+      setTimeout(() => { finishLoading(); }, 300);
 
       startCountdownRefresh();
 
-      // Page hide → release torch
+      // ── 頁面隱藏時安全釋放手電筒與 Wake Lock ──
       window.addEventListener('pagehide', () => {
         releaseTorch();
         if (wakeLockSentinel) { try { wakeLockSentinel.release(); } catch(e) {} }
       });
 
-      // Re-acquire wake lock on visibility change
+      // ── 頁面重新可見時重新申請 Wake Lock ──
       document.addEventListener('visibilitychange', async () => {
         if (document.visibilityState === 'visible' && wakeLockOn.value) {
-          try {
-            wakeLockSentinel = await navigator.wakeLock.request('screen');
-          } catch(e) {}
+          try { wakeLockSentinel = await navigator.wakeLock.request('screen'); } catch(e) {}
         }
       });
     });
