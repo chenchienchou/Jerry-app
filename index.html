@@ -42,6 +42,11 @@
     touch-action: manipulation;
   }
   #app { height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+  /* Non-map pages need padding-bottom equal to the fixed nav bar height
+     so their scroll content is never hidden behind the frosted nav */
+  #page-list, #page-fav, #page-control {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  }
 
   /* ---- Loading Screen ---- */
   #loading-screen {
@@ -147,18 +152,23 @@
 
   /* Nav */
   #bottom-nav {
-    background: rgba(8,9,10,0.95);
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 50;
+    background: rgba(19,21,23,0.92);
     border-top: 1px solid #222528;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    padding-bottom: calc(env(safe-area-inset-bottom) + 12px);
-    padding-top: 12px;
-    padding-left: 24px;
-    padding-right: 24px;
+    /* 總高度 = 64px 固定操作區 + 底部安全區域 */
+    height: calc(64px + env(safe-area-inset-bottom));
+    /* 內容在 64px 操作區內垂直置中，安全區域由 padding-bottom 吸收 */
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-top: 0;
+    padding-left: 32px;
+    padding-right: 32px;
     display: flex;
     justify-content: space-around;
     align-items: center;
-    flex-shrink: 0;
   }
   .nav-btn {
     display: flex; flex-direction: column; align-items: center; gap: 4px;
@@ -353,15 +363,17 @@
     inset: 0;
     z-index: 0;
   }
+  /* ★ 地圖主體滿版爆開：top 由 JS 動態設定為 header 高度；
+        bottom = 0 讓地圖延伸至螢幕最底端藏在毛玻璃導覽列後方，
+        徹底消滅底部黑色橫條 */
   #map {
     position: absolute;
-    /* top = header 高度：safe-area-inset-top + 16px 間距 + 約 72px 內容高度 */
-    top: calc(env(safe-area-inset-top) + 16px + 72px);
-    bottom: calc(64px + env(safe-area-inset-bottom));
+    top: 0;           /* JS 會在 showPage/initMap 時動態更新為 header 實際高度 */
+    bottom: 0;        /* 一路延伸至螢幕底端，藏在 fixed 導覽列後方 */
     left: 0;
     right: 0;
     width: 100%;
-    height: auto !important; /* 覆蓋 Leaflet 預設行內 height，讓 top/bottom 接管 */
+    height: auto !important; /* 覆蓋 Leaflet 行內 height，讓 top/bottom 接管 */
   }
 
   /* Error card */
@@ -640,10 +652,10 @@
       </div>
     </div>
 
-    <!-- ── 底部即時資訊黑條（absolute，浮在地圖上方，貼近導覽列）── -->
+    <!-- ── 底部即時資訊黑條（absolute，浮在地圖上方，貼緊毛玻璃導覽列頂端）── -->
     <div id="map-info-bar" style="
       position:absolute;
-      bottom:calc(env(safe-area-inset-bottom) + 80px);
+      bottom:calc(64px + env(safe-area-inset-bottom) + 12px);
       left:16px;
       right:16px;
       background:rgba(19,21,23,0.92);
@@ -950,33 +962,27 @@ function showPage(name) {
     acquireWakeLock();
     refreshMapTrucks();
 
-    // ★ 修復 Leaflet 隱藏分頁切換後地圖變白：
-    //   步驟1 (50ms)：等 DOM 渲染完成後，動態讀取 map-header 的實際高度，
-    //               精確設定 #map 的 top，確保像素完美、不因字型縮放偏移。
-    //   步驟2 (200ms)：呼叫 invalidateSize() 強制 Leaflet 重新計算容器寬高，
-    //               消滅地圖變白、灰色空白、磁磚未載入等所有視覺崩壞。
+    // ★ 三段式 Leaflet 白板根治流程：
+    // Step 1 (50ms)  — DOM 渲染完成後，精確量測 map-header 實際高度並賦值給 #map.top
+    //                  使地圖從 header 正下方無縫開始，bottom:0 延伸至螢幕底端藏入導覽列後方
+    // Step 2 (250ms) — 主力 invalidateSize：強制 Leaflet 重算容器像素寬高，消滅白板
+    // Step 3 (500ms) — iPhone 慢速渲染保險：第二次補刷確保磁磚全部載入
     setTimeout(function() {
-      const mapHeader = document.getElementById('map-header');
-      const mapEl     = document.getElementById('map');
+      var mapHeader = document.getElementById('map-header');
+      var mapEl     = document.getElementById('map');
       if (mapHeader && mapEl) {
-        const headerH = mapHeader.getBoundingClientRect().height;
-        // 動態覆蓋 top，使地圖恰好從 header 底部開始
-        mapEl.style.top = headerH + 'px';
+        var headerH = mapHeader.getBoundingClientRect().height;
+        if (headerH > 0) mapEl.style.top = headerH + 'px';
       }
     }, 50);
 
     setTimeout(function() {
-      if (leafletMap) {
-        leafletMap.invalidateSize({ animate: false, pan: false });
-      }
-    }, 200);
+      if (leafletMap) leafletMap.invalidateSize({ animate: false, pan: false });
+    }, 250);
 
-    // 第二次保險：部分 iPhone 渲染較慢，380ms 再刷一次
     setTimeout(function() {
-      if (leafletMap) {
-        leafletMap.invalidateSize({ animate: false, pan: false });
-      }
-    }, 380);
+      if (leafletMap) leafletMap.invalidateSize({ animate: false, pan: false });
+    }, 500);
 
   } else if (name === 'fav') {
     renderFavPage();
@@ -1239,49 +1245,74 @@ function filterCards() {
   const search = searchRaw ? searchRaw.value.trim().toLowerCase() : '';
   const now = getCurrentMinutes();
 
+  // ★ 行政區模糊比對基底：去除「區」字，應對官方格式不統一
+  // 例：state.currentDistrict = "北區" → distBase = "北"
+  //     官方 AREA 可能是 "北區" 或 "北"，兩者皆可命中
+  const distBase = String(state.currentDistrict || '').replace(/區$/,'').trim();
+
   let filtered = state.allData.filter(function(item) {
     if (!item || typeof item !== 'object') return false;
 
-    // ★ Null-Safe 星期欄位防空值：強制轉為字串，絕對不會因 null 崩潰
-    const wordDay    = (item.WORDDAY    != null) ? String(item.WORDDAY).trim()    : '';
-    const recycleDay = (item.RECYCLEDAY != null) ? String(item.RECYCLEDAY).trim() : '';
-    const pointName  = (item.POINTNAME  != null) ? String(item.POINTNAME)         : '';
-    const area       = (item.AREA       != null) ? String(item.AREA)              : '';
+    // ── 1. 行政區模糊比對（District Fuzzy Match）──────────────────────
+    // 只保留屬於目前所選行政區的資料
+    // 採雙向 includes：官方寫「北區」或「北」都能匹配「北」
+    if (distBase) {
+      const itemArea = (item.AREA != null) ? String(item.AREA).replace(/\s+/g,'') : '';
+      const matchArea = itemArea.includes(distBase) || distBase.includes(itemArea.replace(/區$/,''));
+      if (!matchArea) return false;
+    }
 
-    // 搜尋篩選
+    // ── 2. 欄位安全取值（Null-Safe + Whitespace-Safe）──────────────────
+    // 去除所有空白與頓號，消滅「一 、二、 四」格式造成的比對失敗
+    const cleanWordDay    = (item.WORDDAY    != null) ? String(item.WORDDAY).replace(/[\s、，,]/g,'')    : '';
+    const cleanRecycleDay = (item.RECYCLEDAY != null) ? String(item.RECYCLEDAY).replace(/[\s、，,]/g,'') : '';
+    const pointName       = (item.POINTNAME  != null) ? String(item.POINTNAME)  : '';
+    const area            = (item.AREA       != null) ? String(item.AREA)       : '';
+    // TIME 確保為 "HH:MM" 格式字串，用於字串大小比較
+    const timeStr         = (item.TIME != null && String(item.TIME).trim() !== '')
+                            ? String(item.TIME).trim() : '00:00';
+
+    // ── 3. 關鍵字搜尋篩選 ─────────────────────────────────────────────
     if (search) {
       const lowerPoint = pointName.toLowerCase();
       const lowerArea  = area.toLowerCase();
       if (!lowerPoint.includes(search) && !lowerArea.includes(search)) return false;
     }
 
-    // 星期篩選（Null-Safe：wordDay / recycleDay 已保證為字串）
+    // ── 4. 星期多條件包含判定（Null-Safe & Whitespace-Safe）──────────
+    // cleanWordDay / cleanRecycleDay 已去除空格頓號，.includes() 絕不崩潰
     if (state.activeDays && state.activeDays.size > 0) {
       const hasDay = Array.from(state.activeDays).some(function(d) {
-        const label = DAY_LABELS[d] || '';
-        return wordDay.includes(label) || recycleDay.includes(label);
+        const label = DAY_LABELS[d] || '';    // e.g. "二"
+        const isGarbageDay = cleanWordDay.includes(label);
+        const isRecycleDay = cleanRecycleDay.includes(label);
+        // 同一地點當天滿足垃圾日 OR 回收日，即視為當日營運點
+        return isGarbageDay || isRecycleDay;
       });
       if (!hasDay) return false;
     }
 
-    // 類型篩選（僅回收）
+    // ── 5. 類型篩選（僅回收）──────────────────────────────────────────
     if (state.activeTypes && state.activeTypes.has('recycle')) {
-      if (recycleDay === '') return false;
+      if (cleanRecycleDay === '') return false;
     }
 
-    // 時段篩選
+    // ── 6. 時段篩選（字串大小比較，精準對齊 06:00-22:30 全區段）──────
+    // 使用字串比較而非轉 minutes，避免 "06:00" 之類解析誤差
+    // "早上"  → TIME < "12:00"（06:00-11:59，日間輔助點置頂）
+    // "下午夜間" → TIME >= "12:00"（12:00-22:30，常態沿線班次）
+    // 未選（null）→ 全天通過，不做阻擋
     if (state.activeTimeSlot === 'morning') {
-      const t = timeToMinutes(item.TIME ? String(item.TIME) : '00:00');
-      if (t >= 12 * 60) return false;
+      if (!(timeStr < '12:00')) return false;
     } else if (state.activeTimeSlot === 'afternoon') {
-      const t = timeToMinutes(item.TIME ? String(item.TIME) : '00:00');
-      if (t < 12 * 60) return false;
+      if (!(timeStr >= '12:00')) return false;
     }
+    // state.activeTimeSlot === null → 全天，直接通過
 
     return true;
   });
 
-  // 排序：未過站優先，已過站沉底；同類按時間升冪
+  // ── 7. 排序：未過站優先，已過站沉底；同類依時間升冪 ────────────────
   filtered.sort(function(a, b) {
     const at = timeToMinutes(a && a.TIME ? String(a.TIME) : '00:00');
     const bt = timeToMinutes(b && b.TIME ? String(b.TIME) : '00:00');
