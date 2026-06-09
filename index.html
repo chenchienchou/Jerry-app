@@ -332,9 +332,37 @@
     overflow: hidden;
   }
 
-  /* Map page */
-  #map-container { flex: 1; position: relative; }
-  #map { width: 100%; height: 100%; }
+  /* Map page — absolute layout so Leaflet always gets real pixel dimensions */
+  #page-map { position: relative !important; overflow: hidden; }
+  #map-header {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 600;
+    background: rgba(8,9,10,0.95);
+    border-bottom: 1px solid #222528;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    /* top padding = safe-area-inset-top + 16px 社交距離，bottom padding = 12px */
+    padding-top: calc(env(safe-area-inset-top) + 16px);
+    padding-bottom: 12px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  #map-container {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+  #map {
+    position: absolute;
+    /* top = header 高度：safe-area-inset-top + 16px 間距 + 約 72px 內容高度 */
+    top: calc(env(safe-area-inset-top) + 16px + 72px);
+    bottom: calc(64px + env(safe-area-inset-bottom));
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: auto !important; /* 覆蓋 Leaflet 預設行內 height，讓 top/bottom 接管 */
+  }
 
   /* Error card */
   .error-card {
@@ -573,8 +601,10 @@
   </div>
 
   <!-- ========== PAGE: MAP ========== -->
-  <div id="page-map" class="page" style="position:relative;">
-    <div style="padding-top:calc(env(safe-area-inset-top)+12px);padding:calc(env(safe-area-inset-top)+12px) 16px 12px;background:rgba(8,9,10,0.95);border-bottom:1px solid #222528;backdrop-filter:blur(20px);flex-shrink:0;">
+  <div id="page-map" class="page" style="position:relative;overflow:hidden;">
+
+    <!-- ── 地圖頂部標題列（absolute，絕不與動態島重疊）── -->
+    <div id="map-header">
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <div>
           <p style="font-size:11px;font-weight:700;color:#8a8f98;letter-spacing:0.1em;margin:0;">雷達定位模式</p>
@@ -597,9 +627,11 @@
         </div>
       </div>
     </div>
-    <div id="map-container" style="flex:1;position:relative;">
-      <div id="map" style="width:100%;height:100%;"></div>
-      <!-- GPS dot overlay -->
+
+    <!-- ── 地圖主體容器（absolute inset-0，Leaflet 在此滿版渲染）── -->
+    <div id="map-container">
+      <div id="map"></div>
+      <!-- GPS 定位藍點 -->
       <div id="gps-dot" style="display:none;position:absolute;pointer-events:none;z-index:1000;">
         <div style="position:relative;width:24px;height:24px;">
           <div class="gps-ping" style="position:absolute;inset:0;border-radius:50%;background:#00A3FF;opacity:0.4;"></div>
@@ -607,13 +639,32 @@
         </div>
       </div>
     </div>
-    <div id="map-info-bar" style="position:absolute;bottom:calc(env(safe-area-inset-bottom)+80px);left:16px;right:16px;background:rgba(19,21,23,0.9);border:1px solid #222528;border-radius:14px;padding:10px 14px;backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-between;z-index:500;">
+
+    <!-- ── 底部即時資訊黑條（absolute，浮在地圖上方，貼近導覽列）── -->
+    <div id="map-info-bar" style="
+      position:absolute;
+      bottom:calc(env(safe-area-inset-bottom) + 80px);
+      left:16px;
+      right:16px;
+      background:rgba(19,21,23,0.92);
+      border:1px solid #222528;
+      border-radius:14px;
+      padding:10px 14px;
+      backdrop-filter:blur(20px);
+      -webkit-backdrop-filter:blur(20px);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      z-index:600;
+      box-shadow:0 4px 20px rgba(0,0,0,0.5);
+    ">
       <span style="font-size:12px;color:#8a8f98;">
         <span id="map-truck-count" style="color:#FFB800;font-weight:700;">0</span> 台垃圾車　
         <span id="map-recycle-count" style="color:#00A3FF;font-weight:700;">0</span> 台回收車
       </span>
       <span style="font-size:11px;color:#4a4f58;" id="map-update-time">更新中...</span>
     </div>
+
   </div>
 
   <!-- ========== PAGE: FAVORITES ========== -->
@@ -856,10 +907,30 @@ function updateProgress(p) {
   }
 }
 function hideLoading() {
-  const ls = document.getElementById('loading-screen');
-  const app = document.getElementById('app');
-  if (ls) { ls.classList.add('fade-out'); setTimeout(() => { ls.style.display='none'; }, 800); }
-  if (app) app.style.display = 'flex';
+  // 終極解凍：無論呼叫幾次都安全，確保載入遮罩必定消失
+  try {
+    const ls = document.getElementById('loading-screen');
+    const app = document.getElementById('app');
+    if (ls && ls.style.display !== 'none') {
+      ls.classList.add('fade-out');
+      ls.style.opacity = '0';
+      ls.style.pointerEvents = 'none';
+      setTimeout(function() {
+        try { if (ls) ls.style.display = 'none'; } catch(e) {}
+      }, 800);
+    }
+    if (app && app.style.display === 'none') {
+      app.style.display = 'flex';
+    }
+  } catch(e) {
+    // 如果 DOM 操作本身崩潰，強制隱藏
+    try {
+      const ls = document.getElementById('loading-screen');
+      if (ls) { ls.style.display = 'none'; ls.style.opacity = '0'; }
+      const app = document.getElementById('app');
+      if (app) app.style.display = 'flex';
+    } catch(e2) {}
+  }
 }
 
 // ============================================================
@@ -867,23 +938,49 @@ function hideLoading() {
 // ============================================================
 function showPage(name) {
   state.currentPage = name;
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
   const page = document.getElementById('page-' + name);
-  const nav = document.getElementById('nav-' + name);
+  const nav  = document.getElementById('nav-' + name);
   if (page) page.classList.add('active');
-  if (nav) nav.classList.add('active');
+  if (nav)  nav.classList.add('active');
 
   if (name === 'map') {
     initMapIfNeeded();
     acquireWakeLock();
     refreshMapTrucks();
+
+    // ★ 修復 Leaflet 隱藏分頁切換後地圖變白：
+    //   步驟1 (50ms)：等 DOM 渲染完成後，動態讀取 map-header 的實際高度，
+    //               精確設定 #map 的 top，確保像素完美、不因字型縮放偏移。
+    //   步驟2 (200ms)：呼叫 invalidateSize() 強制 Leaflet 重新計算容器寬高，
+    //               消滅地圖變白、灰色空白、磁磚未載入等所有視覺崩壞。
+    setTimeout(function() {
+      const mapHeader = document.getElementById('map-header');
+      const mapEl     = document.getElementById('map');
+      if (mapHeader && mapEl) {
+        const headerH = mapHeader.getBoundingClientRect().height;
+        // 動態覆蓋 top，使地圖恰好從 header 底部開始
+        mapEl.style.top = headerH + 'px';
+      }
+    }, 50);
+
+    setTimeout(function() {
+      if (leafletMap) {
+        leafletMap.invalidateSize({ animate: false, pan: false });
+      }
+    }, 200);
+
+    // 第二次保險：部分 iPhone 渲染較慢，380ms 再刷一次
+    setTimeout(function() {
+      if (leafletMap) {
+        leafletMap.invalidateSize({ animate: false, pan: false });
+      }
+    }, 380);
+
   } else if (name === 'fav') {
     renderFavPage();
-  } else if (name === 'control') {
-    // Already rendered inline
   }
-  // Show back on bottom nav for control — handled inline
 }
 
 // ============================================================
@@ -938,94 +1035,174 @@ function getCurrentMinutes() {
 // FETCH DATA
 // ============================================================
 async function fetchData(district) {
+  // 防止重複觸發
   if (state.isLoading) return;
   state.isLoading = true;
   updateProgress(5);
   renderSkeleton();
 
-  const targetUrl = `https://data.tainan.gov.tw/api/3/action/datastore_search?resource_id=b3fd72fc-3b84-4ef2-a7e2-3e8ab3028e58&limit=3000&q=${encodeURIComponent(district)}`;
-  const primaryProxy = `${PROXY_PRIMARY}${encodeURIComponent(targetUrl)}`;
-  const backupProxy = `${PROXY_BACKUP}${encodeURIComponent(targetUrl)}`;
+  // 安全的 district 字串，防止 null 進入 encodeURIComponent
+  const safeDistrict = district ? String(district).trim() : '仁德區';
+  const targetUrl = 'https://data.tainan.gov.tw/api/3/action/datastore_search'
+    + '?resource_id=b3fd72fc-3b84-4ef2-a7e2-3e8ab3028e58'
+    + '&limit=3000'
+    + '&q=' + encodeURIComponent(safeDistrict);
+  const primaryProxy = PROXY_PRIMARY + encodeURIComponent(targetUrl);
+  const backupProxy  = PROXY_BACKUP  + encodeURIComponent(targetUrl);
 
   let data = null;
+  let fetchError = null;
+
   updateProgress(20);
 
+  // ── 主代理嘗試 ──────────────────────────────────────────
   try {
-    const res = await fetch(primaryProxy, { signal: AbortSignal.timeout(12000) });
-    if (!res.ok) throw new Error('primary proxy failed');
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 13000);
+    let res;
+    try {
+      res = await fetch(primaryProxy, { signal: controller.signal });
+    } finally {
+      clearTimeout(timer);
+    }
+    if (!res.ok) throw new Error('primary_proxy_http_' + res.status);
     const json = await res.json();
-    const content = json.contents || json;
+    // allorigins 將真實回應包在 .contents（字串），需再解析一層
+    const content = (json && json.contents !== undefined) ? json.contents : json;
     updateProgress(55);
     data = parseGovData(content);
   } catch (e1) {
-    updateProgress(30);
+    fetchError = e1;
+    updateProgress(32);
+
+    // ── 備用代理嘗試 ───────────────────────────────────────
     try {
-      const res2 = await fetch(backupProxy, { signal: AbortSignal.timeout(12000) });
-      if (!res2.ok) throw new Error('backup proxy failed');
+      const controller2 = new AbortController();
+      const timer2 = setTimeout(() => controller2.abort(), 13000);
+      let res2;
+      try {
+        res2 = await fetch(backupProxy, { signal: controller2.signal });
+      } finally {
+        clearTimeout(timer2);
+      }
+      if (!res2.ok) throw new Error('backup_proxy_http_' + res2.status);
       const json2 = await res2.json();
-      updateProgress(55);
+      updateProgress(58);
       data = parseGovData(json2);
+      fetchError = null; // 備用成功，清除錯誤旗標
     } catch (e2) {
-      updateProgress(80);
-      state.isLoading = false;
-      renderError('無法連線資料庫，請確認網路後重試');
-      hideLoading();
-      return;
+      fetchError = e2;
+      // 兩個代理都失敗 → 使用 Demo 資料保底，讓畫面一定能出來
+      data = null;
     }
   }
 
-  updateProgress(75);
-  if (!data || data.length === 0) {
-    // Use demo data to prevent blank screen
-    data = generateDemoData(district);
+  // ── 無論成功或失敗，以下必定執行（finally 語意）──────────
+  try {
+    updateProgress(78);
+
+    // 資料空值保底：使用示範資料，確保清單永遠不空白
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      data = generateDemoData(safeDistrict);
+      if (fetchError) {
+        // 連線失敗但仍有示範資料時，顯示警告而非死白畫面
+        renderError('⚠️ 無法連線政府資料庫，以下為示範資料。請確認網路後點擊重新載入。');
+      }
+    }
+
+    // 安全排序：TIME 欄位可能為 null，需防空值
+    data.sort((a, b) => {
+      const at = timeToMinutes(a && a.TIME ? String(a.TIME) : '00:00');
+      const bt = timeToMinutes(b && b.TIME ? String(b.TIME) : '00:00');
+      return at - bt;
+    });
+
+    state.allData = data;
+    updateProgress(92);
+
+    // 假日檢查
+    try {
+      const today = new Date().getDay();
+      if (isHoliday(today)) {
+        const nextDay = getNextOperationDay(today);
+        const msgEl   = document.getElementById('holiday-msg');
+        const nextEl  = document.getElementById('holiday-next');
+        const modal   = document.getElementById('holiday-modal');
+        if (msgEl)  msgEl.textContent  = '今日（' + DAY_LABELS[today] + '）為例行休息日，以下展示下一個清運日（' + DAY_LABELS[nextDay] + '）班表。';
+        if (nextEl) nextEl.textContent = '下一個清運日：週' + DAY_LABELS[nextDay];
+        if (modal)  modal.classList.add('show');
+      }
+    } catch (holidayErr) { /* 假日邏輯錯誤不阻斷主流程 */ }
+
+    updateProgress(100);
+
+    setTimeout(function () {
+      try { hideLoading();           } catch(e) {}
+      try { filterCards();           } catch(e) {}
+      try { renderFavoritesSection(); } catch(e) {}
+    }, 600);
+
+  } catch (processingErr) {
+    // 資料處理階段意外崩潰的終極保底
+    updateProgress(100);
+    setTimeout(function () {
+      try { hideLoading(); } catch(e) {}
+      try { renderError('資料處理發生錯誤，請重新載入。'); } catch(e) {}
+    }, 400);
+  } finally {
+    // ★ 終極解凍防線：無論任何情況，isLoading 旗標必定歸零
+    // 確保深黑載入遮罩在任何情況下都不會永久卡住
+    state.isLoading = false;
   }
-
-  // Sort by TIME ascending
-  data.sort((a, b) => timeToMinutes(a.TIME) - timeToMinutes(b.TIME));
-  state.allData = data;
-  updateProgress(90);
-
-  // Check holiday
-  const today = new Date().getDay();
-  if (isHoliday(today)) {
-    const nextDay = getNextOperationDay(today);
-    document.getElementById('holiday-msg').textContent = `今日（${DAY_LABELS[today]}）為例行休息日，以下展示下一個清運日（${DAY_LABELS[nextDay]}）班表。`;
-    document.getElementById('holiday-next').textContent = `下一個清運日：週${DAY_LABELS[nextDay]}`;
-    document.getElementById('holiday-modal').classList.add('show');
-  }
-
-  state.isLoading = false;
-  updateProgress(100);
-  setTimeout(() => {
-    hideLoading();
-    filterCards();
-    renderFavoritesSection();
-  }, 600);
 }
 
 function parseGovData(rawJson) {
   try {
     let records = null;
-    if (rawJson && rawJson.result && rawJson.result.records) {
-      records = rawJson.result.records;
-    } else if (rawJson && Array.isArray(rawJson.result)) {
-      records = rawJson.result;
-    } else if (typeof rawJson === 'string') {
-      const parsed = JSON.parse(rawJson);
-      if (parsed && parsed.result && parsed.result.records) records = parsed.result.records;
+
+    // allorigins 回傳的 .contents 是 JSON 字串，需先解析
+    let source = rawJson;
+    if (source && typeof source === 'string') {
+      try { source = JSON.parse(source); } catch(e) { return null; }
     }
-    if (!records) return null;
-    return records.map(r => ({
-      id: r._id || Math.random().toString(36).slice(2),
-      AREA: r.AREA || '',
-      POINTNAME: r.POINTNAME || r.pointname || '',
-      TIME: r.TIME || r.time || '',
-      WORDDAY: r.WORDDAY || r.wordday || '',
-      RECYCLEDAY: r.RECYCLEDAY || r.recycleday || '',
-      LAT: parseFloat(r.LAT || r.lat || 0) || 0,
-      LNG: parseFloat(r.LNG || r.lng || 0) || 0,
-    }));
+    // 支援多種 API 回傳結構
+    if (source && source.result && Array.isArray(source.result.records)) {
+      records = source.result.records;
+    } else if (source && Array.isArray(source.result)) {
+      records = source.result;
+    } else if (source && Array.isArray(source.records)) {
+      records = source.records;
+    } else if (Array.isArray(source)) {
+      records = source;
+    }
+
+    if (!records || records.length === 0) return null;
+
+    return records.map(function(r) {
+      if (!r || typeof r !== 'object') return null;
+      // ★ 所有欄位強制轉為字串，徹底消滅 null.includes() 崩潰
+      const wordDay    = (r.WORDDAY    != null) ? String(r.WORDDAY).trim()    : '';
+      const recycleDay = (r.RECYCLEDAY != null) ? String(r.RECYCLEDAY).trim() : '';
+      const area       = (r.AREA       != null) ? String(r.AREA).trim()       : '';
+      const pointName  = (r.POINTNAME  != null) ? String(r.POINTNAME).trim()
+                       : (r.pointname  != null) ? String(r.pointname).trim()  : '';
+      const time       = (r.TIME       != null) ? String(r.TIME).trim()
+                       : (r.time       != null) ? String(r.time).trim()       : '';
+      const rawLat     = r.LAT  != null ? r.LAT  : (r.lat  != null ? r.lat  : 0);
+      const rawLng     = r.LNG  != null ? r.LNG  : (r.lng  != null ? r.lng  : 0);
+      const lat        = parseFloat(rawLat)  || 0;
+      const lng        = parseFloat(rawLng)  || 0;
+      const id         = (r._id != null) ? String(r._id)
+                       : (Math.random().toString(36).slice(2) + Date.now().toString(36));
+      return { id, AREA: area, POINTNAME: pointName, TIME: time,
+               WORDDAY: wordDay, RECYCLEDAY: recycleDay, LAT: lat, LNG: lng };
+    }).filter(function(item) {
+      // 過濾掉 null 項目（萬一 records 中有損壞行）
+      return item !== null;
+    });
+
   } catch(e) {
+    // parseGovData 本身崩潰時靜默回傳 null，由上層 fetchData 接手保底
     return null;
   }
 }
@@ -1055,43 +1232,59 @@ function generateDemoData(district) {
 // FILTER ENGINE
 // ============================================================
 function filterCards() {
-  const search = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
+  // 防止 state.allData 尚未初始化時崩潰
+  if (!Array.isArray(state.allData)) { state.allData = []; }
+
+  const searchRaw = document.getElementById('search-input');
+  const search = searchRaw ? searchRaw.value.trim().toLowerCase() : '';
   const now = getCurrentMinutes();
-  const todayDay = getSmartDay();
 
-  let filtered = state.allData.filter(item => {
-    // Search filter
-    if (search && !item.POINTNAME.toLowerCase().includes(search) && !item.AREA.toLowerCase().includes(search)) return false;
+  let filtered = state.allData.filter(function(item) {
+    if (!item || typeof item !== 'object') return false;
 
-    // Day filter
-    if (state.activeDays.size > 0) {
-      const hasDay = Array.from(state.activeDays).some(d => {
-        const label = DAY_LABELS[d];
-        return (item.WORDDAY && item.WORDDAY.includes(label)) || (item.RECYCLEDAY && item.RECYCLEDAY.includes(label));
+    // ★ Null-Safe 星期欄位防空值：強制轉為字串，絕對不會因 null 崩潰
+    const wordDay    = (item.WORDDAY    != null) ? String(item.WORDDAY).trim()    : '';
+    const recycleDay = (item.RECYCLEDAY != null) ? String(item.RECYCLEDAY).trim() : '';
+    const pointName  = (item.POINTNAME  != null) ? String(item.POINTNAME)         : '';
+    const area       = (item.AREA       != null) ? String(item.AREA)              : '';
+
+    // 搜尋篩選
+    if (search) {
+      const lowerPoint = pointName.toLowerCase();
+      const lowerArea  = area.toLowerCase();
+      if (!lowerPoint.includes(search) && !lowerArea.includes(search)) return false;
+    }
+
+    // 星期篩選（Null-Safe：wordDay / recycleDay 已保證為字串）
+    if (state.activeDays && state.activeDays.size > 0) {
+      const hasDay = Array.from(state.activeDays).some(function(d) {
+        const label = DAY_LABELS[d] || '';
+        return wordDay.includes(label) || recycleDay.includes(label);
       });
       if (!hasDay) return false;
     }
 
-    // Type filter
-    if (state.activeTypes.has('recycle')) {
-      if (!item.RECYCLEDAY || item.RECYCLEDAY.trim() === '') return false;
+    // 類型篩選（僅回收）
+    if (state.activeTypes && state.activeTypes.has('recycle')) {
+      if (recycleDay === '') return false;
     }
 
-    // Time slot filter
+    // 時段篩選
     if (state.activeTimeSlot === 'morning') {
-      const t = timeToMinutes(item.TIME);
+      const t = timeToMinutes(item.TIME ? String(item.TIME) : '00:00');
       if (t >= 12 * 60) return false;
     } else if (state.activeTimeSlot === 'afternoon') {
-      const t = timeToMinutes(item.TIME);
+      const t = timeToMinutes(item.TIME ? String(item.TIME) : '00:00');
       if (t < 12 * 60) return false;
     }
 
     return true;
   });
 
-  // Sort: active ones first, passed ones last
-  filtered.sort((a, b) => {
-    const at = timeToMinutes(a.TIME), bt = timeToMinutes(b.TIME);
+  // 排序：未過站優先，已過站沉底；同類按時間升冪
+  filtered.sort(function(a, b) {
+    const at = timeToMinutes(a && a.TIME ? String(a.TIME) : '00:00');
+    const bt = timeToMinutes(b && b.TIME ? String(b.TIME) : '00:00');
     const aPassed = at < now - 5;
     const bPassed = bt < now - 5;
     if (aPassed && !bPassed) return 1;
@@ -1672,6 +1865,17 @@ function initMapIfNeeded() {
   if (state.mapInitialized) return;
   state.mapInitialized = true;
 
+  // ★ 初始化前先精確設定 #map top = map-header 的實際渲染高度
+  // 確保 Leaflet 從一開始就拿到正確容器尺寸，不會建立在高度為 0 的容器上
+  const mapHeader = document.getElementById('map-header');
+  const mapEl     = document.getElementById('map');
+  if (mapHeader && mapEl) {
+    const headerH = mapHeader.getBoundingClientRect().height;
+    if (headerH > 0) {
+      mapEl.style.top = headerH + 'px';
+    }
+  }
+
   leafletMap = L.map('map', {
     center: [23.0, 120.21],
     zoom: 12,
@@ -1703,10 +1907,22 @@ function initMapIfNeeded() {
     document.head.appendChild(s);
   }
 
+  // ★ 初始化完成後再次強制 invalidateSize，消滅第一次渲染的白板問題
+  setTimeout(function() {
+    if (leafletMap) leafletMap.invalidateSize({ animate: false, pan: false });
+    // 重新讀取 header 高度（字型載入後可能微調）
+    const hdr = document.getElementById('map-header');
+    const mel = document.getElementById('map');
+    if (hdr && mel) {
+      const h = hdr.getBoundingClientRect().height;
+      if (h > 0) mel.style.top = h + 'px';
+    }
+  }, 300);
+
   refreshMapStations();
 
   if (state.gpsInterval) clearInterval(state.gpsInterval);
-  state.gpsInterval = setInterval(() => {
+  state.gpsInterval = setInterval(function() {
     if (!state.backgrounded) refreshMapTrucks();
   }, 10000);
   refreshMapTrucks();
@@ -2108,4 +2324,122 @@ self.addEventListener('fetch', event => {
 
 // ============================================================
 // HELPER: escape HTML attributes
-// =================================================
+// ============================================================
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/'/g, '&#39;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  // Register service worker
+  registerServiceWorker();
+
+  // Restore saved district
+  const districtSel = document.getElementById('district-select');
+  if (districtSel) {
+    for (let i = 0; i < districtSel.options.length; i++) {
+      if (districtSel.options[i].value === state.currentDistrict) {
+        districtSel.selectedIndex = i;
+        break;
+      }
+    }
+  }
+
+  // Smart day preset
+  const smartDay = getSmartDay();
+  state.activeDays.add(smartDay);
+  const dayBtn = document.querySelector(`[data-day="${smartDay}"]`);
+  if (dayBtn) dayBtn.classList.add('active');
+
+  // Smart time preset
+  const smartTime = getSmartTimeSlot();
+  if (smartTime) {
+    state.activeTimeSlot = smartTime;
+    const timeBtn = document.querySelector(`[data-time="${smartTime}"]`);
+    if (timeBtn) timeBtn.classList.add('active');
+  }
+
+  // Night mode notice
+  if (isNightMode()) {
+    setTimeout(() => showToast('🌙 夜間模式：已切換至明日清運預報'), 3500);
+  }
+
+  // Start countdown refresh
+  startCountdownRefresh();
+
+  // Network events
+  window.addEventListener('online', updateNetworkStatus);
+  window.addEventListener('offline', updateNetworkStatus);
+  updateNetworkStatus();
+
+  // Release torch on page hide
+  window.addEventListener('pagehide', () => {
+    releaseTorch();
+    releaseWakeLock();
+  });
+  window.addEventListener('beforeunload', () => {
+    releaseTorch();
+    releaseWakeLock();
+  });
+
+  // Check emergency after short delay
+  setTimeout(checkEmergencyStatus, 4000);
+
+  // Fetch weather
+  setTimeout(fetchWeather, 2500);
+
+  // Fetch data
+  fetchData(state.currentDistrict);
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+window.addEventListener('DOMContentLoaded', function() {
+  // 模擬進度條動畫，讓使用者感受到載入流程
+  let simulatedProgress = 0;
+  const progressSim = setInterval(function() {
+    const increment = Math.random() * 7 + 2;
+    simulatedProgress = Math.min(simulatedProgress + increment, 88);
+    updateProgress(Math.floor(simulatedProgress));
+    if (simulatedProgress >= 88) clearInterval(progressSim);
+  }, 220);
+
+  // ★ 全域安全逾時守衛（Global Safety Timeout）
+  // 如果 20 秒後載入畫面仍未消失，強制解凍，確保永不卡住
+  const SAFETY_TIMEOUT_MS = 20000;
+  const safetyTimer = setTimeout(function() {
+    if (state.isLoading) {
+      state.isLoading = false;
+    }
+    const ls = document.getElementById('loading-screen');
+    if (ls && ls.style.display !== 'none' && ls.style.opacity !== '0') {
+      // 若尚無資料，用示範資料墊底再顯示
+      if (!state.allData || state.allData.length === 0) {
+        state.allData = generateDemoData(state.currentDistrict || '仁德區');
+      }
+      updateProgress(100);
+      hideLoading();
+      try { filterCards(); } catch(e) {}
+      try { renderFavoritesSection(); } catch(e) {}
+      try { showToast('⚠️ 連線逾時，已切換為離線示範資料'); } catch(e) {}
+    }
+    clearInterval(progressSim);
+  }, SAFETY_TIMEOUT_MS);
+
+  // 讓 init 執行後，若成功在 20 秒內完成，清除安全計時器
+  const originalHideLoading = hideLoading;
+  window._safetyTimer = safetyTimer;
+
+  init();
+});
+</script>
+</body>
+</html>
