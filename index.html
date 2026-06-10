@@ -1,1384 +1,1909 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="垃圾車在哪裡"/>
-<meta name="theme-color" content="#08090a"/>
-<title>垃圾車在哪裡 · WhereCar</title>
-<link rel="manifest" href="#"/>
-<script src="https://cdn.tailwindcss.com" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js" crossorigin="anonymous"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet-src.js" crossorigin="anonymous"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#F8F9FA">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="熟成市場">
+
+<!-- Open Graph Tags -->
+<meta property="og:title" content="熟成市場｜今日零售行情與一鍵拍照防坑器">
+<meta property="og:description" content="傳統市場的紙板上，寫著沒有明說的規則。拍張照片，我們幫你解讀。">
+<meta property="og:type" content="website">
+<meta property="og:image" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='630' viewBox='0 0 1200 630'%3E%3Crect fill='%23F8F9FA' width='1200' height='630'/%3E%3Ctext x='120' y='280' font-family='serif' font-size='72' font-weight='300' fill='%231A1A1A'%3E熟成市場%3C/text%3E%3Ctext x='120' y='370' font-family='serif' font-size='28' fill='%23666666'%3E今日零售行情與一鍵拍照防坑器%3C/text%3E%3C/svg%3E">
+<meta property="og:locale" content="zh_TW">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- PWA Manifest inline -->
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22%E7%86%9F%E6%88%90%E5%B8%82%E5%A0%B4%22%2C%22short_name%22%3A%22%E7%86%9F%E6%88%90%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23F8F9FA%22%2C%22theme_color%22%3A%22%23F8F9FA%22%2C%22start_url%22%3A%22%2F%22%7D">
+
+<title>熟成市場｜今日零售行情與一鍵拍照防坑器</title>
 <style>
-  *,::before,::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  html,body{margin:0;padding:0;background:#08090a;overflow:hidden;height:100%;width:100%;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',sans-serif;}
-  #app{position:fixed;inset:0;overflow:hidden;background:#08090a;}
+/* ── Root Tokens ── */
+:root {
+  --bg: #F8F9FA;
+  --surface: rgba(255,255,255,0.85);
+  --ink: #1A1A1A;
+  --ink-secondary: #666666;
+  --ink-tertiary: rgba(0,0,0,0.35);
+  --border: 0.5px solid rgba(0,0,0,0.08);
+  --border-faint: 0.5px solid rgba(0,0,0,0.04);
+  --radius: 18px;
+  --radius-sm: 12px;
+  --shadow-neutral: 0 8px 32px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+  --shadow-green: 0 8px 32px rgba(76,175,80,0.12), 0 2px 8px rgba(76,175,80,0.08);
+  --shadow-yellow: 0 8px 32px rgba(255,193,7,0.12), 0 2px 8px rgba(255,193,7,0.08);
+  --shadow-red: 0 8px 32px rgba(229,57,53,0.12), 0 2px 8px rgba(229,57,53,0.08);
+  --green: #5D9B6E;
+  --green-bg: rgba(93,155,110,0.08);
+  --yellow: #C9A84C;
+  --yellow-bg: rgba(201,168,76,0.08);
+  --red: #C0564F;
+  --red-bg: rgba(192,86,79,0.08);
+  --gold: rgba(201,168,76,0.6);
+  --transition: all 0.4s ease-in-out;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121212;
+    --surface: rgba(30,30,30,0.92);
+    --ink: #F0F0F0;
+    --ink-secondary: #999999;
+    --ink-tertiary: rgba(255,255,255,0.3);
+    --border: 0.5px solid rgba(255,255,255,0.08);
+    --border-faint: 0.5px solid rgba(255,255,255,0.04);
+    --shadow-neutral: 0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3);
+    --shadow-green: 0 8px 32px rgba(93,155,110,0.2), 0 2px 8px rgba(93,155,110,0.12);
+    --shadow-yellow: 0 8px 32px rgba(201,168,76,0.2), 0 2px 8px rgba(201,168,76,0.12);
+    --shadow-red: 0 8px 32px rgba(192,86,79,0.2), 0 2px 8px rgba(192,86,79,0.12);
+  }
+}
 
-  /* Loading screen */
-  #loading-screen{position:fixed;inset:0;z-index:9999;background:#08090a;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.75s ease-out;}
-  #loading-screen.fade-out{opacity:0;pointer-events:none;}
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+body {
+  font-family: -apple-system, 'PingFang TC', 'Noto Sans TC', 'Hiragino Sans GB', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-top: env(safe-area-inset-top, 20px);
+  padding-bottom: env(safe-area-inset-bottom, 20px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
+  letter-spacing: 0.02em;
+}
+button { cursor: pointer; border: none; background: none; font-family: inherit; }
+input, select { font-family: inherit; }
+a { color: inherit; text-decoration: none; }
 
-  /* Truck animation */
-  @keyframes truckIdle{0%,100%{transform:translateY(0px);}50%{transform:translateY(-0.8px);}}
-  @keyframes lightPulse{0%,100%{opacity:1;filter:drop-shadow(0 0 6px #ff3b30) drop-shadow(0 0 12px #ff3b30);}50%{opacity:0.5;filter:drop-shadow(0 0 2px #ff3b30);}}
-  @keyframes progressGlow{0%,100%{box-shadow:0 0 8px #FFB800,0 0 16px #FFB800aa;}50%{box-shadow:0 0 4px #FFB800,0 0 8px #FFB80066;}}
-  .truck-svg{animation:truckIdle 1.2s ease-in-out infinite;}
-  .warning-light{animation:lightPulse 0.9s ease-in-out infinite;}
-  .progress-bar-inner{animation:progressGlow 1.5s ease-in-out infinite;}
+/* ── Typography Scale ── */
+.t-display { font-size: clamp(28px,7vw,42px); font-weight: 300; letter-spacing: -0.02em; line-height: 1.1; }
+.t-title   { font-size: clamp(18px,4.5vw,24px); font-weight: 400; letter-spacing: 0.01em; }
+.t-body    { font-size: clamp(14px,3.5vw,16px); font-weight: 400; line-height: 1.8; letter-spacing: 0.05em; }
+.t-caption { font-size: clamp(11px,2.8vw,13px); color: var(--ink-secondary); letter-spacing: 0.05em; }
+.t-micro   { font-size: 11px; color: var(--ink-tertiary); letter-spacing: 0.06em; }
+.t-number  { font-size: clamp(32px,8vw,48px); font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
 
-  /* Map full bleed */
-  #map-container{position:absolute;inset:0;z-index:0;}
-  #map{position:absolute;top:0;bottom:0;left:0;right:0;width:100%;height:100%;touch-action:none;-webkit-overflow-scrolling:touch;}
-  .leaflet-container{background:#08090a !important;}
+/* ── Layout ── */
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 16px 80px;
+}
 
-  /* Accordion */
-  .accordion-content{max-height:0;overflow:hidden;opacity:0;transition:max-height 0.35s ease-in-out,opacity 0.3s ease-in-out;}
-  .accordion-content.open{max-height:100vh;opacity:1;}
-  .chevron-icon{transition:transform 0.3s ease-in-out;}
-  .chevron-icon.rotated{transform:rotate(180deg);}
+/* ── Header ── */
+#header {
+  position: sticky;
+  top: env(safe-area-inset-top, 0);
+  z-index: 100;
+  padding: 20px 0 12px;
+  background: var(--bg);
+  transition: box-shadow 0.3s ease;
+}
+#header.scrolled { box-shadow: 0 1px 0 rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04); }
+.header-inner { display: flex; align-items: center; justify-content: space-between; }
+.brand-title {
+  font-size: clamp(20px,5vw,26px);
+  font-weight: 300;
+  letter-spacing: 0.05em;
+  opacity: 0;
+  transform: translateY(12px);
+  animation: slideUp 0.6s ease forwards 0.1s;
+}
+.brand-sub {
+  font-size: 11px;
+  color: var(--ink-tertiary);
+  letter-spacing: 0.08em;
+  margin-top: 2px;
+  opacity: 0;
+  animation: fadeIn 0.6s ease forwards 0.4s;
+}
+.header-actions { display: flex; align-items: center; gap: 12px; }
+#btnTip {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: var(--border);
+  font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-neutral);
+  transition: var(--transition);
+}
+#btnTip:active { transform: scale(0.92); }
+#darkToggle {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: var(--border);
+  font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-neutral);
+  transition: var(--transition);
+}
 
-  /* Smooth scroll */
-  .scroll-view{overflow-y:auto;-webkit-overflow-scrolling:touch;}
+/* ── Alerts ── */
+.alert-bar {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: var(--border);
+  font-size: 12px;
+  color: var(--ink-secondary);
+  letter-spacing: 0.04em;
+  margin-bottom: 10px;
+  display: none;
+}
+.alert-bar.visible { display: block; animation: fadeIn 0.5s ease; }
 
-  /* Custom scrollbar */
-  ::-webkit-scrollbar{width:0px;}
+/* ── Status Tags ── */
+.status-row {
+  display: flex; align-items: center; gap: 8px;
+  margin: 6px 0 16px;
+  opacity: 0;
+  animation: fadeIn 0.6s ease forwards 0.6s;
+}
+.status-chip {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-tertiary);
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: var(--border);
+  background: var(--surface);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); display: inline-block; margin-right: 4px; animation: pulse 2s infinite; }
 
-  /* Marker smooth move */
-  .leaflet-marker-icon{transition:transform 10s linear !important;}
+/* ── Budget Bar ── */
+#budgetBar {
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-neutral);
+  transition: var(--transition);
+}
+.budget-label { font-size: 12px; color: var(--ink-secondary); letter-spacing: 0.06em; }
+.budget-amount { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+#basketCount { font-size: 11px; color: var(--ink-tertiary); letter-spacing: 0.06em; }
 
-  /* Popup glass */
-  .glass-popup .leaflet-popup-content-wrapper{background:rgba(19,21,23,0.88)!important;backdrop-filter:blur(20px)!important;-webkit-backdrop-filter:blur(20px)!important;border:1px solid #222528!important;border-radius:16px!important;color:#fff!important;box-shadow:0 8px 32px rgba(0,0,0,0.6)!important;}
-  .glass-popup .leaflet-popup-tip{background:rgba(19,21,23,0.88)!important;}
-  .glass-popup .leaflet-popup-close-button{color:#aaa!important;font-size:18px!important;}
+/* ── Market Grid (Asymmetric) ── */
+.section-label {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-tertiary);
+  margin: 20px 0 12px;
+}
+.market-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.market-grid .card-wide { grid-column: span 2; }
+.market-card {
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow-neutral);
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+.market-card:active { transform: scale(0.97); }
+.market-card.pinned::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--green), transparent);
+}
+.market-card .vegName { font-size: 15px; font-weight: 400; letter-spacing: 0.04em; }
+.market-card .vegPrice {
+  font-size: 22px; font-weight: 600; letter-spacing: -0.01em; margin-top: 4px;
+  transition: var(--transition);
+}
+.market-card .vegUnit { font-size: 11px; color: var(--ink-secondary); margin-top: 2px; }
+.market-card .pinBtn {
+  position: absolute; top: 12px; right: 12px;
+  font-size: 14px; opacity: 0.4;
+  transition: opacity 0.3s;
+}
+.market-card .pinBtn.active { opacity: 1; }
+.market-card.wide { grid-column: span 2; display: flex; align-items: center; justify-content: space-between; }
+.market-card.wide .vegGroup { display: flex; gap: 20px; }
+.market-card.wide .vegItem { text-align: center; }
 
-  /* Tab press */
-  .nav-btn{transition:transform 0.075s,opacity 0.075s;}
-  .nav-btn:active{transform:scale(0.92);opacity:0.7;}
+/* ── Camera Zone ── */
+#cameraSection { margin-top: 24px; }
+.section-title {
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-secondary);
+  margin-bottom: 14px;
+}
+#cameraCard {
+  perspective: 1000px;
+  height: 280px;
+}
+.card-flipper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(0.4,0,0.2,1);
+}
+.card-flipper.flipped { transform: rotateY(180deg); }
+.card-face {
+  position: absolute; width: 100%; height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.card-back { transform: rotateY(180deg); }
 
-  /* Capsule press */
-  .capsule-btn{transition:all 0.075s ease-in-out;}
-  .capsule-btn:active{transform:scale(0.95);background:rgba(255,255,255,0.1)!important;}
+/* Camera front face */
+#cameraFront {
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: var(--border);
+  box-shadow: var(--shadow-neutral);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+}
+#cameraFront .placeholder-text {
+  text-align: center;
+  max-width: 240px;
+  color: var(--ink-secondary);
+  font-size: 13px;
+  line-height: 1.8;
+  letter-spacing: 0.05em;
+}
 
-  /* Card item */
-  .list-item{transition:all 0.15s ease-in-out;}
-  .list-item:active{transform:scale(0.98);opacity:0.85;}
+/* ROI Frame */
+#roiFrame {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70%; height: 55%;
+  border: 1.5px solid var(--gold);
+  border-radius: 4px;
+  pointer-events: none;
+  display: none;
+}
+#roiFrame::before, #roiFrame::after {
+  content: '';
+  position: absolute;
+  width: 14px; height: 14px;
+  border-color: rgba(201,168,76,0.9);
+  border-style: solid;
+}
+#roiFrame::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+#roiFrame::after { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+.roi-label {
+  position: absolute;
+  bottom: -22px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: rgba(201,168,76,0.8);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
 
-  /* Toast */
-  #toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;background:rgba(0,0,0,0.75);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:20px;padding:14px 24px;color:#fff;font-size:13px;font-weight:600;white-space:nowrap;opacity:0;transition:opacity 0.3s ease-in-out;pointer-events:none;}
-  #toast.show{opacity:1;}
+/* Dashed camera box */
+#dashedBox {
+  width: 100px; height: 100px;
+  border: 1.5px dashed rgba(0,0,0,0.2);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px;
+  position: relative;
+  animation: breathe 2.5s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%,100% { border-color: rgba(0,0,0,0.15); }
+  50% { border-color: rgba(0,0,0,0.35); }
+}
+#dashedBox.active { animation: breatheActive 1.2s ease-in-out infinite; }
+@keyframes breatheActive {
+  0%,100% { border-color: rgba(0,0,0,0.2); }
+  50% { border-color: rgba(0,0,0,0.5); }
+}
 
-  /* Weather glow */
-  .weather-glow-blue{box-shadow:0 0 0 1px #0A84FF,0 0 12px #0A84FF66;}
-  .weather-glow-amber{box-shadow:0 0 0 1px #FFB800,0 0 12px #FFB80066;}
+/* Camera video */
+#videoEl {
+  width: 100%; height: 100%; object-fit: cover;
+  display: none;
+  border-radius: var(--radius);
+}
+#photoPreview {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius);
+  display: none;
+  mask-image: linear-gradient(to top, transparent 0%, black 30%);
+  -webkit-mask-image: linear-gradient(to top, transparent 0%, black 30%);
+  animation: smokeIn 0.6s ease forwards;
+}
+@keyframes smokeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); mask-image: none; -webkit-mask-image: none; }
+}
 
-  /* Done task */
-  .task-done{opacity:0.5;background:rgba(52,199,89,0.08)!important;border-color:rgba(52,199,89,0.3)!important;}
+/* Hidden canvas */
+#hiddenCanvas { display: none; }
 
-  /* iOS safe area vars fallback */
-  :root{--sat:env(safe-area-inset-top,44px);--sab:env(safe-area-inset-bottom,34px);}
+/* Camera controls row */
+#camControls {
+  position: absolute; bottom: 14px; left: 0; right: 0;
+  display: flex; align-items: center; justify-content: center;
+  gap: 16px;
+  display: none;
+}
+.cam-btn {
+  padding: 10px 22px;
+  border-radius: 30px;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+  border: var(--border);
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  transition: var(--transition);
+  color: var(--ink);
+}
+.cam-btn:active { transform: scale(0.95); }
+.cam-btn.primary {
+  background: var(--ink);
+  color: white;
+}
+
+/* Upload hidden input */
+#fileInput { display: none; }
+
+/* Torch button */
+#torchBtn {
+  position: absolute; bottom: 14px; right: 14px;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(10px);
+  color: white; font-size: 16px;
+  display: none;
+  align-items: center; justify-content: center;
+  transition: var(--transition);
+}
+#torchBtn.visible { display: flex; }
+
+/* ── Skeleton Screen ── */
+#skeleton {
+  display: none;
+}
+#skeleton.visible { display: block; }
+.skeleton-card {
+  background: var(--surface);
+  border: var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-neutral);
+}
+.skeleton-line {
+  height: 14px;
+  border-radius: 7px;
+  background: linear-gradient(90deg, rgba(0,0,0,0.06) 25%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.06) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  margin-bottom: 10px;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* ── Result Card (Back face) ── */
+#resultCard {
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: var(--border);
+  border-radius: var(--radius);
+  height: 100%;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition);
+}
+#resultCard .ripple {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 0; height: 0;
+  border-radius: 50%;
+  transform: translate(-50%,-50%);
+  opacity: 0;
+  transition: none;
+}
+#resultCard.green { box-shadow: var(--shadow-green); }
+#resultCard.green .ripple { background: radial-gradient(circle, rgba(93,155,110,0.12), transparent 70%); }
+#resultCard.yellow { box-shadow: var(--shadow-yellow); }
+#resultCard.yellow .ripple { background: radial-gradient(circle, rgba(201,168,76,0.12), transparent 70%); }
+#resultCard.red { box-shadow: var(--shadow-red); }
+#resultCard.red .ripple { background: radial-gradient(circle, rgba(192,86,79,0.12), transparent 70%); }
+.result-verdict { font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; }
+.result-verdict.green { color: var(--green); }
+.result-verdict.yellow { color: var(--yellow); }
+.result-verdict.red { color: var(--red); }
+.result-verdict-main { font-size: clamp(22px,6vw,28px); font-weight: 300; margin-top: 4px; letter-spacing: 0.04em; }
+.result-numbers {
+  display: flex; gap: 20px; align-items: flex-end;
+  margin: 12px 0;
+}
+.result-price-block { }
+.result-price-label { font-size: 11px; color: var(--ink-secondary); letter-spacing: 0.08em; }
+.result-price-val { font-size: 28px; font-weight: 600; letter-spacing: -0.01em; }
+.result-price-ref { font-size: 11px; color: var(--ink-secondary); letter-spacing: 0.06em; }
+.result-copy-text {
+  font-size: 12px;
+  color: var(--ink-secondary);
+  line-height: 1.7;
+  letter-spacing: 0.04em;
+  border-top: var(--border-faint);
+  padding-top: 10px;
+  margin-top: auto;
+}
+.result-actions {
+  display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;
+}
+.result-btn {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 30px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  border: var(--border);
+  background: var(--surface);
+  backdrop-filter: blur(10px);
+  transition: var(--transition);
+  color: var(--ink);
+  text-align: center;
+  white-space: nowrap;
+  min-width: 80px;
+}
+.result-btn:active { transform: scale(0.95); }
+.result-btn.primary { background: var(--ink); color: white; border-color: var(--ink); }
+
+/* ── Manual Slider Panel ── */
+#manualPanel {
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-top: 14px;
+  box-shadow: var(--shadow-neutral);
+  display: none;
+  transition: var(--transition);
+}
+#manualPanel.visible { display: block; animation: fadeIn 0.4s ease; }
+.panel-title { font-size: 12px; color: var(--ink-secondary); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px; }
+.field-row { margin-bottom: 16px; }
+.field-label { font-size: 12px; color: var(--ink-secondary); letter-spacing: 0.06em; margin-bottom: 6px; }
+.slider-wrap { display: flex; align-items: center; gap: 12px; }
+.price-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 2px;
+  background: rgba(0,0,0,0.1);
+  border-radius: 2px;
+  outline: none;
+  -webkit-overflow-scrolling: touch;
+}
+.price-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  cursor: pointer;
+}
+.slider-val {
+  font-size: 20px; font-weight: 600; min-width: 54px; text-align: right;
+  letter-spacing: -0.01em;
+  transition: transform 0.1s ease;
+}
+.slider-val.pulse { transform: scale(1.08); }
+
+/* Qty buttons */
+.qty-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.qty-btn {
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  border: var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  transition: var(--transition);
+}
+.qty-btn.active { background: var(--ink); color: white; }
+.qty-btn:active { transform: scale(0.95); }
+
+/* Organic toggle */
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 0;
+  border-top: var(--border-faint);
+}
+.toggle-label { font-size: 13px; letter-spacing: 0.04em; }
+.toggle-switch {
+  width: 42px; height: 24px;
+  background: rgba(0,0,0,0.12);
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.toggle-switch.on { background: var(--green); }
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: white;
+  transition: transform 0.3s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+.toggle-switch.on::after { transform: translateX(18px); }
+
+/* Veg selector */
+.veg-selector {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.veg-chip {
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  border: var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.veg-chip.active { background: var(--ink); color: white; }
+.veg-chip:active { transform: scale(0.95); }
+
+/* Calc button */
+#calcBtn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 30px;
+  background: var(--ink);
+  color: white;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  transition: var(--transition);
+  margin-top: 4px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+#calcBtn:active { transform: scale(0.98); }
+#calcBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Converter Strip ── */
+#converterStrip {
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  display: flex; gap: 16px; flex-wrap: wrap;
+  justify-content: space-around;
+  margin-top: 14px;
+  box-shadow: var(--shadow-neutral);
+}
+.conv-item { text-align: center; }
+.conv-label { font-size: 10px; color: var(--ink-tertiary); letter-spacing: 0.1em; }
+.conv-val { font-size: 14px; font-weight: 500; margin-top: 2px; }
+
+/* ── Storage tip ── */
+#storageTip {
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.8;
+  letter-spacing: 0.04em;
+  color: var(--ink-secondary);
+  display: none;
+  animation: fadeIn 0.4s ease;
+}
+#storageTip.visible { display: block; }
+
+/* ── Trend Chart ── */
+#trendSection {
+  margin-top: 14px;
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow-neutral);
+}
+#trendTitle { font-size: 11px; color: var(--ink-secondary); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px; }
+#trendCanvas { width: 100%; height: 80px; }
+
+/* ── Ticker ── */
+#tickerWrap {
+  overflow: hidden;
+  margin-top: 14px;
+  padding: 8px 0;
+  border-top: var(--border-faint);
+  border-bottom: var(--border-faint);
+}
+#tickerInner {
+  display: flex;
+  white-space: nowrap;
+  animation: ticker 28s linear infinite;
+  font-size: 11px;
+  color: var(--ink-tertiary);
+  letter-spacing: 0.06em;
+}
+@keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+#tickerInner:hover { animation-play-state: paused; }
+
+/* ── Win Rate ── */
+#winRate {
+  text-align: center;
+  padding: 12px;
+  font-size: 12px;
+  color: var(--ink-tertiary);
+  letter-spacing: 0.06em;
+  line-height: 1.7;
+}
+
+/* ── Footer ── */
+#footer {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: var(--border-faint);
+  text-align: center;
+}
+.footer-line {
+  font-size: 11px;
+  color: var(--ink-tertiary);
+  letter-spacing: 0.05em;
+  line-height: 1.8;
+}
+
+/* ── Toast ── */
+#toast {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 20px) + 16px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  background: rgba(26,26,26,0.88);
+  color: rgba(255,255,255,0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 10px 20px;
+  border-radius: 24px;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+  z-index: 9999;
+  opacity: 0;
+  transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+  white-space: nowrap;
+  pointer-events: none;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── Tip Modal ── */
+#tipModal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 8888;
+  display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s;
+}
+#tipModal.open { opacity: 1; pointer-events: all; }
+#tipModalCard {
+  background: var(--bg);
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding: 24px 24px calc(24px + env(safe-area-inset-bottom, 0px));
+  width: 100%; max-width: 480px;
+  transform: translateY(40px);
+  transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.12);
+}
+#tipModal.open #tipModalCard { transform: translateY(0); }
+#tipText { font-size: 16px; line-height: 1.8; letter-spacing: 0.04em; margin: 12px 0 20px; color: var(--ink); }
+#tipClose {
+  width: 100%; padding: 14px; border-radius: 30px;
+  background: var(--ink); color: white;
+  font-size: 14px; letter-spacing: 0.06em;
+  transition: var(--transition);
+}
+#tipClose:active { transform: scale(0.98); }
+
+/* ── Animations ── */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+@keyframes rippleExpand {
+  0% { width: 0; height: 0; opacity: 0.3; }
+  100% { width: 400px; height: 400px; opacity: 0; }
+}
+@keyframes odometer {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.odometer-in { animation: odometer 0.45s cubic-bezier(0.4,0,0.2,1) both; }
+@keyframes slideLeft {
+  to { transform: translateX(-100%); opacity: 0; }
+}
+.slide-out { animation: slideLeft 0.4s ease forwards; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 0; height: 0; }
+
+/* ── Focus ── */
+:focus-visible { outline: 1.5px solid rgba(0,0,0,0.3); outline-offset: 2px; }
+
+/* ── No pinch zoom ── */
+@media (max-width: 480px) {
+  body { touch-action: pan-y; }
+}
 </style>
 </head>
 <body>
+<canvas id="hiddenCanvas"></canvas>
+<input type="file" id="fileInput" accept="image/*" capture="environment">
+
+<!-- ── Toast ── -->
+<div id="toast"></div>
+
+<!-- ── Tip Modal ── -->
+<div id="tipModal" role="dialog" aria-modal="true">
+  <div id="tipModalCard">
+    <div style="font-size:11px;letter-spacing:0.12em;color:var(--ink-tertiary);text-transform:uppercase">市場破冰指引</div>
+    <div id="tipText"></div>
+    <button id="tipClose">收下這句話</button>
+  </div>
+</div>
 
 <div id="app">
-  <!-- ==================== LOADING SCREEN ==================== -->
-  <div id="loading-screen" :class="{'fade-out': !isLoading}">
-    <div class="flex flex-col items-center justify-center px-8 w-full max-w-sm mx-auto">
-      <!-- Amber SVG Garbage Truck -->
-      <div class="truck-svg mb-6" style="width:220px;height:120px;">
-        <svg viewBox="0 0 220 120" fill="none" xmlns="http://www.w3.org/2000/svg" width="220" height="120">
-          <!-- Truck body -->
-          <rect x="10" y="50" width="200" height="55" rx="8" fill="#1a1a1a" stroke="#FFB800" stroke-width="1.5"/>
-          <!-- Cargo box -->
-          <rect x="70" y="30" width="140" height="65" rx="6" fill="#1f1f1f" stroke="#FFB800" stroke-width="1.5"/>
-          <!-- Cab -->
-          <rect x="10" y="42" width="60" height="58" rx="8" fill="#151515" stroke="#FFB800" stroke-width="1.5"/>
-          <!-- Windshield -->
-          <rect x="16" y="48" width="46" height="28" rx="5" fill="#0d1a2e" stroke="#FFB800" stroke-width="1"/>
-          <!-- Door line -->
-          <line x1="48" y1="48" x2="48" y2="95" stroke="#FFB800" stroke-width="0.8" stroke-dasharray="3 2"/>
-          <!-- Door handle -->
-          <rect x="38" y="68" width="8" height="3" rx="1.5" fill="#FFB800"/>
-          <!-- Wheels -->
-          <circle cx="38" cy="105" r="12" fill="#111" stroke="#FFB800" stroke-width="2"/>
-          <circle cx="38" cy="105" r="5" fill="#FFB800" opacity="0.6"/>
-          <circle cx="160" cy="105" r="12" fill="#111" stroke="#FFB800" stroke-width="2"/>
-          <circle cx="160" cy="105" r="5" fill="#FFB800" opacity="0.6"/>
-          <circle cx="185" cy="105" r="12" fill="#111" stroke="#FFB800" stroke-width="2"/>
-          <circle cx="185" cy="105" r="5" fill="#FFB800" opacity="0.6"/>
-          <!-- Warning lights on cab roof -->
-          <rect x="15" y="36" width="50" height="8" rx="4" fill="#222" stroke="#FFB800" stroke-width="0.8"/>
-          <circle cx="28" cy="40" r="4" fill="#ff3b30" class="warning-light"/>
-          <circle cx="42" cy="40" r="4" fill="#ff3b30" class="warning-light" style="animation-delay:0.45s;"/>
-          <!-- Cargo stripes -->
-          <line x1="100" y1="30" x2="100" y2="95" stroke="#FFB80033" stroke-width="1"/>
-          <line x1="130" y1="30" x2="130" y2="95" stroke="#FFB80033" stroke-width="1"/>
-          <line x1="160" y1="30" x2="160" y2="95" stroke="#FFB80033" stroke-width="1"/>
-          <line x1="190" y1="30" x2="190" y2="95" stroke="#FFB80033" stroke-width="1"/>
-          <!-- Recycle symbol on cargo -->
-          <text x="140" y="70" text-anchor="middle" fill="#FFB800" font-size="22" opacity="0.5">♻</text>
-          <!-- Bumper -->
-          <rect x="8" y="88" width="14" height="8" rx="3" fill="#222" stroke="#FFB80066" stroke-width="1"/>
-          <!-- Headlights -->
-          <rect x="11" y="74" width="14" height="8" rx="3" fill="#fff8e7" opacity="0.9"/>
-          <rect x="11" y="74" width="14" height="8" rx="3" fill="url(#headlightGlow)" opacity="0.5"/>
-          <defs>
-            <radialGradient id="headlightGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#FFB800" stop-opacity="0.8"/>
-              <stop offset="100%" stop-color="#FFB800" stop-opacity="0"/>
-            </radialGradient>
-          </defs>
-          <!-- Exhaust pipe -->
-          <rect x="60" y="84" width="6" height="16" rx="3" fill="#333" stroke="#555" stroke-width="0.8"/>
-          <!-- Exhaust smoke (subtle) -->
-          <circle cx="63" cy="80" r="3" fill="#444" opacity="0.4"/>
-          <circle cx="65" cy="75" r="2" fill="#444" opacity="0.25"/>
-        </svg>
+
+  <!-- ── Header ── -->
+  <header id="header">
+    <div class="header-inner">
+      <div>
+        <div class="brand-title">熟成市場</div>
+        <div class="brand-sub">今日零售行情與拍照防坑器</div>
       </div>
-
-      <!-- Progress bar -->
-      <div class="w-full bg-[#1a1a1a] rounded-full h-1 mb-3 overflow-hidden" style="max-width:240px;">
-        <div class="progress-bar-inner h-full rounded-full bg-[#FFB800] transition-all duration-300 ease-out" :style="{width: progress + '%'}"></div>
+      <div class="header-actions">
+        <button id="btnTip" title="市場破冰台詞">？</button>
+        <button id="darkToggle" title="切換夜間模式">🌙</button>
       </div>
+    </div>
+  </header>
 
-      <!-- Stage text -->
-      <p class="text-xs font-semibold tracking-wider text-gray-400 mt-3 text-center leading-relaxed px-4" v-html="loadingText"></p>
+  <!-- ── Alerts ── -->
+  <div id="alertMonday" class="alert-bar">📅 今日傳統市場多休市，行情波動，建議前往量販店參考。</div>
+  <div id="alertEvening" class="alert-bar">🌆 阿姨準備收攤，進入博弈殺價的黃金時段。</div>
+  <div id="alertNoon" class="alert-bar">☀️ 午後行情，精選出清品項開始出現了。</div>
+  <div id="alertLocation" class="alert-bar" id="alertLocation">📍 當前定位：全台通用 ｜ 行情已切換為標準物價</div>
+  <div id="alertOffline" class="alert-bar">市場深處訊號微弱，已自動為您開啟離線優雅比價模式。</div>
 
-      <!-- App name -->
-      <p class="text-[10px] text-gray-600 mt-6 tracking-widest uppercase">WhereCar · 垃圾車在哪裡</p>
+  <!-- ── Status Row ── -->
+  <div class="status-row">
+    <div class="status-chip"><span class="status-dot"></span><span id="statusRegion">定位中</span></div>
+    <div class="status-chip" id="levelChip">熟成漫步者</div>
+    <div class="status-chip" id="timeChipEl"></div>
+  </div>
+
+  <!-- ── Budget Bar ── -->
+  <div id="budgetBar">
+    <div>
+      <div class="budget-label">今日菜籃累計</div>
+      <div class="budget-amount">$<span id="budgetAmount">0</span></div>
+    </div>
+    <div id="basketCount">0 樣入籃</div>
+  </div>
+
+  <!-- ── Today's Market ── -->
+  <div class="section-label">今日行情參考</div>
+  <div class="market-grid" id="marketGrid">
+    <!-- dynamically rendered -->
+  </div>
+
+  <!-- ── Camera Section ── -->
+  <div id="cameraSection">
+    <div class="section-title">拍照識價</div>
+    <div id="cameraCard">
+      <div class="card-flipper" id="cardFlipper">
+
+        <!-- FRONT FACE -->
+        <div class="card-face" id="cameraFront">
+          <video id="videoEl" playsinline autoplay muted></video>
+          <img id="photoPreview" alt="菜牌照片">
+          <div id="roiFrame"><span class="roi-label">請將菜牌對齊框內</span></div>
+          <div id="dashedBox">📷</div>
+          <p class="placeholder-text" id="placeholderText">傳統市場的紙板上，寫著沒有明說的規則。<br>拍張照片，我們幫你解讀。</p>
+          <div id="camControls">
+            <button class="cam-btn" id="cancelCamBtn">取消</button>
+            <button class="cam-btn primary" id="snapBtn">快門</button>
+          </div>
+          <div id="torchBtn">🔦</div>
+        </div>
+
+        <!-- BACK FACE -->
+        <div class="card-face card-back">
+          <div id="resultCard">
+            <div class="ripple" id="resultRipple"></div>
+            <div>
+              <div class="result-verdict" id="resultVerdict">等待辨識</div>
+              <div class="result-verdict-main" id="resultMain">—</div>
+            </div>
+            <div class="result-numbers">
+              <div class="result-price-block">
+                <div class="result-price-label">攤位要價</div>
+                <div class="result-price-val" id="resultInputPrice">—</div>
+              </div>
+              <div style="font-size:11px;color:var(--ink-tertiary);padding-bottom:6px;">VS</div>
+              <div class="result-price-block">
+                <div class="result-price-label">合理參考</div>
+                <div class="result-price-val" id="resultRefPrice">—</div>
+                <div class="result-price-ref" id="resultDiff"></div>
+              </div>
+            </div>
+            <div class="result-copy-text" id="resultCopyText">—</div>
+            <div class="result-actions">
+              <button class="result-btn primary" id="btnAddBasket">加入菜籃</button>
+              <button class="result-btn" id="btnCopyThreads">複製發 Threads</button>
+              <button class="result-btn" id="btnRetake">重拍</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /flipper -->
+    </div><!-- /cameraCard -->
+
+    <!-- Skeleton -->
+    <div id="skeleton">
+      <div class="skeleton-card">
+        <div class="skeleton-line" style="width:80%"></div>
+        <div class="skeleton-line" style="width:55%"></div>
+        <div class="skeleton-line" style="width:65%"></div>
+      </div>
     </div>
   </div>
 
-  <!-- ==================== TOAST ==================== -->
-  <div id="toast" ref="toast"></div>
+  <!-- Manual Panel -->
+  <div id="manualPanel">
+    <div class="panel-title">手動輸入比價</div>
 
-  <!-- ==================== MAIN APP ==================== -->
-  <div v-show="!isLoading" style="position:fixed;inset:0;display:flex;flex-direction:column;background:#08090a;">
+    <div class="field-label">選擇蔬菜</div>
+    <div class="veg-selector" id="vegSelector"></div>
 
-    <!-- ===== TAB: 清運清單 (index 0) ===== -->
-    <div v-show="activeTab===0" class="flex-1 scroll-view" style="padding-top:calc(env(safe-area-inset-top,44px) + 16px);padding-bottom:calc(44px + env(safe-area-inset-bottom,34px) + 24px);padding-left:16px;padding-right:16px;overflow-y:auto;-webkit-overflow-scrolling:touch;">
-
-      <!-- Header -->
-      <div class="flex items-center justify-between mb-5">
-        <div>
-          <h1 class="text-xl font-bold text-white tracking-tight">清運清單</h1>
-          <p class="text-[11px] text-gray-500 mt-0.5 tracking-wide">台南市即時垃圾清運班表</p>
-        </div>
-        <!-- Refresh button -->
-        <button @click="fetchData(currentDistrict)" class="capsule-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] active:scale-95 active:bg-white/10 transition-all duration-75">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
-          </svg>
-          <span class="text-[11px] text-[#FFB800] font-semibold">刷新</span>
-        </button>
-      </div>
-
-      <!-- District selector -->
-      <div class="mb-4">
-        <div class="flex items-center gap-2 bg-[#111214] border border-[#222528] rounded-2xl px-4 py-3">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-          </svg>
-          <select v-model="currentDistrict" @change="onDistrictChange" class="flex-1 bg-transparent text-white text-sm font-medium outline-none appearance-none" style="color:#fff;">
-            <option v-for="d in districts" :key="d" :value="d" style="background:#111214;color:#fff;">{{d}}</option>
-          </select>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="m6 9 6 6 6-6"/>
-          </svg>
-        </div>
-      </div>
-
-      <!-- Day filter capsules -->
-      <div class="flex gap-2 mb-4 overflow-x-auto pb-1">
-        <button v-for="d in dayOptions" :key="d.value"
-          @click="currentDay=d.value"
-          :class="['capsule-btn flex-shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-semibold border transition-all duration-150 active:scale-95 active:bg-white/10',
-            currentDay===d.value ? 'bg-[#FFB800] border-[#FFB800] text-black' : 'bg-[#111214] border-[#222528] text-gray-400']">
-          {{d.label}}
-        </button>
-      </div>
-
-      <!-- Time filter capsules -->
-      <div class="flex gap-2 mb-5">
-        <button @click="timeFilter='all'"
-          :class="['capsule-btn px-4 py-1.5 rounded-full text-[12px] font-semibold border transition-all duration-150 active:scale-95 active:bg-white/10',
-            timeFilter==='all' ? 'bg-[#FFB800] border-[#FFB800] text-black' : 'bg-[#111214] border-[#222528] text-gray-400']">
-          🌐 全天
-        </button>
-        <button @click="timeFilter='morning'"
-          :class="['capsule-btn px-4 py-1.5 rounded-full text-[12px] font-semibold border transition-all duration-150 active:scale-95 active:bg-white/10',
-            timeFilter==='morning' ? 'bg-[#FFB800] border-[#FFB800] text-black' : 'bg-[#111214] border-[#222528] text-gray-400']">
-          ☀️ 早上
-        </button>
-        <button @click="timeFilter='afternoon'"
-          :class="['capsule-btn px-4 py-1.5 rounded-full text-[12px] font-semibold border transition-all duration-150 active:scale-95 active:bg-white/10',
-            timeFilter==='afternoon' ? 'bg-[#FFB800] border-[#FFB800] text-black' : 'bg-[#111214] border-[#222528] text-gray-400']">
-          🌙 下午
-        </button>
-      </div>
-
-      <!-- Error state -->
-      <div v-if="fetchError" class="flex flex-col items-center justify-center py-12 text-center">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ff453a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-4">
-          <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
-        </svg>
-        <p class="text-sm text-gray-400 mb-2">網路連線異常</p>
-        <p class="text-xs text-gray-600 mb-4">無法連線至台南資料庫</p>
-        <button @click="fetchData(currentDistrict)" class="capsule-btn px-5 py-2 rounded-full bg-[#FFB800] text-black text-sm font-bold active:scale-95">重新連線</button>
-      </div>
-
-      <!-- Loading skeleton -->
-      <div v-else-if="isLoadingData" class="space-y-3">
-        <div v-for="i in 6" :key="i" class="h-20 rounded-2xl bg-[#111214] animate-pulse border border-[#1a1a1a]"></div>
-      </div>
-
-      <!-- Empty state -->
-      <div v-else-if="filteredRecords.length===0" class="flex flex-col items-center justify-center py-16 text-center">
-        <div class="text-4xl mb-4">🗑️</div>
-        <p class="text-sm text-gray-400 mb-1">本日此區無清運班次</p>
-        <p class="text-xs text-gray-600">請切換日期或行政區查詢</p>
-      </div>
-
-      <!-- Records list -->
-      <div v-else class="space-y-3">
-        <div v-for="(rec, idx) in filteredRecords" :key="idx"
-          class="list-item relative bg-[#111214] border border-[#1d1f21] rounded-2xl p-4 active:scale-[0.98] transition-all duration-150"
-          :class="{'task-done': doneTasks.includes(rec.POINTNAME+rec.TIME)}">
-
-          <!-- Favourite + done row -->
-          <div class="flex items-start justify-between mb-2">
-            <div class="flex-1 pr-2">
-              <p class="text-sm font-semibold text-white leading-snug">{{rec.POINTNAME || '未命名站點'}}</p>
-              <p class="text-[11px] text-gray-500 mt-0.5">{{rec.AREA || currentDistrict}}</p>
-            </div>
-            <div class="flex items-center gap-2 flex-shrink-0">
-              <!-- Done check -->
-              <button @click.stop="toggleDone(rec)" class="capsule-btn w-7 h-7 flex items-center justify-center rounded-full border border-[#2a2a2a] active:scale-95 active:bg-white/10 transition-all duration-75"
-                :class="doneTasks.includes(rec.POINTNAME+rec.TIME) ? 'bg-[#34C759]/20 border-[#34C759]/40' : 'bg-[#1a1a1a]'">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" :stroke="doneTasks.includes(rec.POINTNAME+rec.TIME) ? '#34C759' : '#555'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-              </button>
-              <!-- Favourite -->
-              <button @click.stop="toggleFavourite(rec)" class="capsule-btn w-7 h-7 flex items-center justify-center rounded-full border border-[#2a2a2a] active:scale-95 active:bg-white/10 transition-all duration-75"
-                :class="isFavourite(rec) ? 'bg-[#FF375F]/20 border-[#FF375F]/40' : 'bg-[#1a1a1a]'">
-                <svg width="13" height="13" viewBox="0 0 24 24" :fill="isFavourite(rec) ? '#FF375F' : 'none'" :stroke="isFavourite(rec) ? '#FF375F' : '#555'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- Time + recycle row -->
-          <div class="flex items-center gap-3 mt-1">
-            <div class="flex items-center gap-1.5">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-              </svg>
-              <span class="text-[12px] text-[#FFB800] font-bold">{{rec.TIME || '--:--'}}</span>
-            </div>
-            <div v-if="rec.RECYCLEDAY" class="flex items-center gap-1">
-              <span class="text-[10px] text-green-400 font-medium bg-green-400/10 px-2 py-0.5 rounded-full">♻ {{rec.RECYCLEDAY}}</span>
-            </div>
-            <div v-if="rec.WORDDAY" class="flex items-center gap-1 ml-auto">
-              <span class="text-[10px] text-gray-500 bg-[#1a1a1a] px-2 py-0.5 rounded-full">{{rec.WORDDAY}}</span>
-            </div>
-          </div>
-
-          <!-- Countdown -->
-          <div v-if="getCountdown(rec.TIME)" class="mt-2 flex items-center gap-1.5">
-            <div class="w-1.5 h-1.5 rounded-full bg-[#FFB800] animate-pulse"></div>
-            <span class="text-[11px] text-[#FFB800]/80 font-medium">{{getCountdown(rec.TIME)}}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Spacer for nav bar -->
-      <div style="height:calc(44px + env(safe-area-inset-bottom,34px) + 20px);"></div>
+    <div class="field-label">攤位要求單價</div>
+    <div class="slider-wrap">
+      <input type="range" class="price-slider" id="priceSlider" min="10" max="300" value="50">
+      <span class="slider-val" id="priceVal">$50</span>
     </div>
 
-    <!-- ===== TAB: 地圖雷達 (index 1) ===== -->
-    <div v-show="activeTab===1" style="position:absolute;inset:0;overflow:hidden;">
-      <!-- Map container full bleed -->
-      <div id="map-container" style="position:absolute;inset:0;">
-        <div id="map" class="absolute inset-0 w-full" style="top:0;bottom:0;height:100%;touch-action:none;-webkit-overflow-scrolling:touch;"></div>
-      </div>
-
-      <!-- Top-right controls -->
-      <div style="position:absolute;top:calc(env(safe-area-inset-top,44px) + 12px);right:16px;z-index:10;display:flex;flex-direction:column;gap:8px;">
-        <!-- Fit bounds / overview -->
-        <button @click="fitMapBounds" class="capsule-btn w-11 h-11 flex items-center justify-center rounded-2xl active:scale-95 transition-all duration-75" style="background:rgba(19,21,23,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid #222528;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
-          </svg>
-        </button>
-        <!-- Toggle fixed stops -->
-        <button @click="toggleFixedStops" class="capsule-btn w-11 h-11 flex items-center justify-center rounded-2xl active:scale-95 transition-all duration-75" style="background:rgba(19,21,23,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid #222528;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :stroke="showFixedStops ? '#FFB800' : '#555'">
-            <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-          </svg>
-        </button>
-        <!-- My location -->
-        <button @click="locateMe" class="capsule-btn w-11 h-11 flex items-center justify-center rounded-2xl active:scale-95 transition-all duration-75" style="background:rgba(19,21,23,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid #222528;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#30D158" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/>
-          </svg>
-        </button>
-      </div>
-
-      <!-- Status bar floating above nav -->
-      <div style="position:absolute;left:16px;right:16px;z-index:10;bottom:calc(44px + env(safe-area-inset-bottom,34px) + 12px);">
-        <div style="background:rgba(19,21,23,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid #222528;border-radius:16px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;">
-          <div class="flex items-center gap-2">
-            <div class="w-2 h-2 rounded-full animate-pulse" :class="liveVehicles.length > 0 ? 'bg-[#30D158]' : 'bg-[#FF453A]'"></div>
-            <span class="text-xs text-white font-semibold">即時車輛</span>
-            <span class="text-xs font-bold" :class="liveVehicles.length > 0 ? 'text-[#30D158]' : 'text-gray-500'">{{liveVehicles.length}} 台</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-[10px] text-gray-500">上次更新</span>
-            <span class="text-[10px] text-gray-400">{{lastGPSUpdate}}</span>
-          </div>
-        </div>
+    <div class="field-row">
+      <div class="field-label">計價方式（把數/份數）</div>
+      <div class="qty-row" id="qtyRow">
+        <button class="qty-btn active" data-qty="1">1 把</button>
+        <button class="qty-btn" data-qty="2">2 把</button>
+        <button class="qty-btn" data-qty="3">3 把 $100?</button>
+        <button class="qty-btn" data-qty="5">5 把</button>
       </div>
     </div>
 
-    <!-- ===== TAB: 控制中心 (index 2) ===== -->
-    <div v-show="activeTab===2" class="flex-1 scroll-view" style="padding-top:calc(env(safe-area-inset-top,44px) + 16px);padding-bottom:calc(44px + env(safe-area-inset-bottom,34px) + 24px);padding-left:16px;padding-right:16px;overflow-y:auto;-webkit-overflow-scrolling:touch;">
-
-      <div class="flex items-center justify-between mb-5">
-        <div>
-          <h1 class="text-xl font-bold text-white tracking-tight">控制中心</h1>
-          <p class="text-[11px] text-gray-500 mt-0.5 tracking-wide">智慧功能與個人化設定</p>
-        </div>
-      </div>
-
-      <!-- Weather card -->
-      <div class="bg-[#131517]/85 backdrop-blur-xl border rounded-2xl p-4 mb-4 transition-all duration-500"
-        :class="weatherAlert ? (weatherAlertType==='rain' ? 'weather-glow-blue border-[#0A84FF]/40' : 'weather-glow-amber border-[#FFB800]/40') : 'border-[#222528]'">
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-2">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-            </svg>
-            <span class="text-sm font-semibold text-white">台南天氣 · 空品</span>
-          </div>
-          <span class="text-[10px] text-gray-500">每小時更新</span>
-        </div>
-        <div class="flex items-center gap-4">
-          <div class="text-center">
-            <p class="text-3xl font-bold text-white">{{weatherData.temp}}°</p>
-            <p class="text-[10px] text-gray-500 mt-0.5">{{weatherData.desc}}</p>
-          </div>
-          <div class="flex-1 space-y-1.5">
-            <div class="flex justify-between">
-              <span class="text-[11px] text-gray-400">降雨率</span>
-              <span class="text-[11px] font-semibold" :class="weatherData.rain>30 ? 'text-[#0A84FF]' : 'text-gray-300'">{{weatherData.rain}}%</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-[11px] text-gray-400">AQI 空品</span>
-              <span class="text-[11px] font-semibold" :class="weatherData.aqi>100 ? 'text-[#FFB800]' : 'text-[#30D158]'">{{weatherData.aqi}} · {{weatherData.aqiDesc}}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-[11px] text-gray-400">濕度</span>
-              <span class="text-[11px] text-gray-300">{{weatherData.humidity}}%</span>
-            </div>
-          </div>
-        </div>
-        <div v-if="weatherAlert" class="mt-3 p-2 rounded-xl border text-xs font-medium leading-relaxed"
-          :class="weatherAlertType==='rain' ? 'bg-[#0A84FF]/10 border-[#0A84FF]/30 text-[#0A84FF]' : 'bg-[#FFB800]/10 border-[#FFB800]/30 text-[#FFB800]'">
-          {{weatherAlertMsg}}
-        </div>
-      </div>
-
-      <!-- Hardware controls grid -->
-      <div class="grid grid-cols-2 gap-3 mb-4">
-        <!-- Torch -->
-        <button @click="toggleTorch" class="capsule-btn bg-[#131517]/85 border border-[#222528] rounded-2xl p-4 flex flex-col items-center gap-2 active:scale-95 active:bg-white/5 transition-all duration-75"
-          :class="torchOn ? 'border-[#FFB800]/60 bg-[#FFB800]/8' : ''">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center" :class="torchOn ? 'bg-[#FFB800]/20' : 'bg-[#1a1a1a]'">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" :stroke="torchOn ? '#FFB800' : '#555'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M8 2v4M16 2v4M9 22h6M12 6v8M10 14l-2 8h8l-2-8"/>
-            </svg>
-          </div>
-          <span class="text-[11px] font-semibold" :class="torchOn ? 'text-[#FFB800]' : 'text-gray-400'">手電筒</span>
-          <span class="text-[9px]" :class="torchOn ? 'text-[#FFB800]/70' : 'text-gray-600'">{{torchOn ? '點擊關閉' : '點擊開啟'}}</span>
-        </button>
-
-        <!-- Screen flashlight -->
-        <button @click="toggleScreenLight" class="capsule-btn bg-[#131517]/85 border border-[#222528] rounded-2xl p-4 flex flex-col items-center gap-2 active:scale-95 active:bg-white/5 transition-all duration-75"
-          :class="screenLightOn ? 'border-white/40 bg-white/5' : ''">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center" :class="screenLightOn ? 'bg-white/20' : 'bg-[#1a1a1a]'">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" :stroke="screenLightOn ? '#fff' : '#555'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
-            </svg>
-          </div>
-          <span class="text-[11px] font-semibold" :class="screenLightOn ? 'text-white' : 'text-gray-400'">螢幕補光</span>
-          <span class="text-[9px]" :class="screenLightOn ? 'text-white/70' : 'text-gray-600'">{{screenLightOn ? '點擊關閉' : '點擊開啟'}}</span>
-        </button>
-
-        <!-- Wake lock -->
-        <button @click="toggleWakeLock" class="capsule-btn bg-[#131517]/85 border border-[#222528] rounded-2xl p-4 flex flex-col items-center gap-2 active:scale-95 active:bg-white/5 transition-all duration-75"
-          :class="wakeLockOn ? 'border-[#30D158]/60 bg-[#30D158]/8' : ''">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center" :class="wakeLockOn ? 'bg-[#30D158]/20' : 'bg-[#1a1a1a]'">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" :stroke="wakeLockOn ? '#30D158' : '#555'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
-            </svg>
-          </div>
-          <span class="text-[11px] font-semibold" :class="wakeLockOn ? 'text-[#30D158]' : 'text-gray-400'">螢幕常亮</span>
-          <span class="text-[9px]" :class="wakeLockOn ? 'text-[#30D158]/70' : 'text-gray-600'">{{wakeLockOn ? '已啟用' : '點擊啟用'}}</span>
-        </button>
-
-        <!-- Clear memory -->
-        <button @click="clearMemory" class="capsule-btn bg-[#131517]/85 border border-[#222528] rounded-2xl p-4 flex flex-col items-center gap-2 active:scale-95 active:bg-white/5 transition-all duration-75">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-[#1a1a1a]">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF453A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-            </svg>
-          </div>
-          <span class="text-[11px] font-semibold text-[#FF453A]">清除記憶</span>
-          <span class="text-[9px] text-gray-600">重設今日任務</span>
-        </button>
-      </div>
-
-      <!-- Today tasks -->
-      <div class="bg-[#131517]/85 backdrop-blur-xl border border-[#222528] rounded-2xl p-4 mb-4">
-        <div class="flex items-center gap-2 mb-3">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-          </svg>
-          <span class="text-sm font-semibold text-white">今日任務</span>
-          <span class="text-[10px] text-gray-500 ml-auto">{{doneTasks.length}} / {{todayRecords.length}} 完成</span>
-        </div>
-
-        <div v-if="todayRecords.length === 0" class="py-4 text-center">
-          <p class="text-xs text-gray-500">今日暫無清運班次資料</p>
-        </div>
-
-        <div v-else class="space-y-2">
-          <div v-for="(rec, idx) in todayRecords.slice(0,5)" :key="idx"
-            class="flex items-center gap-3 p-3 rounded-xl border transition-all duration-200"
-            :class="doneTasks.includes(rec.POINTNAME+rec.TIME) ? 'task-done border-[#34C759]/20' : 'bg-[#1a1a1a] border-[#222528]'">
-            <button @click="toggleDone(rec)" class="capsule-btn w-6 h-6 flex-shrink-0 rounded-full border flex items-center justify-center active:scale-95 transition-all duration-75"
-              :class="doneTasks.includes(rec.POINTNAME+rec.TIME) ? 'bg-[#34C759] border-[#34C759]' : 'border-[#333] bg-transparent'">
-              <svg v-if="doneTasks.includes(rec.POINTNAME+rec.TIME)" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
-            </button>
-            <div class="flex-1 min-w-0">
-              <p class="text-xs font-medium text-white truncate">{{rec.POINTNAME}}</p>
-              <p class="text-[10px] text-gray-500">{{rec.TIME}}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Legal disclaimer accordion -->
-      <div class="bg-[#131517]/85 backdrop-blur-xl border border-[#222528] rounded-2xl overflow-hidden mb-4">
-        <button @click="legalOpen=!legalOpen" class="capsule-btn w-full flex items-center gap-3 px-4 py-3.5 active:bg-white/5 transition-all duration-75">
-          <!-- Shield SVG -->
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-          </svg>
-          <span class="flex-1 text-left text-xs font-semibold text-gray-400">法律資訊與免責聲明</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="chevron-icon flex-shrink-0" :class="{'rotated': legalOpen}">
-            <path d="m6 9 6 6 6-6"/>
-          </svg>
-        </button>
-        <div class="accordion-content px-4 pb-4" :class="{'open': legalOpen}">
-          <div class="pt-2 border-t border-[#1f2123]">
-            <p class="text-xs font-normal tracking-wide text-gray-400 leading-relaxed">
-              本程式為第三方獨立開發之公益工具，並非台南市政府環境保護局之官方 App。本程式內所提供之即時垃圾車 GPS 定位座標、清運站點班表及時間倒數資訊，皆即時串接自台南市政府資料開放平台。所有數據資料之準確性、實時性、完整性皆以環保局官方車機回傳為準。若因台南當地天候異動、道路交通路況擁塞、政府伺服器斷線、或颱風災害停班停課導致垃圾清運時間有所落差或全面暫停，本程式及開發團隊概不負責，亦不承擔任何直接或間接之法律損失責任。使用者出門倒垃圾前，請務必隨時注意周遭垃圾車真實警示音。
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Bottom spacer -->
-      <div style="height:calc(44px + env(safe-area-inset-bottom,34px) + 20px);"></div>
+    <div class="toggle-row">
+      <span class="toggle-label">冷氣精緻菜攤（+15%）</span>
+      <div class="toggle-switch" id="organicToggle"></div>
     </div>
 
-    <!-- ===== TAB: 我的收藏 (index 3) ===== -->
-    <div v-show="activeTab===3" class="flex-1 scroll-view" style="padding-top:calc(env(safe-area-inset-top,44px) + 16px);padding-bottom:calc(44px + env(safe-area-inset-bottom,34px) + 24px);padding-left:16px;padding-right:16px;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+    <button id="calcBtn">開始比價</button>
+  </div>
 
-      <div class="flex items-center justify-between mb-5">
-        <div>
-          <h1 class="text-xl font-bold text-white tracking-tight">我的收藏</h1>
-          <p class="text-[11px] text-gray-500 mt-0.5 tracking-wide">常用清運站點 · {{favourites.length}} 個</p>
-        </div>
-      </div>
+  <!-- Camera action buttons below card -->
+  <div style="display:flex;gap:10px;margin-top:14px;" id="mainCamBtns">
+    <button class="cam-btn primary" id="btnOpenCam" style="flex:1;padding:13px;">開啟鏡頭識價</button>
+    <button class="cam-btn" id="btnUpload" style="flex:1;padding:13px;">從相簿上傳</button>
+    <button class="cam-btn" id="btnManual" style="padding:13px 18px;">手動</button>
+  </div>
 
-      <div v-if="favourites.length===0" class="flex flex-col items-center justify-center py-20 text-center">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-4">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-        </svg>
-        <p class="text-sm text-gray-500 mb-1">尚無收藏站點</p>
-        <p class="text-xs text-gray-600">在清運清單點擊愛心即可收藏</p>
-      </div>
+  <!-- Storage Tip -->
+  <div id="storageTip"></div>
 
-      <div v-else class="space-y-3">
-        <div v-for="(fav, idx) in favourites" :key="idx"
-          class="list-item bg-[#111214] border border-[#1d1f21] rounded-2xl p-4 active:scale-[0.98] transition-all duration-150">
-          <div class="flex items-start justify-between">
-            <div class="flex-1 pr-2">
-              <p class="text-sm font-semibold text-white leading-snug">{{fav.POINTNAME}}</p>
-              <p class="text-[11px] text-gray-500 mt-0.5">{{fav.AREA}}</p>
-            </div>
-            <button @click="toggleFavourite(fav)" class="capsule-btn w-7 h-7 flex items-center justify-center rounded-full bg-[#FF375F]/20 border border-[#FF375F]/40 active:scale-95 transition-all duration-75">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="#FF375F" stroke="#FF375F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
-            </button>
-          </div>
-          <div class="flex items-center gap-3 mt-2">
-            <div class="flex items-center gap-1.5">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-              </svg>
-              <span class="text-[12px] text-[#FFB800] font-bold">{{fav.TIME}}</span>
-            </div>
-            <div v-if="fav.WORDDAY" class="ml-auto">
-              <span class="text-[10px] text-gray-500 bg-[#1a1a1a] px-2 py-0.5 rounded-full">{{fav.WORDDAY}}</span>
-            </div>
-          </div>
-        </div>
-      </div>
+  <!-- Converter Strip -->
+  <div id="converterStrip">
+    <div class="conv-item"><div class="conv-label">1 台斤</div><div class="conv-val">600g</div></div>
+    <div class="conv-item"><div class="conv-label">半斤</div><div class="conv-val">300g</div></div>
+    <div class="conv-item"><div class="conv-label">1 兩</div><div class="conv-val">37.5g</div></div>
+    <div class="conv-item"><div class="conv-label">全聯均重</div><div class="conv-val">~250g/把</div></div>
+  </div>
 
-      <!-- Bottom spacer -->
-      <div style="height:calc(44px + env(safe-area-inset-bottom,34px) + 20px);"></div>
-    </div>
+  <!-- Trend Chart -->
+  <div id="trendSection">
+    <div id="trendTitle">你的近 4 次比價走勢</div>
+    <canvas id="trendCanvas"></canvas>
+  </div>
 
-    <!-- ==================== SCREEN LIGHT OVERLAY ==================== -->
-    <div v-if="screenLightOn" style="position:fixed;inset:0;z-index:8888;background:#ffffff;opacity:0.95;" @click="toggleScreenLight"></div>
+  <!-- Ticker -->
+  <div id="tickerWrap">
+    <div id="tickerInner"></div>
+  </div>
 
-    <!-- ==================== FOOTER NAV BAR ==================== -->
-    <div style="position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(13,13,15,0.92);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid #1f2123;height:calc(44px + env(safe-area-inset-bottom,34px));padding-bottom:env(safe-area-inset-bottom,34px);">
-      <div style="display:flex;align-items:center;justify-content:space-around;height:44px;padding:0;">
+  <!-- Win Rate -->
+  <div id="winRate">
+    今日全台熟成大人對決市場阿姨平均勝率：<strong>64.2%</strong>（理性勝出）
+  </div>
 
-        <!-- 清運清單 -->
-        <button @click="activeTab=0" class="nav-btn flex flex-col items-center justify-center h-10 flex-1 m-0 p-0 border-0 bg-transparent" style="height:40px;padding:0;margin:0;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" :stroke="activeTab===0 ? '#FFB800' : '#555'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
-            <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
-          </svg>
-          <span class="text-[10px] font-medium mt-0.5" :style="{color: activeTab===0 ? '#FFB800' : '#555'}">清運清單</span>
-        </button>
+  <!-- Footer -->
+  <footer id="footer">
+    <div class="footer-line">Disclaimer ｜ 本工具所提供之數據基於地方零售行情加權演算法，市場物價變化萬千，請以現場實際狀況與個人理性判斷為準。</div>
+    <div class="footer-line" style="margin-top:6px;">Designed by Mature Market Studio ｜ 熟成市場工作室 © 2026</div>
+  </footer>
 
-        <!-- 地圖雷達 -->
-        <button @click="switchToMap" class="nav-btn flex flex-col items-center justify-center h-10 flex-1 m-0 p-0 border-0 bg-transparent" style="height:40px;padding:0;margin:0;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" :stroke="activeTab===1 ? '#FFB800' : '#555'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/>
-          </svg>
-          <span class="text-[10px] font-medium mt-0.5" :style="{color: activeTab===1 ? '#FFB800' : '#555'}">地圖雷達</span>
-        </button>
+</div><!-- /app -->
 
-        <!-- 控制中心 -->
-        <button @click="activeTab=2" class="nav-btn flex flex-col items-center justify-center h-10 flex-1 m-0 p-0 border-0 bg-transparent" style="height:40px;padding:0;margin:0;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" :stroke="activeTab===2 ? '#FFB800' : '#555'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
-          </svg>
-          <span class="text-[10px] font-medium mt-0.5" :style="{color: activeTab===2 ? '#FFB800' : '#555'}">控制中心</span>
-        </button>
-
-        <!-- 我的收藏 -->
-        <button @click="activeTab=3" class="nav-btn flex flex-col items-center justify-center h-10 flex-1 m-0 p-0 border-0 bg-transparent" style="height:40px;padding:0;margin:0;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" :stroke="activeTab===3 ? '#FFB800' : '#555'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-              :fill="activeTab===3 ? '#FFB800' : 'none'" :stroke="activeTab===3 ? '#FFB800' : '#555'"/>
-          </svg>
-          <span class="text-[10px] font-medium mt-0.5" :style="{color: activeTab===3 ? '#FFB800' : '#555'}">我的收藏</span>
-        </button>
-
-      </div>
-    </div>
-
-  </div><!-- /main app -->
-</div><!-- /app root -->
-
+<!-- Tesseract.js lazy-loaded -->
 <script>
-const { createApp, ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } = Vue;
+/* ═══════════════════════════════════════════════
+   熟成市場工作室 — 核心邏輯
+   手工刻製 by Mature Market Studio © 2026
+═══════════════════════════════════════════════ */
 
-createApp({
-  setup() {
-    // ===========================
-    // STATE
-    // ===========================
-    const isLoading = ref(true);
-    const progress = ref(0);
-    const activeTab = ref(0);
-    const fetchError = ref(false);
-    const isLoadingData = ref(false);
-    const legalOpen = ref(false);
+/* ── 台灣蔬菜俗名映射字典 ── */
+const matureVegDict = {
+  '大頭菜':'結球甘藍','高麗菜':'結球甘藍',
+  '敏豆':'四季豆','菜豆':'四季豆',
+  '大陸妹':'油麥菜','大葉歐芹':'香菜',
+  '結球甘藍':'高麗菜','油麥菜':'大陸妹',
+  '四季豆':'菜豆'
+};
 
-    // District
-    const districts = ref([
-      '中西區','東區','南區','北區','安平區','安南區',
-      '永康區','歸仁區','新化區','左鎮區','玉井區','楠西區',
-      '南化區','仁德區','關廟區','龍崎區','官田區','麻豆區',
-      '佳里區','西港區','七股區','將軍區','學甲區','北門區',
-      '新營區','後壁區','白河區','東山區','六甲區','下營區',
-      '柳營區','鹽水區','善化區','大內區','山上區','新市區',
-      '安定區'
-    ]);
-    const currentDistrict = ref('東區');
+/* ── 基礎行情資料庫 ── */
+const matureMarketBase = [
+  { id:'kale',    name:'高麗菜', unit:'斤', base:40,  weight:600, icon:'🥬', seasonal:0, tip:'放冰箱蔬果層，可存 7-10 天，外葉剝掉保鮮。' },
+  { id:'spinach', name:'空心菜', unit:'把', base:30,  weight:150, icon:'🌿', seasonal:0, tip:'濕報紙包起直立放冷藏，2 天內食用風味最佳。' },
+  { id:'broccoli',name:'青花菜', unit:'顆', base:45,  weight:350, icon:'🥦', seasonal:0, tip:'切小朵放密封袋冷凍可保 1 個月，汆燙後更省時。' },
+  { id:'scallion', name:'蔥',   unit:'把', base:95,  weight:200, icon:'🧅', seasonal:0, tip:'切蔥花冷凍保存，隨取隨用，無需退冰。' },
+  { id:'cabbage',  name:'大白菜',unit:'顆', base:55,  weight:1200,icon:'🥬', seasonal:1, tip:'切開後以保鮮膜包覆斷面，冷藏可放 5 天。' },
+  { id:'garlic',   name:'大蒜', unit:'顆', base:20,  weight:50,  icon:'🧄', seasonal:0, tip:'陰涼通風處常溫保存，勿冷藏以免發芽。' },
+  { id:'chive',    name:'韭菜', unit:'把', base:25,  weight:150, icon:'🌱', seasonal:0, tip:'用濕紙巾包根部冷藏，1-2 天內食用最新鮮。' },
+  { id:'pepper',   name:'甜椒', unit:'個', base:35,  weight:150, icon:'🫑', seasonal:0, tip:'整顆放冷藏蔬果層可放 1 週，切開後 2 天內用完。' },
+];
 
-    // Day options
-    const dayOptions = ref([
-      { label:'今天', value:'today' },
-      { label:'一', value:'一' },
-      { label:'二', value:'二' },
-      { label:'三', value:'三' },
-      { label:'四', value:'四' },
-      { label:'五', value:'五' },
-      { label:'六', value:'六' },
-      { label:'日', value:'日' }
-    ]);
-    const currentDay = ref('today');
-    const timeFilter = ref('all');
+/* ── 台詞破冰庫 ── */
+const icebreakers = [
+  '「老闆娘，今天菜很新鮮喔，可以算便宜一點嗎？」👉 成功率：62%',
+  '「阿姨，這把蔥可以多抓一點嗎？我家裡有老人。」👉 成功率：71%（老人牌）',
+  '「這菜是今天早上進的嗎？」👉 用來確認新鮮度，順便建立對話。',
+  '「老闆，可以送我一根辣椒嗎？」👉 傳統市場隱藏禮儀，索取成功率 83%。',
+  '「這種蔥比較甜嗎？」👉 假裝懂行，對話自然展開。',
+  '「現在這樣算幾斤？」👉 讓阿姨主動拿秤，掌握議價主導權。',
+];
 
-    // Records
-    const rawRecords = ref([]);
-    const todayRecords = ref([]);
+/* ── 虛擬跑馬燈資料 ── */
+const tickerItems = [
+  '3 分鐘前，一位台北信義區的熟成大人拍到了一斤 $140 元的青花菜，目前暫居今日盤子榜首',
+  '剛才，台中東區的熟成大人以每斤 $28 元帶走高麗菜，今日神級壓制',
+  '15 分鐘前，新北板橋傳統市場爆發蔥價異動，每把突破 $110 元',
+  '今日台南永樂市場空心菜整把 $20，南部庇護感謝',
+  '一位彰化大媽用「我家老人」話術成功取得兩根辣椒，特此表揚',
+];
 
-    // Favourites & done tasks
-    const favourites = ref([]);
-    const doneTasks = ref([]);
+/* ── 狀態 ── */
+const matureState = {
+  locationFactor: 1.0,
+  timeFactor: 1.0,
+  mondayFactor: 1.0,
+  organicFactor: 1.0,
+  isOrganic: false,
+  currentVeg: matureMarketBase[0],
+  priceInput: 50,
+  qty: 1,
+  basketTotal: 0,
+  basketCount: 0,
+  compareCount: 0,
+  history: [],
+  isDark: false,
+  torchOn: false,
+  stream: null,
+  wakeLock: null,
+  ocrRunning: false,
+  detectedPrice: null,
+  currentResult: null,
+};
 
-    // Live GPS
-    const liveVehicles = ref([]);
-    const lastGPSUpdate = ref('--');
-    const showFixedStops = ref(true);
+/* ── DOM refs ── */
+const $ = id => document.getElementById(id);
+const toast = $('toast');
+const header = $('header');
+const cardFlipper = $('cardFlipper');
+const resultCard = $('resultCard');
+const skeleton = $('skeleton');
+const manualPanel = $('manualPanel');
+const videoEl = $('videoEl');
+const photoPreview = $('photoPreview');
+const hiddenCanvas = $('hiddenCanvas');
+const roiFrame = $('roiFrame');
+const dashedBox = $('dashedBox');
+const placeholderText = $('placeholderText');
+const camControls = $('camControls');
+const torchBtn = $('torchBtn');
+const priceSlider = $('priceSlider');
+const priceVal = $('priceVal');
+const calcBtn = $('calcBtn');
+const budgetAmount = $('budgetAmount');
+const basketCount = $('basketCount');
+const mainCamBtns = $('mainCamBtns');
 
-    // Hardware
-    const torchOn = ref(false);
-    const screenLightOn = ref(false);
-    const wakeLockOn = ref(false);
-    let torchStream = null;
-    let wakeLockSentinel = null;
+/* ── Utils ── */
+function showToast(msg, duration = 1800) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), duration);
+}
 
-    // Map
-    let mapObject = null;
-    let vehicleMarkers = {};
-    let fixedMarkers = [];
-    let userMarker = null;
-    let gpsInterval = null;
-    let fetchInterval = null;
-    let countdownInterval = null;
-    let visibilityPaused = false;
+function vibrate(...ms) {
+  if (navigator.vibrate) navigator.vibrate(ms.length > 1 ? ms : ms[0]);
+}
 
-    // Weather
-    const weatherData = reactive({
-      temp: 28, desc: '晴時多雲', rain: 15,
-      aqi: 62, aqiDesc: '良好', humidity: 72
-    });
-    const weatherAlert = ref(false);
-    const weatherAlertType = ref('');
-    const weatherAlertMsg = ref('');
+let scrollY = 0;
+window.addEventListener('scroll', () => {
+  scrollY = window.scrollY;
+  header.classList.toggle('scrolled', scrollY > 8);
+}, { passive: true });
 
-    // Loading text
-    const loadingText = computed(() => {
-      if (progress.value <= 40) return '正在安全連線台南資料庫... 速度比少糖的台南醬油還要快！ 🍯';
-      if (progress.value <= 80) return '40,000筆清運班表解編中... 甜度正在精準調整為微糖！ 🧪';
-      return '排序成功！時刻表已對齊... 拎好垃圾袋，準備出發！ 🚚';
-    });
-
-    // ===========================
-    // COMPUTED
-    // ===========================
-    const getTodayWeekday = () => {
-      const days = ['日','一','二','三','四','五','六'];
-      return days[new Date().getDay()];
-    };
-
-    const resolvedDay = computed(() => {
-      if (currentDay.value === 'today') return getTodayWeekday();
-      return currentDay.value;
-    });
-
-    const filteredRecords = computed(() => {
-      if (!rawRecords.value || rawRecords.value.length === 0) return [];
-      const day = resolvedDay.value;
-      return rawRecords.value.filter(item => {
-        // District filter - fuzzy match (strip 區)
-        const coreDistrict = currentDistrict.value.replace('區', '');
-        const itemArea = (item.AREA || '').trim();
-        if (!itemArea.includes(coreDistrict) && !itemArea.includes(currentDistrict.value)) return false;
-
-        // Day filter - multi-condition
-        const rawWordday = String(item.WORDDAY || '').replace(/\s/g, '');
-        const rawRecycleday = String(item.RECYCLEDAY || '').replace(/\s/g, '');
-        const dayMatches = rawWordday.includes(day) || rawWordday.includes('星期'+day) ||
-                           rawRecycleday.includes(day) || rawRecycleday.includes('星期'+day);
-        if (!dayMatches) return false;
-
-        // Time filter
-        if (timeFilter.value === 'all') return true;
-        const t = (item.TIME || '').trim();
-        if (!t) return true;
-        const parts = t.split(':');
-        if (parts.length < 2) return true;
-        const hour = parseInt(parts[0], 10);
-        if (timeFilter.value === 'morning') return hour < 12;
-        if (timeFilter.value === 'afternoon') return hour >= 12;
-        return true;
-      });
-    });
-
-    // ===========================
-    // FETCH DATA
-    // ===========================
-    async function fetchData(district) {
-      isLoadingData.value = true;
-      fetchError.value = false;
-
-      const resourceId = 'ce97b6a2-0b7a-4e0b-9d82-88c3e09c3de4';
-      const limit = 1000;
-      const bust = Date.now();
-      const apiUrl = `https://data.tainan.gov.tw/api/3/action/datastore_search?resource_id=${resourceId}&limit=${limit}&q=${encodeURIComponent(district)}`;
-      const primaryProxy = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}&_=${bust}`;
-      const fallbackProxy = `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(apiUrl)}`;
-
-      let records = [];
-      let success = false;
-
-      // Primary proxy
-      try {
-        const resp = await fetch(primaryProxy, { signal: AbortSignal.timeout(8000) });
-        if (resp.ok) {
-          const outer = await resp.json();
-          let parsed;
-          try { parsed = JSON.parse(outer.contents); } catch(e) { parsed = outer; }
-          if (parsed && parsed.result && parsed.result.records) {
-            records = parsed.result.records;
-            success = true;
-          }
-        }
-      } catch (e) {
-        console.warn('[WhereCar] Primary proxy failed:', e.message);
-      }
-
-      // Fallback proxy
-      if (!success) {
-        try {
-          const resp2 = await fetch(fallbackProxy, { signal: AbortSignal.timeout(8000) });
-          if (resp2.ok) {
-            const json2 = await resp2.json();
-            if (json2 && json2.result && json2.result.records) {
-              records = json2.result.records;
-              success = true;
-            }
-          }
-        } catch (e2) {
-          console.warn('[WhereCar] Fallback proxy failed:', e2.message);
-        }
-      }
-
-      if (!success || records.length === 0) {
-        // Try with no district filter for broader search
-        try {
-          const broadUrl = `https://data.tainan.gov.tw/api/3/action/datastore_search?resource_id=${resourceId}&limit=5000`;
-          const broadProxy = `https://api.allorigins.win/get?url=${encodeURIComponent(broadUrl)}&_=${Date.now()}`;
-          const resp3 = await fetch(broadProxy, { signal: AbortSignal.timeout(10000) });
-          if (resp3.ok) {
-            const outer3 = await resp3.json();
-            let parsed3;
-            try { parsed3 = JSON.parse(outer3.contents); } catch(e) { parsed3 = outer3; }
-            if (parsed3 && parsed3.result && parsed3.result.records) {
-              records = parsed3.result.records;
-              success = true;
-            }
-          }
-        } catch(e3) {
-          console.warn('[WhereCar] Broad fetch failed:', e3.message);
-        }
-      }
-
-      if (!success) {
-        fetchError.value = true;
-        isLoadingData.value = false;
-        // *** FINALLY ESCAPE HATCH: even on total failure, never freeze the loading screen ***
-        isLoading.value = false;
-        progress.value = 100;
-        return;
-      }
-
-      // ===== FIELD MAPPING - CORE DEFENCE =====
-      const mapped = records.map(item => {
-        item.AREA        = item.area        || item.AREA        || '';
-        item.TIME        = item.time        || item.TIME        || '';
-        item.POINTNAME   = item.pointname   || item.POINTNAME   || '';
-        item.WORDDAY     = item.wordday     || item.WORDDAY     || '';
-        item.RECYCLEDAY  = item.recycleday  || item.RECYCLEDAY  || '';
-        return item;
-      });
-
-      // Sort by time
-      mapped.sort((a, b) => {
-        const ta = (a.TIME || '').replace(':', '').padStart(4,'0');
-        const tb = (b.TIME || '').replace(':', '').padStart(4,'0');
-        return ta.localeCompare(tb);
-      });
-
-      rawRecords.value = mapped;
-
-      // Build today records for tasks panel
-      const tw = getTodayWeekday();
-      todayRecords.value = mapped.filter(item => {
-        const coreDistrict = currentDistrict.value.replace('區', '');
-        const itemArea = (item.AREA || '').trim();
-        if (!itemArea.includes(coreDistrict) && !itemArea.includes(currentDistrict.value)) return false;
-        const rw = String(item.WORDDAY || '').replace(/\s/g, '');
-        const rr = String(item.RECYCLEDAY || '').replace(/\s/g, '');
-        return rw.includes(tw) || rw.includes('星期'+tw) || rr.includes(tw) || rr.includes('星期'+tw);
-      }).slice(0, 20);
-
-      isLoadingData.value = false;
+/* ── Wake Lock ── */
+async function acquireWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      matureState.wakeLock = await navigator.wakeLock.request('screen');
     }
+  } catch (_) {}
+}
 
-    // ===========================
-    // FETCH LIVE GPS
-    // ===========================
-    async function fetchLiveGPS() {
-      if (visibilityPaused) return;
-      const resourceId = '72fa8c13-e71e-450b-9ee8-128a1c97a82c';
-      const apiUrl = `https://data.tainan.gov.tw/api/3/action/datastore_search?resource_id=${resourceId}&limit=2500`;
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}&_=${Date.now()}`;
-
-      try {
-        const resp = await fetch(proxyUrl, { signal: AbortSignal.timeout(10000) });
-        if (!resp.ok) return;
-        const outer = await resp.json();
-        let parsed;
-        try { parsed = JSON.parse(outer.contents); } catch(e) { parsed = outer; }
-        if (!parsed || !parsed.result || !parsed.result.records) return;
-
-        const now = new Date();
-        const currentHour = now.getHours();
-        const isAfternoon = currentHour >= 12;
-
-        const vehicles = parsed.result.records.filter(v => {
-          if (!v.lat && !v.lng && !v.latitude && !v.longitude) return false;
-          // Dead car filter: check last update time
-          const lastUpdate = v.gps_time || v.time || v.updated_at || '';
-          if (lastUpdate) {
-            try {
-              const lastTime = new Date(lastUpdate);
-              const diffMin = (now - lastTime) / 60000;
-              if (diffMin > 20) return false;
-            } catch(e) {}
-          }
-          // Time-of-day filter
-          const carTime = v.TIME || v.time || '';
-          if (carTime && isAfternoon) {
-            const parts = carTime.split(':');
-            if (parts.length >= 1) {
-              const h = parseInt(parts[0], 10);
-              if (!isNaN(h) && h < 12) return false;
-            }
-          }
-          return true;
-        });
-
-        liveVehicles.value = vehicles;
-        lastGPSUpdate.value = now.toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'});
-
-        // Update map markers
-        if (mapObject && activeTab.value === 1) {
-          updateVehicleMarkers(vehicles);
-        }
-      } catch(e) {
-        console.warn('[WhereCar] GPS fetch failed:', e.message);
-      }
-    }
-
-    function updateVehicleMarkers(vehicles) {
-      if (!mapObject) return;
-      const seenPlates = new Set();
-
-      vehicles.forEach(v => {
-        const lat = parseFloat(v.lat || v.latitude || 0);
-        const lng = parseFloat(v.lng || v.longitude || 0);
-        if (!lat || !lng || lat < 22 || lat > 24 || lng < 119 || lng > 121) return;
-
-        const plate = v.car_id || v.plate || v.id || String(lat)+String(lng);
-        seenPlates.add(plate);
-
-        // Check for duplicate coords offset
-        let finalLat = lat, finalLng = lng;
-        Object.values(vehicleMarkers).forEach(existing => {
-          const existLatLng = existing.getLatLng();
-          if (Math.abs(existLatLng.lat - lat) < 0.00003 && Math.abs(existLatLng.lng - lng) < 0.00003) {
-            finalLat += 0.00005;
-            finalLng += 0.00005;
-          }
-        });
-
-        if (vehicleMarkers[plate]) {
-          // Reuse - smooth move
-          vehicleMarkers[plate].setLatLng([finalLat, finalLng]);
-        } else {
-          // Create new marker
-          const svgIcon = L.divIcon({
-            html: `<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="16" cy="16" r="14" fill="#1a1a1a" stroke="#FFB800" stroke-width="1.5" opacity="0.92"/>
-              <text x="16" y="21" text-anchor="middle" fill="#FFB800" font-size="16">🚛</text>
-            </svg>`,
-            iconSize: [32,32], iconAnchor: [16,16], className: ''
-          });
-          const marker = L.marker([finalLat, finalLng], {icon: svgIcon}).addTo(mapObject);
-          const popupContent = `
-            <div style="min-width:160px;padding:4px;">
-              <p style="font-size:13px;font-weight:700;color:#fff;margin:0 0 4px;">🚛 即時垃圾車</p>
-              <p style="font-size:11px;color:#FFB800;margin:0 0 2px;">車牌：${plate}</p>
-              <p style="font-size:11px;color:#aaa;margin:0;">最後回傳：${v.gps_time || v.time || '未知'}</p>
-            </div>`;
-          marker.bindPopup(popupContent, {className:'glass-popup', maxWidth:200});
-          vehicleMarkers[plate] = marker;
-        }
-      });
-
-      // Remove stale markers
-      Object.keys(vehicleMarkers).forEach(plate => {
-        if (!seenPlates.has(plate)) {
-          mapObject.removeLayer(vehicleMarkers[plate]);
-          delete vehicleMarkers[plate];
-        }
-      });
-    }
-
-    // ===========================
-    // MAP INIT
-    // ===========================
-    function initMap() {
-      // *** CRASH-PROOF GUARD: never throw, never double-init ***
-      if (!document.getElementById('map') || window.mapObject) return;
-      try {
-        const map = L.map('map', {
-          center: [23.0, 120.2], zoom: 12,
-          zoomControl: false, attributionControl: false
-        });
-        window.mapObject = map;
-        mapObject = map;
-
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-          subdomains: 'abcd', maxZoom: 19,
-          attribution: '&copy; OpenStreetMap &copy; CARTO'
-        }).addTo(map);
-
-        // Attribution - minimal
-        L.control.attribution({position:'bottomleft'}).addTo(map);
-
-        // Add fixed stop markers from records
-        if (rawRecords.value.length > 0 && showFixedStops.value) {
-          renderFixedStops();
-        }
-
-        // Fetch GPS
-        fetchLiveGPS();
-        gpsInterval = setInterval(() => {
-          if (!visibilityPaused) fetchLiveGPS();
-        }, 10000);
-
-        // Fit bounds after markers loaded
-        setTimeout(() => fitMapBounds(), 1500);
-
-      } catch(e) {
-        // Map error is non-fatal — log and move on, never freeze the page
-        console.error('[WhereCar] Map init error (non-fatal):', e);
-      }
-    }
-
-    function renderFixedStops() {
-      if (!mapObject) return;
-      // Clear existing
-      fixedMarkers.forEach(m => mapObject.removeLayer(m));
-      fixedMarkers = [];
-      if (!showFixedStops.value) return;
-
-      const filtered = filteredRecords.value.slice(0, 300);
-      filtered.forEach((rec, idx) => {
-        // Generate approximate coordinates from district name for demo
-        // In production these would come from geocoding or the API
-        const baseLat = 23.0 + (Math.sin(idx * 0.7) * 0.08);
-        const baseLng = 120.2 + (Math.cos(idx * 0.5) * 0.08);
-
-        const icon = L.divIcon({
-          html: `<div style="width:26px;height:26px;border-radius:50%;background:rgba(19,21,23,0.9);border:1.5px solid #2a9fff;display:flex;align-items:center;justify-content:center;font-size:10px;color:#2a9fff;font-weight:700;">${idx+1}</div>`,
-          iconSize:[26,26], iconAnchor:[13,13], className:''
-        });
-        const m = L.marker([baseLat, baseLng], {icon}).addTo(mapObject);
-        const popupHtml = `
-          <div style="min-width:160px;padding:4px;">
-            <p style="font-size:13px;font-weight:700;color:#fff;margin:0 0 4px;">📍 ${rec.POINTNAME || '清運站點'}</p>
-            <p style="font-size:11px;color:#FFB800;margin:0 0 2px;">時間：${rec.TIME || '--'}</p>
-            <p style="font-size:11px;color:#aaa;margin:0;">${rec.AREA || currentDistrict.value}</p>
-          </div>`;
-        m.bindPopup(popupHtml, {className:'glass-popup', maxWidth:200});
-        fixedMarkers.push(m);
-      });
-    }
-
-    function toggleFixedStops() {
-      showFixedStops.value = !showFixedStops.value;
-      if (!mapObject) return;
-      if (showFixedStops.value) {
-        renderFixedStops();
-      } else {
-        fixedMarkers.forEach(m => mapObject.removeLayer(m));
-        fixedMarkers = [];
-      }
-    }
-
-    function fitMapBounds() {
-      if (!mapObject) return;
-      const allMarkers = [...Object.values(vehicleMarkers), ...fixedMarkers];
-      if (allMarkers.length === 0) {
-        // Default Tainan center
-        mapObject.setView([23.0, 120.2], 12);
-        return;
-      }
-      try {
-        const group = L.featureGroup(allMarkers);
-        const bounds = group.getBounds();
-        if (bounds.isValid()) {
-          mapObject.fitBounds(bounds, {padding:[40,40], maxZoom:16, animate:true});
-        }
-      } catch(e) {}
-    }
-
-    function switchToMap() {
-      activeTab.value = 1;
-      if (!mapObject) {
-        setTimeout(() => initMap(), 300);
-      } else {
-        setTimeout(() => { if(mapObject) mapObject.invalidateSize(); }, 100);
-      }
-      // Wake lock on map
-      if (!wakeLockOn.value) enableWakeLock();
-    }
-
-    function locateMe() {
-      if (!navigator.geolocation) {
-        fitMapBounds();
-        return;
-      }
-      try {
-        navigator.geolocation.getCurrentPosition(pos => {
-          if (!mapObject) return;
-          const { latitude: lat, longitude: lng } = pos.coords;
-          if (userMarker) {
-            userMarker.setLatLng([lat, lng]);
-          } else {
-            const pulseIcon = L.divIcon({
-              html: `<div style="position:relative;width:20px;height:20px;">
-                <div style="position:absolute;inset:0;border-radius:50%;background:#007AFF;opacity:0.3;animation:pulse 2s ease-in-out infinite;transform:scale(1.5);"></div>
-                <div style="position:absolute;inset:3px;border-radius:50%;background:#007AFF;border:2px solid #fff;box-shadow:0 0 8px #007AFF99;"></div>
-              </div>`,
-              iconSize:[20,20], iconAnchor:[10,10], className:''
-            });
-            userMarker = L.marker([lat, lng], {icon: pulseIcon}).addTo(mapObject);
-          }
-          mapObject.setView([lat, lng], 15, {animate:true});
-        }, err => {
-          console.warn('[WhereCar] Geolocation error:', err.message);
-          fitMapBounds();
-        }, {enableHighAccuracy:true, timeout:8000, maximumAge:30000});
-      } catch(e) {
-        fitMapBounds();
-      }
-    }
-
-    // ===========================
-    // COUNTDOWN
-    // ===========================
-    function getCountdown(timeStr) {
-      if (!timeStr) return null;
-      const parts = timeStr.split(':');
-      if (parts.length < 2) return null;
-      const now = new Date();
-      const target = new Date();
-      target.setHours(parseInt(parts[0],10), parseInt(parts[1],10), 0, 0);
-      const diff = target - now;
-      if (diff < 0 || diff > 3600000) return null;
-      const mins = Math.floor(diff / 60000);
-      const secs = Math.floor((diff % 60000) / 1000);
-      if (mins === 0 && secs < 60) return `約 ${secs} 秒後到達！`;
-      return `約 ${mins} 分 ${secs} 秒後到達`;
-    }
-
-    // ===========================
-    // FAVOURITES & DONE TASKS
-    // ===========================
-    function isFavourite(rec) {
-      return favourites.value.some(f => f.POINTNAME === rec.POINTNAME && f.TIME === rec.TIME);
-    }
-    function toggleFavourite(rec) {
-      const idx = favourites.value.findIndex(f => f.POINTNAME === rec.POINTNAME && f.TIME === rec.TIME);
-      if (idx >= 0) {
-        favourites.value.splice(idx, 1);
-      } else {
-        favourites.value.push({...rec});
-      }
-      saveFavourites();
-    }
-    function toggleDone(rec) {
-      const key = rec.POINTNAME + rec.TIME;
-      const idx = doneTasks.value.indexOf(key);
-      if (idx >= 0) {
-        doneTasks.value.splice(idx, 1);
-      } else {
-        doneTasks.value.push(key);
-      }
-      saveDoneTasks();
-    }
-    function saveFavourites() {
-      try { localStorage.setItem('wherecar_favs', JSON.stringify(favourites.value)); } catch(e){}
-    }
-    function loadFavourites() {
-      try {
-        const saved = localStorage.getItem('wherecar_favs');
-        if (saved) favourites.value = JSON.parse(saved);
-      } catch(e) {}
-    }
-    function saveDoneTasks() {
-      try { localStorage.setItem('wherecar_done', JSON.stringify(doneTasks.value)); } catch(e){}
-    }
-    function loadDoneTasks() {
-      try {
-        const saved = localStorage.getItem('wherecar_done');
-        if (saved) doneTasks.value = JSON.parse(saved);
-      } catch(e) {}
-    }
-
-    // ===========================
-    // CLEAR MEMORY
-    // ===========================
-    function clearMemory() {
-      doneTasks.value = [];
-      try {
-        localStorage.removeItem('wherecar_done');
-        localStorage.removeItem('wherecar_favs');
-      } catch(e) {}
-      favourites.value = [];
-      showToast('重設成功：已清空今日倒垃圾任務記憶');
-    }
-
-    // ===========================
-    // TOAST
-    // ===========================
-    function showToast(msg) {
-      const el = document.getElementById('toast');
-      if (!el) return;
-      el.textContent = msg;
-      el.classList.add('show');
-      setTimeout(() => el.classList.remove('show'), 1800);
-    }
-
-    // ===========================
-    // TORCH
-    // ===========================
-    async function toggleTorch() {
-      if (torchOn.value) {
-        // Turn off
-        if (torchStream) {
-          const tracks = torchStream.getTracks();
-          tracks.forEach(t => { try { t.applyConstraints({advanced:[{torch:false}]}); t.stop(); } catch(e){} });
-          torchStream = null;
-        }
-        torchOn.value = false;
-        return;
-      }
-      // Turn on
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment', advanced: [{ torch: true }] }
-        });
-        torchStream = stream;
-        const track = stream.getVideoTracks()[0];
-        await track.applyConstraints({ advanced: [{ torch: true }] });
-        torchOn.value = true;
-      } catch(e) {
-        showToast('無法開啟手電筒，請確認相機權限');
-      }
-    }
-
-    // ===========================
-    // SCREEN LIGHT
-    // ===========================
-    function toggleScreenLight() {
-      screenLightOn.value = !screenLightOn.value;
-    }
-
-    // ===========================
-    // WAKE LOCK
-    // ===========================
-    async function enableWakeLock() {
-      if (!navigator.wakeLock) return;
-      try {
-        wakeLockSentinel = await navigator.wakeLock.request('screen');
-        wakeLockOn.value = true;
-        wakeLockSentinel.addEventListener('release', () => { wakeLockOn.value = false; });
-      } catch(e) {}
-    }
-    async function toggleWakeLock() {
-      if (wakeLockOn.value && wakeLockSentinel) {
-        await wakeLockSentinel.release();
-        wakeLockOn.value = false;
-        wakeLockSentinel = null;
-      } else {
-        await enableWakeLock();
-      }
-    }
-
-    // ===========================
-    // DISTRICT CHANGE
-    // ===========================
-    function onDistrictChange() {
-      fetchData(currentDistrict.value);
-      if (mapObject && showFixedStops.value) {
-        setTimeout(() => renderFixedStops(), 800);
-      }
-    }
-
-    // ===========================
-    // WEATHER (mock w/ hourly update hook)
-    // ===========================
-    function checkWeatherAlerts() {
-      weatherAlert.value = false;
-      if (weatherData.rain > 30) {
-        weatherAlert.value = true;
-        weatherAlertType.value = 'rain';
-        weatherAlertMsg.value = '目前台南正處於降雨警戒，出門倒垃圾請記得攜帶雨具！';
-      } else if (weatherData.aqi > 100) {
-        weatherAlert.value = true;
-        weatherAlertType.value = 'aqi';
-        weatherAlertMsg.value = '目前台南空氣品質不佳，建議配戴口罩後再出門倒垃圾。';
-      }
-    }
-
-    // ===========================
-    // VISIBILITY STATE (power save)
-    // ===========================
-    function handleVisibilityChange() {
-      if (document.hidden) {
-        visibilityPaused = true;
-        if (countdownInterval) clearInterval(countdownInterval);
-      } else {
-        visibilityPaused = false;
-        fetchData(currentDistrict.value);
-        fetchLiveGPS();
-        countdownInterval = setInterval(() => {}, 1000);
-      }
-    }
-
-    // ===========================
-    // LOADING SEQUENCE
-    // ===========================
-    async function runLoadingSequence() {
-      try {
-        // Animate progress to 40
-        await animateTo(40, 400);
-        // Fetch data — internal errors handled inside fetchData, but we wrap outer too
-        await fetchData(currentDistrict.value);
-        // Animate progress to 80
-        await animateTo(80, 300);
-        // Animate progress to 100
-        await animateTo(100, 200);
-      } catch(outerErr) {
-        // Any unforeseen error in the loading pipeline — log, never freeze
-        console.error('[WhereCar] Loading sequence error (non-fatal):', outerErr);
-      } finally {
-        // *** ULTIMATE ESCAPE HATCH ***
-        // Runs unconditionally: success, fetch failure, or ANY thrown error.
-        // Loading screen MUST vanish. Full stop.
-        progress.value = 100;
-        isLoading.value = false;
-        // Init map strictly AFTER loading overlay has faded out (300ms delay)
-        setTimeout(() => { initMap(); }, 300);
-      }
-    }
-
-    function animateTo(target, duration) {
-      return new Promise(resolve => {
-        const start = progress.value;
-        const range = target - start;
-        const startTime = performance.now();
-        function step(now) {
-          const elapsed = now - startTime;
-          const frac = Math.min(elapsed / duration, 1);
-          progress.value = Math.round(start + range * frac);
-          if (frac < 1) requestAnimationFrame(step);
-          else resolve();
-        }
-        requestAnimationFrame(step);
-      });
-    }
-
-    // ===========================
-    // PAGE HIDE - release torch
-    // ===========================
-    function handlePageHide() {
-      if (torchStream) {
-        const tracks = torchStream.getTracks();
-        tracks.forEach(t => { try { t.stop(); } catch(e){} });
-        torchStream = null;
-        torchOn.value = false;
-      }
-    }
-
-    // ===========================
-    // MOUNT
-    // ===========================
-    onMounted(async () => {
-      // Load persisted data
-      loadFavourites();
-      loadDoneTasks();
-      checkWeatherAlerts();
-
-      // Visibility API
-      document.addEventListener('visibilitychange', handleVisibilityChange);
-      window.addEventListener('pagehide', handlePageHide);
-
-      // Countdown ticker
-      countdownInterval = setInterval(() => {
-        // Vue reactivity tick for countdown display
-        if (!visibilityPaused && rawRecords.value.length > 0) {
-          // Force computed re-eval by nudging a reactive dep
-          const dummy = Date.now();
-        }
-      }, 1000);
-
-      // Run loading
-      await runLoadingSequence();
-    });
-
-    onUnmounted(() => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('pagehide', handlePageHide);
-      if (gpsInterval) clearInterval(gpsInterval);
-      if (countdownInterval) clearInterval(countdownInterval);
-      handlePageHide();
-    });
-
-    return {
-      isLoading, progress, loadingText,
-      activeTab, fetchError, isLoadingData, legalOpen,
-      districts, currentDistrict, dayOptions, currentDay, timeFilter,
-      rawRecords, filteredRecords, todayRecords,
-      favourites, doneTasks, isFavourite, toggleFavourite, toggleDone,
-      liveVehicles, lastGPSUpdate, showFixedStops,
-      torchOn, screenLightOn, wakeLockOn,
-      weatherData, weatherAlert, weatherAlertType, weatherAlertMsg,
-      fetchData, fetchLiveGPS, onDistrictChange,
-      getCountdown, clearMemory, showToast,
-      toggleTorch, toggleScreenLight, toggleWakeLock,
-      fitMapBounds, toggleFixedStops, switchToMap, locateMe
-    };
+/* ── Time & Location factors ── */
+function applyTimeFactor() {
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes();
+  const mins = h * 60 + m;
+  // Monday
+  if (now.getDay() === 1) {
+    matureState.mondayFactor = 1.05;
+    $('alertMonday').classList.add('visible');
   }
-}).mount('#app');
+  // Evening / Noon discount
+  if (mins >= 690 || mins >= 1110) { // 11:30 or 18:30
+    matureState.timeFactor = 0.85;
+    $('alertEvening').classList.add('visible');
+  } else if (mins >= 660) {
+    matureState.timeFactor = 0.88;
+    $('alertNoon').classList.add('visible');
+  }
+  // Near closing
+  if (h === 11 && m >= 45 && m < 60) {
+    $('alertEvening').textContent = '⏳ 阿姨準備收攤，進入博弈殺價的黃金 15 分鐘。';
+    $('alertEvening').classList.add('visible');
+  }
+  // Season (simple)
+  const month = now.getMonth() + 1;
+  // Summer push daikon up, winter lower chrysanthemum
+  if (month >= 6 && month <= 8) matureMarketBase.find(v=>v.id==='cabbage') && (matureMarketBase.find(v=>v.id==='cabbage').base = 70);
+
+  // Time chip
+  const pad = n => String(n).padStart(2,'0');
+  $('timeChipEl').textContent = `${pad(h)}:${pad(m)}`;
+}
+
+/* ── GPS ── */
+function locateMe() {
+  if (!navigator.geolocation) { setDefaultRegion(); return; }
+  const gpsTimeout = setTimeout(setDefaultRegion, 2000);
+  navigator.geolocation.getCurrentPosition(pos => {
+    clearTimeout(gpsTimeout);
+    const { latitude: lat, longitude: lng } = pos.coords;
+    applyGeoFactor(lat, lng);
+  }, () => { clearTimeout(gpsTimeout); setDefaultRegion(); }, { timeout: 2000, maximumAge: 60000 });
+}
+
+function setDefaultRegion() {
+  matureState.locationFactor = 1.0;
+  $('alertLocation').classList.add('visible');
+  $('statusRegion').textContent = '全台通用';
+}
+
+function applyGeoFactor(lat, lng) {
+  // Rough Taiwan region detection
+  let region = '全台通用', factor = 1.0;
+  // Taipei core
+  if (lat > 25.02 && lat < 25.08 && lng > 121.52 && lng < 121.57) { region = '信義╱大安'; factor = 1.13; }
+  else if (lat > 24.95 && lat < 25.15 && lng > 121.4 && lng < 121.65) { region = '大台北'; factor = 1.05; }
+  // Special: Hope Plaza
+  else if (lat > 25.045 && lat < 25.055 && lng > 121.51 && lng < 121.52) { region = '農民市集'; factor = 1.4; }
+  // Central
+  else if (lat > 23.9 && lat < 24.8) { region = '台中地區'; factor = 0.9; }
+  // South
+  else if (lat < 23.9) { region = '南部產地'; factor = 0.82; }
+  matureState.locationFactor = factor;
+  $('statusRegion').textContent = region;
+  $('alertLocation').style.display = 'none';
+}
+
+/* ── Effective reference price ── */
+function getRefPrice(vegId) {
+  const veg = matureMarketBase.find(v => v.id === vegId) || matureMarketBase[0];
+  return Math.round(
+    veg.base
+    * matureState.locationFactor
+    * matureState.timeFactor
+    * matureState.mondayFactor
+    * matureState.organicFactor
+  );
+}
+
+/* ── Market Grid Render ── */
+function renderMarketGrid() {
+  const grid = $('marketGrid');
+  grid.innerHTML = '';
+  const pinned = JSON.parse(localStorage.getItem('maturePinned') || '[]');
+
+  const items = [...matureMarketBase].sort((a,b) => {
+    const ap = pinned.includes(a.id) ? 0 : 1;
+    const bp = pinned.includes(b.id) ? 0 : 1;
+    return ap - bp;
+  });
+
+  items.forEach((veg, i) => {
+    const ref = getRefPrice(veg.id);
+    const isPinned = pinned.includes(veg.id);
+    const isWide = i === 0 || i === 5;
+    const card = document.createElement('div');
+    card.className = `market-card${isWide ? ' card-wide' : ''}${isPinned ? ' pinned' : ''}`;
+    card.dataset.vegId = veg.id;
+    card.innerHTML = `
+      <button class="pinBtn${isPinned?' active':''}" data-id="${veg.id}" aria-label="置頂">★</button>
+      <div class="vegName">${veg.icon} ${veg.name}</div>
+      <div class="vegPrice" id="vprice_${veg.id}">$${ref}</div>
+      <div class="vegUnit">參考每${veg.unit} · 加權後</div>
+    `;
+    card.addEventListener('click', (e) => {
+      if (e.target.classList.contains('pinBtn')) {
+        togglePin(veg.id);
+        return;
+      }
+      selectVegCard(veg);
+    });
+    grid.appendChild(card);
+  });
+}
+
+function togglePin(id) {
+  vibrate(10);
+  let pinned = JSON.parse(localStorage.getItem('maturePinned') || '[]');
+  if (pinned.includes(id)) pinned = pinned.filter(p => p !== id);
+  else pinned.push(id);
+  localStorage.setItem('maturePinned', JSON.stringify(pinned));
+  renderMarketGrid();
+}
+
+function selectVegCard(veg) {
+  vibrate(10);
+  matureState.currentVeg = veg;
+  // Highlight in selector
+  document.querySelectorAll('.veg-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.id === veg.id);
+  });
+  manualPanel.classList.add('visible');
+  document.getElementById('manualPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  showStorageTip(veg);
+}
+
+/* ── Veg Selector ── */
+function renderVegSelector() {
+  const sel = $('vegSelector');
+  sel.innerHTML = '';
+  matureMarketBase.forEach(veg => {
+    const chip = document.createElement('button');
+    chip.className = `veg-chip${veg.id === matureState.currentVeg.id ? ' active' : ''}`;
+    chip.dataset.id = veg.id;
+    chip.textContent = `${veg.icon} ${veg.name}`;
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.veg-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      matureState.currentVeg = veg;
+      showStorageTip(veg);
+    });
+    sel.appendChild(chip);
+  });
+}
+
+/* ── Storage Tip ── */
+function showStorageTip(veg) {
+  const tip = $('storageTip');
+  if (!veg.tip) return;
+  tip.textContent = `📦 保存小知識：${veg.tip}`;
+  tip.classList.add('visible');
+}
+
+/* ── Slider ── */
+let sliderThrottle;
+priceSlider.addEventListener('input', () => {
+  clearTimeout(sliderThrottle);
+  sliderThrottle = setTimeout(() => {
+    matureState.priceInput = parseInt(priceSlider.value);
+    priceVal.textContent = `$${matureState.priceInput}`;
+    priceVal.classList.add('pulse');
+    setTimeout(() => priceVal.classList.remove('pulse'), 200);
+  }, 16);
+});
+
+/* ── Qty buttons ── */
+document.querySelectorAll('.qty-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.qty-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    matureState.qty = parseInt(btn.dataset.qty);
+    vibrate(8);
+  });
+});
+
+/* ── Organic toggle ── */
+$('organicToggle').addEventListener('click', function() {
+  this.classList.toggle('on');
+  matureState.isOrganic = this.classList.contains('on');
+  matureState.organicFactor = matureState.isOrganic ? 1.15 : 1.0;
+  vibrate(10);
+  renderMarketGrid();
+});
+
+/* ── Calc ── */
+calcBtn.addEventListener('click', () => {
+  vibrate(15);
+  const rawPrice = matureState.priceInput;
+  const unitPrice = rawPrice / matureState.qty;
+  const veg = matureState.currentVeg;
+  const ref = getRefPrice(veg.id);
+  const netWeight = veg.weight - 5; // 5g bag deduction
+  const inputPerGram = unitPrice / netWeight;
+  const refPerGram = ref / netWeight;
+
+  let verdict, label, copyText, level;
+  const ratio = unitPrice / ref;
+
+  if (ratio <= 1.05) {
+    verdict = 'green'; label = '優雅買進'; level = '綠燈';
+    copyText = `今日博弈大勝。你在市場阿姨銳利的眼神下帶走了最划算的蔬菜，社會化程度高達 99%。`;
+    vibrate(10);
+    // Bonus: suggest garlic
+    setTimeout(() => {
+      if (Math.random() > 0.5) {
+        showToast('這價格很佛，結帳時可以問：「老闆娘可以送我一根辣椒嗎？」', 3000);
+      }
+    }, 1200);
+  } else if (ratio <= 1.25) {
+    verdict = 'yellow'; label = '酌情斟酌'; level = '黃燈';
+    copyText = `今日行情介於佛心與韭菜之間，取決於你的情緒穩定程度與當場阿姨的臉色。`;
+    vibrate(15, 80, 15);
+  } else {
+    verdict = 'red'; label = '假裝接電話'; level = '紅燈';
+    copyText = `沒關係，這家${veg.name}可能聽過莫札特，多花的錢就當作是繳給傳統市場社會大學的學費。`;
+    vibrate(25, 60, 25);
+  }
+
+  const diffPct = Math.round((unitPrice - ref) / ref * 100);
+  const diffStr = diffPct >= 0 ? `+${diffPct}%` : `${diffPct}%`;
+
+  matureState.currentResult = {
+    verdict, label, unitPrice, ref, diffStr, copyText, veg, inputPerGram, refPerGram
+  };
+
+  showResult(matureState.currentResult);
+  matureState.compareCount++;
+  saveHistory(verdict);
+  drawTrendChart();
+  updateLevel();
+});
+
+/* ── Show Result ── */
+function showResult(r) {
+  const { verdict, label, unitPrice, ref, diffStr, copyText, veg } = r;
+
+  $('resultVerdict').textContent = verdict === 'green' ? '✦ 優雅買進' : verdict === 'yellow' ? '◈ 酌情斟酌' : '◉ 假裝接電話';
+  $('resultVerdict').className = `result-verdict ${verdict}`;
+  $('resultMain').textContent = label;
+
+  // Odometer effect
+  animateNumber('resultInputPrice', unitPrice, '$');
+  animateNumber('resultRefPrice', ref, '$');
+  $('resultDiff').textContent = `差距 ${diffStr}`;
+
+  $('resultCopyText').textContent = copyText;
+
+  resultCard.className = `card-face card-back`;
+  void resultCard.offsetWidth;
+  resultCard.classList.add(verdict);
+
+  // Ripple
+  const ripple = $('resultRipple');
+  ripple.style.cssText = 'width:0;height:0;opacity:0;';
+  void ripple.offsetWidth;
+  ripple.style.cssText = 'width:600px;height:600px;opacity:0;transition:all 1.2s ease-out;';
+
+  cardFlipper.classList.add('flipped');
+  skeleton.classList.remove('visible');
+}
+
+/* ── Odometer animation ── */
+function animateNumber(elId, val, prefix='') {
+  const el = $(elId);
+  el.style.animation = 'none';
+  void el.offsetWidth;
+  el.classList.add('odometer-in');
+  el.textContent = `${prefix}${val}`;
+  setTimeout(() => el.classList.remove('odometer-in'), 500);
+}
+
+/* ── Retake ── */
+$('btnRetake').addEventListener('click', () => {
+  vibrate(10);
+  cardFlipper.classList.remove('flipped');
+  if (matureState.stream) stopCam();
+  photoPreview.style.display = 'none';
+  videoEl.style.display = 'none';
+  dashedBox.style.display = 'flex';
+  placeholderText.style.display = 'block';
+  roiFrame.style.display = 'none';
+  camControls.style.display = 'none';
+  manualPanel.classList.add('visible');
+});
+
+/* ── Add to Basket ── */
+$('btnAddBasket').addEventListener('click', () => {
+  if (!matureState.currentResult) return;
+  vibrate(10);
+  matureState.basketTotal += matureState.currentResult.unitPrice;
+  matureState.basketCount++;
+  budgetAmount.textContent = matureState.basketTotal;
+  basketCount.textContent = `${matureState.basketCount} 樣入籃`;
+
+  animateNumber('budgetAmount', matureState.basketTotal, '');
+
+  if (matureState.basketCount >= 5) {
+    $('levelChip').textContent = '優雅低碳熟成大人 🌿';
+    showToast('解鎖隱藏稱號：優雅低碳熟成大人', 3000);
+  }
+  showToast('加入菜籃，繼續比下一攤');
+});
+
+/* ── Copy to Threads ── */
+$('btnCopyThreads').addEventListener('click', async () => {
+  vibrate(15);
+  if (!matureState.currentResult) return;
+  const r = matureState.currentResult;
+
+  const locChip = $('statusRegion').textContent;
+  let geoLine = '';
+  if (matureState.locationFactor > 1.1) {
+    geoLine = `今日在 ${locChip} 傳統市場渡劫失敗，被當特級韭菜割`;
+  } else if (matureState.locationFactor < 0.9) {
+    geoLine = `感謝南部產地庇護，不懂雙北人在市場每天經歷什麼`;
+  } else {
+    geoLine = `今日熟成市場比價報告`;
+  }
+
+  const text = `${geoLine}\n\n${r.veg.icon} ${r.veg.name}：攤位 $${r.unitPrice} ／ 合理參考 $${r.ref}（${r.diffStr}）\n\n${r.copyText}\n\n#熟成市場 #傳統市場防坑器`;
+
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('文案已複製，若未自動跳轉，請手動打開 Threads 貼上', 3200);
+  } catch {
+    showToast('請手動複製後前往 Threads 貼上', 2800);
+  }
+
+  setTimeout(() => {
+    try {
+      window.open(`https://www.threads.net/intent/post?text=${encodeURIComponent(text)}`, '_blank');
+    } catch {}
+  }, 400);
+});
+
+/* ── Camera ── */
+$('btnOpenCam').addEventListener('click', openCamera);
+$('btnUpload').addEventListener('click', () => $('fileInput').click());
+$('fileInput').addEventListener('change', handleFileSelect);
+$('btnManual').addEventListener('click', () => {
+  manualPanel.classList.toggle('visible');
+  vibrate(8);
+});
+
+async function openCamera() {
+  vibrate(10);
+  acquireWakeLock();
+  try {
+    const constraints = {
+      video: {
+        facingMode: { exact: 'environment' },
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+        advanced: [{ focusMode: 'continuous' }]
+      }
+    };
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+    } catch {
+      // Fallback to any cam without exact constraint
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    }
+    matureState.stream = stream;
+    videoEl.srcObject = stream;
+    videoEl.style.display = 'block';
+    dashedBox.classList.add('active');
+    dashedBox.style.display = 'none';
+    placeholderText.style.display = 'none';
+    roiFrame.style.display = 'block';
+    camControls.style.display = 'flex';
+    torchBtn.classList.add('visible');
+
+    // Light check
+    checkAmbientLight();
+
+  } catch (err) {
+    // Permission denied
+    if (err.name === 'NotAllowedError') {
+      showToast('鏡頭存取被拒絕，切換為手動輸入模式', 2500);
+      manualPanel.classList.add('visible');
+    } else {
+      showToast('鏡頭暫時無法使用，試試上傳照片', 2500);
+    }
+  }
+}
+
+function stopCam() {
+  if (matureState.stream) {
+    matureState.stream.getTracks().forEach(t => t.stop());
+    matureState.stream = null;
+  }
+  videoEl.style.display = 'none';
+  videoEl.srcObject = null;
+  roiFrame.style.display = 'none';
+  camControls.style.display = 'none';
+  torchBtn.classList.remove('visible');
+  dashedBox.style.display = 'flex';
+  dashedBox.classList.remove('active');
+}
+
+$('cancelCamBtn').addEventListener('click', () => { stopCam(); vibrate(8); });
+
+$('snapBtn').addEventListener('click', () => {
+  vibrate(20);
+  captureFrame();
+});
+
+// Volume key shutter
+document.addEventListener('keydown', e => {
+  if ((e.key === 'VolumeUp' || e.key === 'VolumeDown') && matureState.stream) {
+    e.preventDefault();
+    captureFrame();
+  }
+});
+
+function captureFrame() {
+  if (!matureState.stream) return;
+  const video = videoEl;
+  const ctx = hiddenCanvas.getContext('2d');
+
+  // ROI crop (center 70%×55%)
+  const vw = video.videoWidth, vh = video.videoHeight;
+  const roiX = Math.floor(vw * 0.15);
+  const roiY = Math.floor(vh * 0.225);
+  const roiW = Math.floor(vw * 0.70);
+  const roiH = Math.floor(vh * 0.55);
+
+  // Compress to max 1200px
+  const scale = Math.min(1, 1200 / roiW);
+  hiddenCanvas.width  = Math.floor(roiW * scale);
+  hiddenCanvas.height = Math.floor(roiH * scale);
+
+  ctx.drawImage(video, roiX, roiY, roiW, roiH, 0, 0, hiddenCanvas.width, hiddenCanvas.height);
+
+  // Binarise
+  binarise(ctx, hiddenCanvas.width, hiddenCanvas.height);
+
+  const dataUrl = hiddenCanvas.toDataURL('image/jpeg', 0.92);
+  showPhotoPreview(dataUrl);
+  stopCam();
+  runOCR(dataUrl);
+}
+
+function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  vibrate(10);
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      // Compress
+      const MAX = 1200;
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+      hiddenCanvas.width  = Math.floor(img.width  * scale);
+      hiddenCanvas.height = Math.floor(img.height * scale);
+      const ctx = hiddenCanvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, hiddenCanvas.width, hiddenCanvas.height);
+      binarise(ctx, hiddenCanvas.width, hiddenCanvas.height);
+      const dataUrl = hiddenCanvas.toDataURL('image/jpeg', 0.9);
+      showPhotoPreview(dataUrl);
+      runOCR(dataUrl);
+      // Free memory
+      URL.revokeObjectURL(ev.target.result);
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+
+function showPhotoPreview(src) {
+  photoPreview.src = src;
+  photoPreview.style.display = 'block';
+  placeholderText.style.display = 'none';
+  dashedBox.style.display = 'none';
+}
+
+/* ── Image binarisation ── */
+function binarise(ctx, w, h) {
+  const imgData = ctx.getImageData(0, 0, w, h);
+  const data = imgData.data;
+  for (let i = 0; i < data.length; i += 4) {
+    const lum = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
+    const bin = lum > 128 ? 255 : 0;
+    data[i] = data[i+1] = data[i+2] = bin;
+  }
+  ctx.putImageData(imgData, 0, 0);
+}
+
+/* ── OCR ── */
+let tesseractWorker = null;
+
+async function runOCR(dataUrl) {
+  if (matureState.ocrRunning) return;
+  if (!navigator.onLine) { fallbackToManual('離線模式'); return; }
+
+  matureState.ocrRunning = true;
+  calcBtn.disabled = true;
+  skeleton.classList.add('visible');
+  vibrate(15);
+
+  const ocrTimeout = setTimeout(() => {
+    matureState.ocrRunning = false;
+    skeleton.classList.remove('visible');
+    fallbackToManual('辨識逾時，切換為手動調整');
+  }, 3000);
+
+  try {
+    // Lazy-load Tesseract
+    if (!window.Tesseract) {
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.3/tesseract.min.js');
+    }
+
+    if (!tesseractWorker) {
+      tesseractWorker = await Tesseract.createWorker('chi_tra+eng', 1, {
+        logger: () => {}
+      });
+    }
+
+    const { data: { text } } = await tesseractWorker.recognize(dataUrl);
+    clearTimeout(ocrTimeout);
+    matureState.ocrRunning = false;
+    calcBtn.disabled = false;
+    skeleton.classList.remove('visible');
+
+    const price = extractPrice(text);
+    if (price) {
+      matureState.priceInput = price;
+      priceSlider.value = price;
+      priceVal.textContent = `$${price}`;
+      matureState.detectedPrice = price;
+      showToast(`識出菜價：$${price}，比對中`, 2000);
+      vibrate(20);
+      // Auto calc
+      calcBtn.click();
+    } else {
+      showToast('沒有辨識到明顯數字，已切換手動微調', 2500);
+      fallbackToManual(null);
+    }
+
+    // Free canvas memory
+    hiddenCanvas.width = 0; hiddenCanvas.height = 0;
+
+  } catch (err) {
+    clearTimeout(ocrTimeout);
+    matureState.ocrRunning = false;
+    calcBtn.disabled = false;
+    skeleton.classList.remove('visible');
+    fallbackToManual('辨識遇到問題，已切換手動輸入');
+  }
+}
+
+/* ── Extract price from OCR text ── */
+function extractPrice(text) {
+  // Remove common Chinese market noise
+  const cleaned = text
+    .replace(/[斤把兩元塊特價每份組個顆]/g, ' ')
+    .replace(/[^\d\s.$]/g, ' ');
+
+  // Extract numbers
+  const nums = cleaned.match(/\d{1,4}/g);
+  if (!nums) return null;
+
+  // Filter price-like numbers (10-999), prefer the largest prominent number
+  const candidates = nums
+    .map(Number)
+    .filter(n => n >= 8 && n <= 999);
+
+  if (!candidates.length) return null;
+
+  // Prefer numbers that look like prices (multiples of 5, round numbers)
+  const scored = candidates.map(n => ({
+    n,
+    score: (n % 10 === 0 ? 3 : n % 5 === 0 ? 1 : 0) + (n >= 20 && n <= 200 ? 2 : 0)
+  })).sort((a,b) => b.score - a.score || b.n - a.n);
+
+  return scored[0].n;
+}
+
+function fallbackToManual(msg) {
+  if (msg) showToast(msg, 2500);
+  manualPanel.classList.add('visible');
+  calcBtn.disabled = false;
+}
+
+/* ── Load script helper ── */
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = res;
+    s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+
+/* ── Torch ── */
+torchBtn.addEventListener('click', async () => {
+  if (!matureState.stream) return;
+  matureState.torchOn = !matureState.torchOn;
+  try {
+    const track = matureState.stream.getVideoTracks()[0];
+    await track.applyConstraints({ advanced: [{ torch: matureState.torchOn }] });
+    torchBtn.textContent = matureState.torchOn ? '🔆' : '🔦';
+    vibrate(8);
+  } catch {}
+});
+
+/* ── Ambient light check ── */
+function checkAmbientLight() {
+  // Use ImageCapture if available, otherwise skip
+  if (!matureState.stream) return;
+  try {
+    const track = matureState.stream.getVideoTracks()[0];
+    const settings = track.getSettings();
+    if (settings.exposureMode) {
+      // Low exposure suggests dim environment
+    }
+  } catch {}
+  // Simple: show torch hint after 2s
+  setTimeout(() => {
+    if (matureState.stream) torchBtn.classList.add('visible');
+  }, 2000);
+}
+
+/* ── Breakpoint tip button ── */
+$('btnTip').addEventListener('click', () => {
+  vibrate(15);
+  const tip = icebreakers[Math.floor(Math.random() * icebreakers.length)];
+  $('tipText').textContent = tip;
+  $('tipModal').classList.add('open');
+});
+$('tipClose').addEventListener('click', () => {
+  $('tipModal').classList.remove('open');
+  vibrate(8);
+});
+$('tipModal').addEventListener('click', e => {
+  if (e.target === $('tipModal')) $('tipModal').classList.remove('open');
+});
+
+/* ── Dark toggle ── */
+$('darkToggle').addEventListener('click', () => {
+  vibrate(8);
+  matureState.isDark = !matureState.isDark;
+  document.documentElement.style.setProperty('color-scheme', matureState.isDark ? 'dark' : 'light');
+  $('darkToggle').textContent = matureState.isDark ? '☀️' : '🌙';
+});
+
+/* ── History & Level ── */
+function saveHistory(verdict) {
+  const h = JSON.parse(localStorage.getItem('matureHistory') || '[]');
+  h.push({ verdict, ts: Date.now() });
+  if (h.length > 20) h.shift();
+  localStorage.setItem('matureHistory', JSON.stringify(h));
+  matureState.history = h;
+}
+
+function updateLevel() {
+  const count = matureState.compareCount;
+  let lvl = '傳統市場漫步者';
+  if (count >= 10) lvl = '資深菜攤博弈師';
+  else if (count >= 5) lvl = '熟成中級買手';
+  $('levelChip').textContent = `${lvl}（今日比 ${count} 次）`;
+}
+
+/* ── Trend Chart ── */
+function drawTrendChart() {
+  const canvas = $('trendCanvas');
+  const h = JSON.parse(localStorage.getItem('matureHistory') || '[]').slice(-4);
+  if (!h.length) return;
+
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.offsetWidth * dpr, H = 80 * dpr;
+  canvas.width = W; canvas.height = H;
+  canvas.style.width = canvas.offsetWidth + 'px';
+  canvas.style.height = '80px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const w = canvas.offsetWidth;
+
+  const verdictScore = { green: 10, yellow: 6, red: 2 };
+  const scores = h.map(item => verdictScore[item.verdict] || 5);
+
+  const pad = 16;
+  const xs = scores.map((_, i) => pad + i * ((w - pad * 2) / Math.max(scores.length - 1, 1)));
+  const ys = scores.map(s => 60 - ((s - 1) / 9) * 44);
+
+  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--ink') || '#1A1A1A';
+  ctx.globalAlpha = 0.3;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  xs.forEach((x, i) => i === 0 ? ctx.moveTo(x, ys[i]) : ctx.lineTo(x, ys[i]));
+  ctx.stroke();
+
+  // Dots
+  ctx.globalAlpha = 1;
+  scores.forEach((s, i) => {
+    const color = s >= 9 ? '#5D9B6E' : s >= 5 ? '#C9A84C' : '#C0564F';
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(xs[i], ys[i], 4, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+/* ── Ticker ── */
+function renderTicker() {
+  const inner = $('tickerInner');
+  const items = [...tickerItems, ...tickerItems];
+  inner.innerHTML = items.map(t => `<span style="margin-right:60px">${t}</span>`).join('');
+}
+
+/* ── Offline detection ── */
+window.addEventListener('offline', () => {
+  $('alertOffline').classList.add('visible');
+  showToast('市場深處訊號微弱，已自動為您開啟離線優雅比價模式', 3000);
+});
+window.addEventListener('online', () => {
+  $('alertOffline').classList.remove('visible');
+});
+if (!navigator.onLine) $('alertOffline').classList.add('visible');
+
+/* ── Init ── */
+function init() {
+  applyTimeFactor();
+  locateMe();
+  renderMarketGrid();
+  renderVegSelector();
+  renderTicker();
+  drawTrendChart();
+
+  // Set initial time chip
+  const now = new Date();
+  $('timeChipEl').textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+  // Restore history
+  matureState.history = JSON.parse(localStorage.getItem('matureHistory') || '[]');
+  matureState.compareCount = matureState.history.length;
+  updateLevel();
+
+  // cameraFront click to open cam
+  $('cameraFront').addEventListener('click', (e) => {
+    if (!matureState.stream && photoPreview.style.display !== 'block') {
+      openCamera();
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
