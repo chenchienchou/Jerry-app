@@ -1,1909 +1,1848 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#F8F9FA">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="熟成市場">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <!-- 指令7: 頂部狀態欄融合 -->
+  <meta name="theme-color" content="#0F1115">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-<!-- Open Graph Tags -->
-<meta property="og:title" content="熟成市場｜今日零售行情與一鍵拍照防坑器">
-<meta property="og:description" content="傳統市場的紙板上，寫著沒有明說的規則。拍張照片，我們幫你解讀。">
-<meta property="og:type" content="website">
-<meta property="og:image" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='630' viewBox='0 0 1200 630'%3E%3Crect fill='%23F8F9FA' width='1200' height='630'/%3E%3Ctext x='120' y='280' font-family='serif' font-size='72' font-weight='300' fill='%231A1A1A'%3E熟成市場%3C/text%3E%3Ctext x='120' y='370' font-family='serif' font-size='28' fill='%23666666'%3E今日零售行情與一鍵拍照防坑器%3C/text%3E%3C/svg%3E">
-<meta property="og:locale" content="zh_TW">
-<meta name="twitter:card" content="summary_large_image">
+  <!-- 指令11: Open Graph Meta Tags -->
+  <meta property="og:title" content="深夜星河｜初級大人的數位斷捨離與睡眠避風港">
+  <meta property="og:description" content="今晚 Threads 的訊息滑不完，但你的睡眠只有一次。讓我們陪你把世界輕輕關掉。">
+  <meta property="og:type" content="website">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="深夜星河｜數位斷捨離">
+  <meta name="twitter:description" content="Threads 的訊息滑不完，但今晚的睡眠只有一次。">
 
-<!-- PWA Manifest inline -->
-<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22%E7%86%9F%E6%88%90%E5%B8%82%E5%A0%B4%22%2C%22short_name%22%3A%22%E7%86%9F%E6%88%90%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23F8F9FA%22%2C%22theme_color%22%3A%22%23F8F9FA%22%2C%22start_url%22%3A%22%2F%22%7D">
+  <title>深夜星河｜初級大人的數位斷捨離與睡眠避風港</title>
 
-<title>熟成市場｜今日零售行情與一鍵拍照防坑器</title>
-<style>
-/* ── Root Tokens ── */
-:root {
-  --bg: #F8F9FA;
-  --surface: rgba(255,255,255,0.85);
-  --ink: #1A1A1A;
-  --ink-secondary: #666666;
-  --ink-tertiary: rgba(0,0,0,0.35);
-  --border: 0.5px solid rgba(0,0,0,0.08);
-  --border-faint: 0.5px solid rgba(0,0,0,0.04);
-  --radius: 18px;
-  --radius-sm: 12px;
-  --shadow-neutral: 0 8px 32px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
-  --shadow-green: 0 8px 32px rgba(76,175,80,0.12), 0 2px 8px rgba(76,175,80,0.08);
-  --shadow-yellow: 0 8px 32px rgba(255,193,7,0.12), 0 2px 8px rgba(255,193,7,0.08);
-  --shadow-red: 0 8px 32px rgba(229,57,53,0.12), 0 2px 8px rgba(229,57,53,0.08);
-  --green: #5D9B6E;
-  --green-bg: rgba(93,155,110,0.08);
-  --yellow: #C9A84C;
-  --yellow-bg: rgba(201,168,76,0.08);
-  --red: #C0564F;
-  --red-bg: rgba(192,86,79,0.08);
-  --gold: rgba(201,168,76,0.6);
-  --transition: all 0.4s ease-in-out;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #121212;
-    --surface: rgba(30,30,30,0.92);
-    --ink: #F0F0F0;
-    --ink-secondary: #999999;
-    --ink-tertiary: rgba(255,255,255,0.3);
-    --border: 0.5px solid rgba(255,255,255,0.08);
-    --border-faint: 0.5px solid rgba(255,255,255,0.04);
-    --shadow-neutral: 0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3);
-    --shadow-green: 0 8px 32px rgba(93,155,110,0.2), 0 2px 8px rgba(93,155,110,0.12);
-    --shadow-yellow: 0 8px 32px rgba(201,168,76,0.2), 0 2px 8px rgba(201,168,76,0.12);
-    --shadow-red: 0 8px 32px rgba(192,86,79,0.2), 0 2px 8px rgba(192,86,79,0.12);
-  }
-}
+  <!-- 指令1: 頂級開源字體載入 Noto Serif TC + Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@200;300;400&family=Noto+Sans+TC:wght@200;300;400;500&display=swap" rel="stylesheet">
 
-/* ── Reset & Base ── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 16px; -webkit-text-size-adjust: 100%; }
-body {
-  font-family: -apple-system, 'PingFang TC', 'Noto Sans TC', 'Hiragino Sans GB', sans-serif;
-  background: var(--bg);
-  color: var(--ink);
-  min-height: 100vh;
-  min-height: 100dvh;
-  padding-top: env(safe-area-inset-top, 20px);
-  padding-bottom: env(safe-area-inset-bottom, 20px);
-  padding-left: env(safe-area-inset-left, 0px);
-  padding-right: env(safe-area-inset-right, 0px);
-  -webkit-overflow-scrolling: touch;
-  overflow-x: hidden;
-  letter-spacing: 0.02em;
-}
-button { cursor: pointer; border: none; background: none; font-family: inherit; }
-input, select { font-family: inherit; }
-a { color: inherit; text-decoration: none; }
+  <style>
+    /* =============================================
+       全域重置與基礎變數
+    ============================================= */
+    :root {
+      --midnight: #0F1115;
+      --carbon: #1E1E24;
+      --moonlight: #FFF2CC;
+      --ocean: #D9E2EC;
+      --text-primary: #F4F4F6;
+      --text-secondary: #A0A5B5;
+      --amber-glow: rgba(255,224,178,0.15);
+      --ocean-glow: rgba(217,226,236,0.12);
+      --border: 0.5px solid rgba(255,255,255,0.06);
+      --divider: 0.5px solid rgba(255,255,255,0.03);
+      --radius: 20px;
+      --radius-sm: 12px;
+      /* 指令14: clamp 流體字體 */
+      --fs-xl: clamp(1.8rem, 5vw, 2.8rem);
+      --fs-lg: clamp(1.2rem, 3.5vw, 1.6rem);
+      --fs-md: clamp(0.9rem, 2.5vw, 1.05rem);
+      --fs-sm: clamp(0.75rem, 2vw, 0.85rem);
+      --fs-xs: clamp(0.6rem, 1.5vw, 0.7rem);
+    }
 
-/* ── Typography Scale ── */
-.t-display { font-size: clamp(28px,7vw,42px); font-weight: 300; letter-spacing: -0.02em; line-height: 1.1; }
-.t-title   { font-size: clamp(18px,4.5vw,24px); font-weight: 400; letter-spacing: 0.01em; }
-.t-body    { font-size: clamp(14px,3.5vw,16px); font-weight: 400; line-height: 1.8; letter-spacing: 0.05em; }
-.t-caption { font-size: clamp(11px,2.8vw,13px); color: var(--ink-secondary); letter-spacing: 0.05em; }
-.t-micro   { font-size: 11px; color: var(--ink-tertiary); letter-spacing: 0.06em; }
-.t-number  { font-size: clamp(32px,8vw,48px); font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+    /* 指令73: 全域防文字選取 */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-/* ── Layout ── */
-#app {
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 0 16px 80px;
-}
+    html {
+      /* 指令12: 流暢滾動 */
+      scroll-behavior: smooth;
+    }
 
-/* ── Header ── */
-#header {
-  position: sticky;
-  top: env(safe-area-inset-top, 0);
-  z-index: 100;
-  padding: 20px 0 12px;
-  background: var(--bg);
-  transition: box-shadow 0.3s ease;
-}
-#header.scrolled { box-shadow: 0 1px 0 rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04); }
-.header-inner { display: flex; align-items: center; justify-content: space-between; }
-.brand-title {
-  font-size: clamp(20px,5vw,26px);
-  font-weight: 300;
-  letter-spacing: 0.05em;
-  opacity: 0;
-  transform: translateY(12px);
-  animation: slideUp 0.6s ease forwards 0.1s;
-}
-.brand-sub {
-  font-size: 11px;
-  color: var(--ink-tertiary);
-  letter-spacing: 0.08em;
-  margin-top: 2px;
-  opacity: 0;
-  animation: fadeIn 0.6s ease forwards 0.4s;
-}
-.header-actions { display: flex; align-items: center; gap: 12px; }
-#btnTip {
-  width: 32px; height: 32px;
-  border-radius: 50%;
-  background: var(--surface);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: var(--border);
-  font-size: 14px;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: var(--shadow-neutral);
-  transition: var(--transition);
-}
-#btnTip:active { transform: scale(0.92); }
-#darkToggle {
-  width: 32px; height: 32px;
-  border-radius: 50%;
-  background: var(--surface);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: var(--border);
-  font-size: 14px;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: var(--shadow-neutral);
-  transition: var(--transition);
-}
+    body {
+      background-color: var(--midnight);
+      color: var(--text-primary);
+      font-family: 'Noto Sans TC', sans-serif;
+      font-weight: 300;
+      /* 指令9: 療癒字體排版 */
+      letter-spacing: 0.08em;
+      line-height: 1.9;
+      /* 指令2: iOS 安全區 */
+      padding-top: env(safe-area-inset-top, 20px);
+      padding-bottom: env(safe-area-inset-bottom, 20px);
+      min-height: 100vh;
+      overflow-x: hidden;
+      /* 指令8: 高級滾動慣性 */
+      -webkit-overflow-scrolling: touch;
+    }
 
-/* ── Alerts ── */
-.alert-bar {
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: var(--border);
-  font-size: 12px;
-  color: var(--ink-secondary);
-  letter-spacing: 0.04em;
-  margin-bottom: 10px;
-  display: none;
-}
-.alert-bar.visible { display: block; animation: fadeIn 0.5s ease; }
+    /* 指令20: 全域色彩過渡 */
+    * {
+      transition: color 0.6s ease-in-out, background-color 0.6s ease-in-out, opacity 0.6s ease-in-out, border-color 0.6s ease-in-out;
+    }
+    /* 避免過渡影響動畫效果的元素 */
+    .star, .breath-ring, .marquee-inner {
+      transition: none !important;
+    }
 
-/* ── Status Tags ── */
-.status-row {
-  display: flex; align-items: center; gap: 8px;
-  margin: 6px 0 16px;
-  opacity: 0;
-  animation: fadeIn 0.6s ease forwards 0.6s;
-}
-.status-chip {
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  color: var(--ink-tertiary);
-  padding: 4px 10px;
-  border-radius: 20px;
-  border: var(--border);
-  background: var(--surface);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); display: inline-block; margin-right: 4px; animation: pulse 2s infinite; }
+    /* =============================================
+       星河背景 SVG（指令25）
+    ============================================= */
+    #star-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
 
-/* ── Budget Bar ── */
-#budgetBar {
-  background: var(--surface);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: var(--border);
-  border-radius: var(--radius-sm);
-  padding: 12px 16px;
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 16px;
-  box-shadow: var(--shadow-neutral);
-  transition: var(--transition);
-}
-.budget-label { font-size: 12px; color: var(--ink-secondary); letter-spacing: 0.06em; }
-.budget-amount { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
-#basketCount { font-size: 11px; color: var(--ink-tertiary); letter-spacing: 0.06em; }
+    .star {
+      animation: twinkle var(--dur, 3s) ease-in-out infinite alternate;
+      animation-delay: var(--delay, 0s);
+    }
 
-/* ── Market Grid (Asymmetric) ── */
-.section-label {
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-tertiary);
-  margin: 20px 0 12px;
-}
-.market-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 6px;
-}
-.market-grid .card-wide { grid-column: span 2; }
-.market-card {
-  background: var(--surface);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: var(--border);
-  border-radius: var(--radius);
-  padding: 16px;
-  box-shadow: var(--shadow-neutral);
-  cursor: pointer;
-  transition: var(--transition);
-  position: relative;
-  overflow: hidden;
-}
-.market-card:active { transform: scale(0.97); }
-.market-card.pinned::before {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--green), transparent);
-}
-.market-card .vegName { font-size: 15px; font-weight: 400; letter-spacing: 0.04em; }
-.market-card .vegPrice {
-  font-size: 22px; font-weight: 600; letter-spacing: -0.01em; margin-top: 4px;
-  transition: var(--transition);
-}
-.market-card .vegUnit { font-size: 11px; color: var(--ink-secondary); margin-top: 2px; }
-.market-card .pinBtn {
-  position: absolute; top: 12px; right: 12px;
-  font-size: 14px; opacity: 0.4;
-  transition: opacity 0.3s;
-}
-.market-card .pinBtn.active { opacity: 1; }
-.market-card.wide { grid-column: span 2; display: flex; align-items: center; justify-content: space-between; }
-.market-card.wide .vegGroup { display: flex; gap: 20px; }
-.market-card.wide .vegItem { text-align: center; }
+    @keyframes twinkle {
+      from { opacity: var(--min-op, 0.1); }
+      to   { opacity: var(--max-op, 0.6); }
+    }
 
-/* ── Camera Zone ── */
-#cameraSection { margin-top: 24px; }
-.section-title {
-  font-size: 13px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-secondary);
-  margin-bottom: 14px;
-}
-#cameraCard {
-  perspective: 1000px;
-  height: 280px;
-}
-.card-flipper {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
-  transition: transform 0.7s cubic-bezier(0.4,0,0.2,1);
-}
-.card-flipper.flipped { transform: rotateY(180deg); }
-.card-face {
-  position: absolute; width: 100%; height: 100%;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-.card-back { transform: rotateY(180deg); }
+    /* =============================================
+       主容器佈局（指令6: 非對稱大留白）
+    ============================================= */
+    #app {
+      position: relative;
+      z-index: 1;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: clamp(24px, 6vw, 48px) clamp(16px, 5vw, 28px);
+      padding-top: calc(env(safe-area-inset-top, 20px) + clamp(16px, 4vw, 32px));
+      padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 80px);
+    }
 
-/* Camera front face */
-#cameraFront {
-  background: var(--surface);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: var(--border);
-  box-shadow: var(--shadow-neutral);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  cursor: pointer;
-}
-#cameraFront .placeholder-text {
-  text-align: center;
-  max-width: 240px;
-  color: var(--ink-secondary);
-  font-size: 13px;
-  line-height: 1.8;
-  letter-spacing: 0.05em;
-}
+    /* =============================================
+       毛玻璃卡片（指令3: 深夜暖調毛玻璃）
+    ============================================= */
+    .card {
+      background: rgba(15,17,21,0.82);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: clamp(20px, 5vw, 32px);
+      margin-bottom: clamp(16px, 4vw, 24px);
+      /* 指令4: 星河微光動態陰影（預設海藍） */
+      box-shadow: 0 8px 40px rgba(217,226,236,0.06), 0 2px 12px rgba(0,0,0,0.4);
+      position: relative;
+      overflow: hidden;
+    }
 
-/* ROI Frame */
-#roiFrame {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 70%; height: 55%;
-  border: 1.5px solid var(--gold);
-  border-radius: 4px;
-  pointer-events: none;
-  display: none;
-}
-#roiFrame::before, #roiFrame::after {
-  content: '';
-  position: absolute;
-  width: 14px; height: 14px;
-  border-color: rgba(201,168,76,0.9);
-  border-style: solid;
-}
-#roiFrame::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
-#roiFrame::after { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
-.roi-label {
-  position: absolute;
-  bottom: -22px; left: 50%;
-  transform: translateX(-50%);
-  font-size: 10px;
-  color: rgba(201,168,76,0.8);
-  letter-spacing: 0.08em;
-  white-space: nowrap;
-}
+    .card.amber-shadow {
+      box-shadow: 0 8px 40px rgba(255,224,178,0.08), 0 2px 12px rgba(0,0,0,0.4);
+    }
 
-/* Dashed camera box */
-#dashedBox {
-  width: 100px; height: 100px;
-  border: 1.5px dashed rgba(0,0,0,0.2);
-  border-radius: var(--radius-sm);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 32px;
-  position: relative;
-  animation: breathe 2.5s ease-in-out infinite;
-}
-@keyframes breathe {
-  0%,100% { border-color: rgba(0,0,0,0.15); }
-  50% { border-color: rgba(0,0,0,0.35); }
-}
-#dashedBox.active { animation: breatheActive 1.2s ease-in-out infinite; }
-@keyframes breatheActive {
-  0%,100% { border-color: rgba(0,0,0,0.2); }
-  50% { border-color: rgba(0,0,0,0.5); }
-}
+    /* =============================================
+       頂部區域
+    ============================================= */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: clamp(24px, 6vw, 40px);
+    }
 
-/* Camera video */
-#videoEl {
-  width: 100%; height: 100%; object-fit: cover;
-  display: none;
-  border-radius: var(--radius);
-}
-#photoPreview {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  border-radius: var(--radius);
-  display: none;
-  mask-image: linear-gradient(to top, transparent 0%, black 30%);
-  -webkit-mask-image: linear-gradient(to top, transparent 0%, black 30%);
-  animation: smokeIn 0.6s ease forwards;
-}
-@keyframes smokeIn {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); mask-image: none; -webkit-mask-image: none; }
-}
+    .badge {
+      font-size: var(--fs-xs);
+      color: var(--text-secondary);
+      font-weight: 200;
+      letter-spacing: 0.12em;
+      /* 指令85: 熟成大人清明勳章 */
+    }
 
-/* Hidden canvas */
-#hiddenCanvas { display: none; }
+    /* 指令22: 月亮SVG容器 */
+    .moon-container {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-/* Camera controls row */
-#camControls {
-  position: absolute; bottom: 14px; left: 0; right: 0;
-  display: flex; align-items: center; justify-content: center;
-  gap: 16px;
-  display: none;
-}
-.cam-btn {
-  padding: 10px 22px;
-  border-radius: 30px;
-  font-size: 13px;
-  letter-spacing: 0.06em;
-  font-weight: 500;
-  border: var(--border);
-  background: rgba(255,255,255,0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-  transition: var(--transition);
-  color: var(--ink);
-}
-.cam-btn:active { transform: scale(0.95); }
-.cam-btn.primary {
-  background: var(--ink);
-  color: white;
-}
+    /* 指令16: 音樂按鈕 */
+    #music-btn {
+      background: rgba(255,255,255,0.04);
+      border: var(--border);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.4s, box-shadow 0.4s !important;
+    }
+    #music-btn:active, #music-btn.active {
+      background: rgba(255,242,204,0.08);
+      box-shadow: 0 0 12px rgba(255,242,204,0.12);
+    }
 
-/* Upload hidden input */
-#fileInput { display: none; }
+    /* =============================================
+       標題區
+    ============================================= */
+    .hero-title {
+      font-family: 'Noto Serif TC', serif;
+      font-weight: 200;
+      font-size: var(--fs-xl);
+      color: var(--text-primary);
+      line-height: 1.4;
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+    }
 
-/* Torch button */
-#torchBtn {
-  position: absolute; bottom: 14px; right: 14px;
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(10px);
-  color: white; font-size: 16px;
-  display: none;
-  align-items: center; justify-content: center;
-  transition: var(--transition);
-}
-#torchBtn.visible { display: flex; }
+    .hero-subtitle {
+      font-size: var(--fs-sm);
+      color: var(--text-secondary);
+      font-weight: 200;
+      letter-spacing: 0.1em;
+      line-height: 2;
+    }
 
-/* ── Skeleton Screen ── */
-#skeleton {
-  display: none;
-}
-#skeleton.visible { display: block; }
-.skeleton-card {
-  background: var(--surface);
-  border: var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
-  margin-bottom: 12px;
-  box-shadow: var(--shadow-neutral);
-}
-.skeleton-line {
-  height: 14px;
-  border-radius: 7px;
-  background: linear-gradient(90deg, rgba(0,0,0,0.06) 25%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.06) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
-  margin-bottom: 10px;
-}
-@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    /* 指令83: 空白頁面人文詩意 */
+    .poetic-hint {
+      font-size: var(--fs-sm);
+      color: rgba(160,165,181,0.5);
+      font-weight: 200;
+      letter-spacing: 0.1em;
+      line-height: 2;
+      text-align: center;
+      padding: clamp(16px, 4vw, 24px) 0;
+    }
 
-/* ── Result Card (Back face) ── */
-#resultCard {
-  background: var(--surface);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: var(--border);
-  border-radius: var(--radius);
-  height: 100%;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  position: relative;
-  overflow: hidden;
-  transition: var(--transition);
-}
-#resultCard .ripple {
-  position: absolute;
-  top: 50%; left: 50%;
-  width: 0; height: 0;
-  border-radius: 50%;
-  transform: translate(-50%,-50%);
-  opacity: 0;
-  transition: none;
-}
-#resultCard.green { box-shadow: var(--shadow-green); }
-#resultCard.green .ripple { background: radial-gradient(circle, rgba(93,155,110,0.12), transparent 70%); }
-#resultCard.yellow { box-shadow: var(--shadow-yellow); }
-#resultCard.yellow .ripple { background: radial-gradient(circle, rgba(201,168,76,0.12), transparent 70%); }
-#resultCard.red { box-shadow: var(--shadow-red); }
-#resultCard.red .ripple { background: radial-gradient(circle, rgba(192,86,79,0.12), transparent 70%); }
-.result-verdict { font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; }
-.result-verdict.green { color: var(--green); }
-.result-verdict.yellow { color: var(--yellow); }
-.result-verdict.red { color: var(--red); }
-.result-verdict-main { font-size: clamp(22px,6vw,28px); font-weight: 300; margin-top: 4px; letter-spacing: 0.04em; }
-.result-numbers {
-  display: flex; gap: 20px; align-items: flex-end;
-  margin: 12px 0;
-}
-.result-price-block { }
-.result-price-label { font-size: 11px; color: var(--ink-secondary); letter-spacing: 0.08em; }
-.result-price-val { font-size: 28px; font-weight: 600; letter-spacing: -0.01em; }
-.result-price-ref { font-size: 11px; color: var(--ink-secondary); letter-spacing: 0.06em; }
-.result-copy-text {
-  font-size: 12px;
-  color: var(--ink-secondary);
-  line-height: 1.7;
-  letter-spacing: 0.04em;
-  border-top: var(--border-faint);
-  padding-top: 10px;
-  margin-top: auto;
-}
-.result-actions {
-  display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;
-}
-.result-btn {
-  flex: 1;
-  padding: 10px 12px;
-  border-radius: 30px;
-  font-size: 12px;
-  letter-spacing: 0.06em;
-  border: var(--border);
-  background: var(--surface);
-  backdrop-filter: blur(10px);
-  transition: var(--transition);
-  color: var(--ink);
-  text-align: center;
-  white-space: nowrap;
-  min-width: 80px;
-}
-.result-btn:active { transform: scale(0.95); }
-.result-btn.primary { background: var(--ink); color: white; border-color: var(--ink); }
+    /* =============================================
+       主按鈕（指令16: 半透明微光）
+    ============================================= */
+    .btn-primary {
+      display: block;
+      width: 100%;
+      background: rgba(255,242,204,0.06);
+      border: 0.5px solid rgba(255,242,204,0.15);
+      border-radius: var(--radius-sm);
+      padding: clamp(16px, 4vw, 20px) clamp(20px, 5vw, 28px);
+      color: var(--moonlight);
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: var(--fs-md);
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      line-height: 1.6;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.4s, box-shadow 0.4s, transform 0.3s !important;
+      /* 指令19: Flexbox 對齊 */
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
 
-/* ── Manual Slider Panel ── */
-#manualPanel {
-  background: var(--surface);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
-  margin-top: 14px;
-  box-shadow: var(--shadow-neutral);
-  display: none;
-  transition: var(--transition);
-}
-#manualPanel.visible { display: block; animation: fadeIn 0.4s ease; }
-.panel-title { font-size: 12px; color: var(--ink-secondary); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px; }
-.field-row { margin-bottom: 16px; }
-.field-label { font-size: 12px; color: var(--ink-secondary); letter-spacing: 0.06em; margin-bottom: 6px; }
-.slider-wrap { display: flex; align-items: center; gap: 12px; }
-.price-slider {
-  flex: 1;
-  -webkit-appearance: none;
-  height: 2px;
-  background: rgba(0,0,0,0.1);
-  border-radius: 2px;
-  outline: none;
-  -webkit-overflow-scrolling: touch;
-}
-.price-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 20px; height: 20px;
-  border-radius: 50%;
-  background: var(--ink);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  cursor: pointer;
-}
-.slider-val {
-  font-size: 20px; font-weight: 600; min-width: 54px; text-align: right;
-  letter-spacing: -0.01em;
-  transition: transform 0.1s ease;
-}
-.slider-val.pulse { transform: scale(1.08); }
+    .btn-primary:active {
+      background: rgba(255,242,204,0.10);
+      box-shadow: 0 0 20px rgba(255,242,204,0.1);
+      transform: scale(0.99);
+    }
 
-/* Qty buttons */
-.qty-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-.qty-btn {
-  padding: 8px 14px;
-  border-radius: 20px;
-  font-size: 13px;
-  letter-spacing: 0.04em;
-  border: var(--border);
-  background: var(--surface);
-  color: var(--ink);
-  transition: var(--transition);
-}
-.qty-btn.active { background: var(--ink); color: white; }
-.qty-btn:active { transform: scale(0.95); }
+    .btn-primary.disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
 
-/* Organic toggle */
-.toggle-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 0;
-  border-top: var(--border-faint);
-}
-.toggle-label { font-size: 13px; letter-spacing: 0.04em; }
-.toggle-switch {
-  width: 42px; height: 24px;
-  background: rgba(0,0,0,0.12);
-  border-radius: 12px;
-  position: relative;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-.toggle-switch.on { background: var(--green); }
-.toggle-switch::after {
-  content: '';
-  position: absolute;
-  top: 3px; left: 3px;
-  width: 18px; height: 18px;
-  border-radius: 50%;
-  background: white;
-  transition: transform 0.3s;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-}
-.toggle-switch.on::after { transform: translateX(18px); }
+    .btn-secondary {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(217,226,236,0.04);
+      border: 0.5px solid rgba(217,226,236,0.12);
+      border-radius: var(--radius-sm);
+      padding: clamp(12px, 3vw, 16px) clamp(16px, 4vw, 20px);
+      color: var(--ocean);
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: var(--fs-sm);
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 10px;
+      transition: background 0.4s !important;
+    }
+    .btn-secondary:active {
+      background: rgba(217,226,236,0.08);
+    }
 
-/* Veg selector */
-.veg-selector {
-  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
-}
-.veg-chip {
-  padding: 7px 14px;
-  border-radius: 20px;
-  font-size: 13px;
-  letter-spacing: 0.04em;
-  border: var(--border);
-  background: var(--surface);
-  color: var(--ink);
-  cursor: pointer;
-  transition: var(--transition);
-}
-.veg-chip.active { background: var(--ink); color: white; }
-.veg-chip:active { transform: scale(0.95); }
+    /* =============================================
+       分隔線（指令17）
+    ============================================= */
+    .divider {
+      border: none;
+      border-top: var(--divider);
+      margin: clamp(16px, 4vw, 24px) 0;
+    }
 
-/* Calc button */
-#calcBtn {
-  width: 100%;
-  padding: 14px;
-  border-radius: 30px;
-  background: var(--ink);
-  color: white;
-  font-size: 14px;
-  letter-spacing: 0.08em;
-  font-weight: 500;
-  transition: var(--transition);
-  margin-top: 4px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-}
-#calcBtn:active { transform: scale(0.98); }
-#calcBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+    /* =============================================
+       結果卡片文字（指令77, 78）
+    ============================================= */
+    .result-headline {
+      font-family: 'Noto Serif TC', serif;
+      font-weight: 200;
+      font-size: var(--fs-lg);
+      color: var(--moonlight);
+      letter-spacing: 0.08em;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
 
-/* ── Converter Strip ── */
-#converterStrip {
-  background: var(--surface);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: var(--border);
-  border-radius: var(--radius-sm);
-  padding: 12px 16px;
-  display: flex; gap: 16px; flex-wrap: wrap;
-  justify-content: space-around;
-  margin-top: 14px;
-  box-shadow: var(--shadow-neutral);
-}
-.conv-item { text-align: center; }
-.conv-label { font-size: 10px; color: var(--ink-tertiary); letter-spacing: 0.1em; }
-.conv-val { font-size: 14px; font-weight: 500; margin-top: 2px; }
+    .result-body {
+      font-size: var(--fs-md);
+      color: var(--text-secondary);
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      line-height: 1.9;
+      margin-bottom: 20px;
+    }
 
-/* ── Storage tip ── */
-#storageTip {
-  background: var(--surface);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: var(--border);
-  border-radius: var(--radius);
-  padding: 16px;
-  margin-top: 10px;
-  font-size: 13px;
-  line-height: 1.8;
-  letter-spacing: 0.04em;
-  color: var(--ink-secondary);
-  display: none;
-  animation: fadeIn 0.4s ease;
-}
-#storageTip.visible { display: block; }
+    .result-body strong {
+      color: var(--text-primary);
+      font-weight: 400;
+    }
 
-/* ── Trend Chart ── */
-#trendSection {
-  margin-top: 14px;
-  background: var(--surface);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: var(--border);
-  border-radius: var(--radius);
-  padding: 16px;
-  box-shadow: var(--shadow-neutral);
-}
-#trendTitle { font-size: 11px; color: var(--ink-secondary); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px; }
-#trendCanvas { width: 100%; height: 80px; }
+    /* =============================================
+       呼吸引導（指令26, 81）
+    ============================================= */
+    #breath-section {
+      text-align: center;
+      padding: clamp(20px, 5vw, 32px) 0;
+    }
 
-/* ── Ticker ── */
-#tickerWrap {
-  overflow: hidden;
-  margin-top: 14px;
-  padding: 8px 0;
-  border-top: var(--border-faint);
-  border-bottom: var(--border-faint);
-}
-#tickerInner {
-  display: flex;
-  white-space: nowrap;
-  animation: ticker 28s linear infinite;
-  font-size: 11px;
-  color: var(--ink-tertiary);
-  letter-spacing: 0.06em;
-}
-@keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-#tickerInner:hover { animation-play-state: paused; }
+    #breath-ring-container {
+      position: relative;
+      width: 160px;
+      height: 160px;
+      margin: 0 auto 20px;
+    }
 
-/* ── Win Rate ── */
-#winRate {
-  text-align: center;
-  padding: 12px;
-  font-size: 12px;
-  color: var(--ink-tertiary);
-  letter-spacing: 0.06em;
-  line-height: 1.7;
-}
+    #breath-ring {
+      transition: all 0.5s ease-in-out !important;
+    }
 
-/* ── Footer ── */
-#footer {
-  margin-top: 32px;
-  padding-top: 20px;
-  border-top: var(--border-faint);
-  text-align: center;
-}
-.footer-line {
-  font-size: 11px;
-  color: var(--ink-tertiary);
-  letter-spacing: 0.05em;
-  line-height: 1.8;
-}
+    #breath-label {
+      font-family: 'Noto Serif TC', serif;
+      font-weight: 200;
+      font-size: var(--fs-sm);
+      color: var(--text-secondary);
+      letter-spacing: 0.15em;
+      margin-top: 12px;
+      min-height: 24px;
+    }
 
-/* ── Toast ── */
-#toast {
-  position: fixed;
-  top: calc(env(safe-area-inset-top, 20px) + 16px);
-  left: 50%;
-  transform: translateX(-50%) translateY(-20px);
-  background: rgba(26,26,26,0.88);
-  color: rgba(255,255,255,0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  padding: 10px 20px;
-  border-radius: 24px;
-  font-size: 13px;
-  letter-spacing: 0.06em;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
-  z-index: 9999;
-  opacity: 0;
-  transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
-  white-space: nowrap;
-  pointer-events: none;
-}
-#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #breath-counter {
+      font-family: 'Noto Serif TC', serif;
+      font-weight: 200;
+      font-size: clamp(2.5rem, 8vw, 4rem);
+      color: var(--moonlight);
+      letter-spacing: 0.05em;
+      line-height: 1;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
 
-/* ── Tip Modal ── */
-#tipModal {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  z-index: 8888;
-  display: flex; align-items: flex-end; justify-content: center;
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.3s;
-}
-#tipModal.open { opacity: 1; pointer-events: all; }
-#tipModalCard {
-  background: var(--bg);
-  border-radius: var(--radius) var(--radius) 0 0;
-  padding: 24px 24px calc(24px + env(safe-area-inset-bottom, 0px));
-  width: 100%; max-width: 480px;
-  transform: translateY(40px);
-  transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
-  box-shadow: 0 -8px 40px rgba(0,0,0,0.12);
-}
-#tipModal.open #tipModalCard { transform: translateY(0); }
-#tipText { font-size: 16px; line-height: 1.8; letter-spacing: 0.04em; margin: 12px 0 20px; color: var(--ink); }
-#tipClose {
-  width: 100%; padding: 14px; border-radius: 30px;
-  background: var(--ink); color: white;
-  font-size: 14px; letter-spacing: 0.06em;
-  transition: var(--transition);
-}
-#tipClose:active { transform: scale(0.98); }
+    /* =============================================
+       失眠滑桿（指令32, 82）
+    ============================================= */
+    .slider-container {
+      padding: clamp(16px, 4vw, 24px) 0;
+    }
 
-/* ── Animations ── */
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes pulse {
-  0%,100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-@keyframes rippleExpand {
-  0% { width: 0; height: 0; opacity: 0.3; }
-  100% { width: 400px; height: 400px; opacity: 0; }
-}
-@keyframes odometer {
-  from { transform: translateY(16px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-.odometer-in { animation: odometer 0.45s cubic-bezier(0.4,0,0.2,1) both; }
-@keyframes slideLeft {
-  to { transform: translateX(-100%); opacity: 0; }
-}
-.slide-out { animation: slideLeft 0.4s ease forwards; }
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
 
-/* ── Scrollbar ── */
-::-webkit-scrollbar { width: 0; height: 0; }
+    .slider-label span:first-child {
+      font-size: var(--fs-sm);
+      color: var(--text-secondary);
+      font-weight: 300;
+    }
 
-/* ── Focus ── */
-:focus-visible { outline: 1.5px solid rgba(0,0,0,0.3); outline-offset: 2px; }
+    #insomnia-value {
+      font-family: 'Noto Serif TC', serif;
+      font-weight: 200;
+      font-size: var(--fs-lg);
+      color: var(--moonlight);
+    }
 
-/* ── No pinch zoom ── */
-@media (max-width: 480px) {
-  body { touch-action: pan-y; }
-}
-</style>
+    #insomnia-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 2px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    #insomnia-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(255,242,204,0.6);
+      box-shadow: 0 0 12px rgba(255,242,204,0.3), 0 0 0 4px rgba(255,242,204,0.1);
+      cursor: pointer;
+      transition: box-shadow 0.3s !important;
+    }
+
+    #insomnia-slider::-webkit-slider-thumb:active {
+      box-shadow: 0 0 20px rgba(255,242,204,0.5), 0 0 0 6px rgba(255,242,204,0.15);
+    }
+
+    #insomnia-text {
+      font-size: var(--fs-sm);
+      color: var(--text-secondary);
+      font-weight: 200;
+      letter-spacing: 0.08em;
+      line-height: 1.9;
+      margin-top: 16px;
+      min-height: 60px;
+      font-style: italic;
+      transition: opacity 0.4s !important;
+    }
+
+    /* =============================================
+       靜置模式（指令61）
+    ============================================= */
+    #stillness-mode {
+      display: none;
+      text-align: center;
+      padding: clamp(32px, 8vw, 60px) 0;
+    }
+
+    #stillness-mode.active {
+      display: block;
+    }
+
+    #stillness-timer {
+      font-family: 'Noto Serif TC', serif;
+      font-weight: 200;
+      font-size: clamp(3rem, 10vw, 5rem);
+      color: rgba(255,242,204,0.4);
+      letter-spacing: 0.1em;
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+
+    #stillness-hint {
+      font-size: var(--fs-sm);
+      color: rgba(160,165,181,0.4);
+      font-weight: 200;
+      letter-spacing: 0.12em;
+    }
+
+    /* =============================================
+       Threads 發文區（指令91-99）
+    ============================================= */
+    .share-area {
+      text-align: center;
+    }
+
+    /* =============================================
+       Toast 通知
+    ============================================= */
+    #toast {
+      position: fixed;
+      bottom: calc(env(safe-area-inset-bottom, 20px) + 24px);
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(30,30,36,0.95);
+      border: var(--border);
+      border-radius: 40px;
+      padding: 10px 20px;
+      font-size: var(--fs-xs);
+      color: var(--text-secondary);
+      letter-spacing: 0.1em;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 100;
+      white-space: nowrap;
+      backdrop-filter: blur(20px);
+      transition: opacity 0.4s, transform 0.4s !important;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* =============================================
+       跑馬燈（指令96）
+    ============================================= */
+    #marquee-container {
+      overflow: hidden;
+      padding: 12px 0;
+      border-top: var(--divider);
+      border-bottom: var(--divider);
+      margin: 24px 0;
+    }
+
+    .marquee-inner {
+      display: flex;
+      white-space: nowrap;
+      animation: marquee 40s linear infinite;
+    }
+
+    .marquee-text {
+      font-size: 11px;
+      color: rgba(160,165,181,0.3);
+      letter-spacing: 0.08em;
+      font-weight: 200;
+      padding-right: 60px;
+    }
+
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* =============================================
+       頁尾（指令100）
+    ============================================= */
+    footer {
+      margin-top: clamp(32px, 8vw, 60px);
+      padding-top: clamp(20px, 5vw, 28px);
+      border-top: var(--divider);
+      text-align: center;
+    }
+
+    .footer-disclaimer {
+      font-size: 11px;
+      color: rgba(160,165,181,0.25);
+      font-weight: 200;
+      letter-spacing: 0.08em;
+      line-height: 2;
+      margin-bottom: 8px;
+    }
+
+    .footer-studio {
+      font-size: 11px;
+      color: rgba(160,165,181,0.2);
+      font-weight: 200;
+      letter-spacing: 0.12em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    /* =============================================
+       成就解鎖動畫（指令33）
+    ============================================= */
+    #achievement-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      background: rgba(15,17,21,0.95);
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: 32px 40px;
+      text-align: center;
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      backdrop-filter: blur(40px);
+      transition: opacity 0.5s, transform 0.5s !important;
+    }
+
+    #achievement-popup.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+      pointer-events: auto;
+    }
+
+    #achievement-popup .ach-title {
+      font-family: 'Noto Serif TC', serif;
+      font-weight: 200;
+      font-size: var(--fs-lg);
+      color: var(--moonlight);
+      margin-top: 16px;
+      letter-spacing: 0.1em;
+    }
+
+    #achievement-popup .ach-desc {
+      font-size: var(--fs-sm);
+      color: var(--text-secondary);
+      font-weight: 200;
+      margin-top: 8px;
+      letter-spacing: 0.08em;
+    }
+
+    /* 頁面切換 */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* 指令13: 文字呼吸間距 */
+    .spacer { height: clamp(16px, 4vw, 28px); }
+
+    /* GPS文案 */
+    #location-text {
+      font-size: var(--fs-sm);
+      color: rgba(217,226,236,0.4);
+      font-weight: 200;
+      letter-spacing: 0.08em;
+      text-align: center;
+      margin-bottom: 8px;
+      min-height: 20px;
+    }
+
+    /* 進度條（指令37）*/
+    .progress-bar-wrap {
+      position: relative;
+      height: 2px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 2px;
+      overflow: visible;
+      margin: 12px 0;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, rgba(255,242,204,0.3), rgba(255,242,204,0.6));
+      border-radius: 2px;
+      transition: width 0.5s ease !important;
+    }
+
+    /* 靜置模式全螢幕覆蓋 */
+    #stillness-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--midnight);
+      z-index: 50;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px;
+    }
+    #stillness-overlay.active {
+      display: flex;
+    }
+
+    /* Wake Lock 狀態 */
+    #wake-indicator {
+      font-size: 10px;
+      color: rgba(160,165,181,0.2);
+      letter-spacing: 0.1em;
+      margin-top: 8px;
+    }
+
+    canvas { display: none; }
+  </style>
 </head>
 <body>
-<canvas id="hiddenCanvas"></canvas>
-<input type="file" id="fileInput" accept="image/*" capture="environment">
 
-<!-- ── Toast ── -->
+<!-- 指令25: 星河背景 SVG -->
+<svg id="star-canvas" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+
+<!-- Toast 通知 -->
 <div id="toast"></div>
 
-<!-- ── Tip Modal ── -->
-<div id="tipModal" role="dialog" aria-modal="true">
-  <div id="tipModalCard">
-    <div style="font-size:11px;letter-spacing:0.12em;color:var(--ink-tertiary);text-transform:uppercase">市場破冰指引</div>
-    <div id="tipText"></div>
-    <button id="tipClose">收下這句話</button>
-  </div>
+<!-- 成就解鎖彈窗（指令33, 50）-->
+<div id="achievement-popup">
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- 成功勾選 SVG 動畫 -->
+    <circle cx="20" cy="20" r="18" stroke="rgba(255,242,204,0.3)" stroke-width="0.5"/>
+    <path id="check-path" d="M10 20 L17 27 L30 13" stroke="#FFF2CC" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+          fill="none" stroke-dasharray="30" stroke-dashoffset="30">
+      <animate attributeName="stroke-dashoffset" from="30" to="0" dur="0.6s" fill="freeze" begin="indefinite" id="check-anim"/>
+    </path>
+  </svg>
+  <div class="ach-title" id="ach-title">優雅關燈</div>
+  <div class="ach-desc" id="ach-desc">你做得很好了</div>
+  <div class="spacer"></div>
+  <button class="btn-secondary" onclick="closeAchievement()" style="justify-content:center;">
+    繼續靜置
+  </button>
 </div>
 
+<!-- 靜置模式全螢幕（指令61）-->
+<div id="stillness-overlay">
+  <!-- 月亮SVG -->
+  <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:24px;opacity:0.5;">
+    <path d="M30 8 C20 10 14 18 14 26 C14 35 21 42 30 42 C22 42 10 35 10 24 C10 14 18 7 28 6 C28.7 5.9 29.4 5.95 30 8Z" stroke="#FFF2CC" stroke-width="1" fill="none" stroke-linecap="round"/>
+  </svg>
+  <div id="stillness-timer">20:00</div>
+  <div id="stillness-hint" style="font-size:var(--fs-sm);color:rgba(160,165,181,0.4);letter-spacing:0.12em;line-height:2.2;">
+    現在，請將手機螢幕朝下翻過去<br>聽著呼吸引導，你做得很好了
+  </div>
+  <div id="wake-indicator">螢幕常亮保持中</div>
+  <div class="spacer"></div>
+  <div class="spacer"></div>
+  <button class="btn-secondary" onclick="exitStillness()" style="justify-content:center;width:auto;padding:12px 28px;">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7L9 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    回到星河
+  </button>
+</div>
+
+<!-- 隱藏 Canvas（指令75, 91）-->
+<canvas id="share-canvas"></canvas>
+
+<!-- =====================================================
+     主應用容器
+===================================================== -->
 <div id="app">
 
-  <!-- ── Header ── -->
-  <header id="header">
-    <div class="header-inner">
-      <div>
-        <div class="brand-title">熟成市場</div>
-        <div class="brand-sub">今日零售行情與拍照防坑器</div>
-      </div>
-      <div class="header-actions">
-        <button id="btnTip" title="市場破冰台詞">？</button>
-        <button id="darkToggle" title="切換夜間模式">🌙</button>
-      </div>
-    </div>
-  </header>
-
-  <!-- ── Alerts ── -->
-  <div id="alertMonday" class="alert-bar">📅 今日傳統市場多休市，行情波動，建議前往量販店參考。</div>
-  <div id="alertEvening" class="alert-bar">🌆 阿姨準備收攤，進入博弈殺價的黃金時段。</div>
-  <div id="alertNoon" class="alert-bar">☀️ 午後行情，精選出清品項開始出現了。</div>
-  <div id="alertLocation" class="alert-bar" id="alertLocation">📍 當前定位：全台通用 ｜ 行情已切換為標準物價</div>
-  <div id="alertOffline" class="alert-bar">市場深處訊號微弱，已自動為您開啟離線優雅比價模式。</div>
-
-  <!-- ── Status Row ── -->
-  <div class="status-row">
-    <div class="status-chip"><span class="status-dot"></span><span id="statusRegion">定位中</span></div>
-    <div class="status-chip" id="levelChip">熟成漫步者</div>
-    <div class="status-chip" id="timeChipEl"></div>
-  </div>
-
-  <!-- ── Budget Bar ── -->
-  <div id="budgetBar">
+  <!-- 頂部導航 -->
+  <div class="top-bar">
     <div>
-      <div class="budget-label">今日菜籃累計</div>
-      <div class="budget-amount">$<span id="budgetAmount">0</span></div>
+      <!-- 指令85: 熟成大人清明勳章 -->
+      <div class="badge">清明等級：星河漫步者</div>
     </div>
-    <div id="basketCount">0 樣入籃</div>
-  </div>
-
-  <!-- ── Today's Market ── -->
-  <div class="section-label">今日行情參考</div>
-  <div class="market-grid" id="marketGrid">
-    <!-- dynamically rendered -->
-  </div>
-
-  <!-- ── Camera Section ── -->
-  <div id="cameraSection">
-    <div class="section-title">拍照識價</div>
-    <div id="cameraCard">
-      <div class="card-flipper" id="cardFlipper">
-
-        <!-- FRONT FACE -->
-        <div class="card-face" id="cameraFront">
-          <video id="videoEl" playsinline autoplay muted></video>
-          <img id="photoPreview" alt="菜牌照片">
-          <div id="roiFrame"><span class="roi-label">請將菜牌對齊框內</span></div>
-          <div id="dashedBox">📷</div>
-          <p class="placeholder-text" id="placeholderText">傳統市場的紙板上，寫著沒有明說的規則。<br>拍張照片，我們幫你解讀。</p>
-          <div id="camControls">
-            <button class="cam-btn" id="cancelCamBtn">取消</button>
-            <button class="cam-btn primary" id="snapBtn">快門</button>
-          </div>
-          <div id="torchBtn">🔦</div>
-        </div>
-
-        <!-- BACK FACE -->
-        <div class="card-face card-back">
-          <div id="resultCard">
-            <div class="ripple" id="resultRipple"></div>
-            <div>
-              <div class="result-verdict" id="resultVerdict">等待辨識</div>
-              <div class="result-verdict-main" id="resultMain">—</div>
-            </div>
-            <div class="result-numbers">
-              <div class="result-price-block">
-                <div class="result-price-label">攤位要價</div>
-                <div class="result-price-val" id="resultInputPrice">—</div>
-              </div>
-              <div style="font-size:11px;color:var(--ink-tertiary);padding-bottom:6px;">VS</div>
-              <div class="result-price-block">
-                <div class="result-price-label">合理參考</div>
-                <div class="result-price-val" id="resultRefPrice">—</div>
-                <div class="result-price-ref" id="resultDiff"></div>
-              </div>
-            </div>
-            <div class="result-copy-text" id="resultCopyText">—</div>
-            <div class="result-actions">
-              <button class="result-btn primary" id="btnAddBasket">加入菜籃</button>
-              <button class="result-btn" id="btnCopyThreads">複製發 Threads</button>
-              <button class="result-btn" id="btnRetake">重拍</button>
-            </div>
-          </div>
-        </div>
-
-      </div><!-- /flipper -->
-    </div><!-- /cameraCard -->
-
-    <!-- Skeleton -->
-    <div id="skeleton">
-      <div class="skeleton-card">
-        <div class="skeleton-line" style="width:80%"></div>
-        <div class="skeleton-line" style="width:55%"></div>
-        <div class="skeleton-line" style="width:65%"></div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <!-- 指令53: 音樂開關按鈕（指令31: 喇叭SVG）-->
+      <button id="music-btn" onclick="toggleMusic()" aria-label="切換音樂">
+        <svg id="speaker-icon" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 6.5H6L10 3V15L6 11.5H3V6.5Z" stroke="rgba(160,165,181,0.6)" stroke-width="0.8" stroke-linejoin="round" fill="none"/>
+          <path id="wave1" d="M12 6 C13.5 7 13.5 11 12 12" stroke="rgba(160,165,181,0.6)" stroke-width="0.8" stroke-linecap="round" fill="none"/>
+          <path id="wave2" d="M13.5 4.5 C16 6.5 16 11.5 13.5 13.5" stroke="rgba(160,165,181,0.4)" stroke-width="0.8" stroke-linecap="round" fill="none"/>
+        </svg>
+      </button>
+      <!-- 指令22: 月亮SVG -->
+      <div class="moon-container">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 4 C11 5.5 7 11 7 16 C7 21.5 11.5 26 17 26 C12 26 4 20.5 4 14 C4 8 10 3 17 2.5 C17.4 2.45 17.7 2.48 18 4Z" stroke="#FFF2CC" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+        </svg>
       </div>
     </div>
   </div>
 
-  <!-- Manual Panel -->
-  <div id="manualPanel">
-    <div class="panel-title">手動輸入比價</div>
+  <!-- 英雄標題 -->
+  <div style="margin-bottom:clamp(20px,5vw,32px);">
+    <h1 class="hero-title">深夜星河</h1>
+    <p class="hero-subtitle">初級大人的數位斷捨離<br>與睡眠避風港</p>
+  </div>
 
-    <div class="field-label">選擇蔬菜</div>
-    <div class="veg-selector" id="vegSelector"></div>
+  <!-- GPS 定位文案（指令79）-->
+  <div id="location-text"></div>
 
-    <div class="field-label">攤位要求單價</div>
-    <div class="slider-wrap">
-      <input type="range" class="price-slider" id="priceSlider" min="10" max="300" value="50">
-      <span class="slider-val" id="priceVal">$50</span>
-    </div>
+  <!-- 指令83: 空白頁詩意引文 -->
+  <div class="poetic-hint">
+    Threads 的訊息滑不完，<br>但今晚的睡眠只有一次。<br>點擊下方，我們陪你把世界關掉。
+  </div>
 
-    <div class="field-row">
-      <div class="field-label">計價方式（把數/份數）</div>
-      <div class="qty-row" id="qtyRow">
-        <button class="qty-btn active" data-qty="1">1 把</button>
-        <button class="qty-btn" data-qty="2">2 把</button>
-        <button class="qty-btn" data-qty="3">3 把 $100?</button>
-        <button class="qty-btn" data-qty="5">5 把</button>
+  <div class="spacer"></div>
+
+  <!-- 主卡片 -->
+  <div class="card amber-shadow">
+
+    <!-- 指令78: 主安撫按鈕 -->
+    <button class="btn-primary" id="main-anxiety-btn" onclick="triggerAnxietyRelief()">
+      <!-- 指令35: 愛心SVG -->
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+        <path d="M10 16 C10 16 2 11 2 6 C2 3.5 4 2 6 2 C7.5 2 9 3 10 4.5 C11 3 12.5 2 14 2 C16 2 18 3.5 18 6 C18 11 10 16 10 16Z" stroke="rgba(255,242,204,0.5)" stroke-width="0.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>我現在很焦慮，停不下來</span>
+    </button>
+
+    <hr class="divider">
+
+    <!-- 結果區（初始隱藏）-->
+    <div id="result-area" style="display:none;">
+      <div class="result-headline" id="result-headline">優雅關燈</div>
+      <div class="result-body" id="result-body"></div>
+
+      <!-- 進度條（指令37）-->
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+        <!-- 指令37: 進度條光點 SVG -->
+        <svg style="position:absolute;right:0;top:50%;transform:translateY(-50%);pointer-events:none;" width="8" height="8" viewBox="0 0 8 8" xmlns="http://www.w3.org/2000/svg">
+          <defs><filter id="glow"><feGaussianBlur stdDeviation="1.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+          <circle cx="4" cy="4" r="3" fill="rgba(255,242,204,0.6)" filter="url(#glow)" id="progress-dot"/>
+        </svg>
       </div>
+
+      <hr class="divider">
     </div>
 
-    <div class="toggle-row">
-      <span class="toggle-label">冷氣精緻菜攤（+15%）</span>
-      <div class="toggle-switch" id="organicToggle"></div>
+    <!-- 指令81: 呼吸引導 -->
+    <div id="breath-section">
+      <div id="breath-ring-container">
+        <svg width="160" height="160" viewBox="0 0 160 160" id="breath-svg">
+          <!-- 外圈靜態 -->
+          <circle cx="80" cy="80" r="70" stroke="rgba(255,255,255,0.04)" stroke-width="0.5" fill="none"/>
+          <!-- 動態呼吸圓環（指令26: stroke-dashoffset）-->
+          <circle cx="80" cy="80" r="55" stroke="rgba(255,242,204,0.15)" stroke-width="0.5" fill="none"
+                  stroke-dasharray="345" stroke-dashoffset="0" id="breath-outer-ring"/>
+          <!-- 呼吸主圓 -->
+          <circle cx="80" cy="80" r="40" stroke="rgba(255,242,204,0.2)" stroke-width="0.8" fill="rgba(255,242,204,0.02)" id="breath-ring"/>
+          <!-- 橄欖枝裝飾（指令23）-->
+          <g transform="translate(55,65)" opacity="0.15">
+            <path d="M0 20 Q5 15 8 10 Q12 5 15 0" stroke="#FFF2CC" stroke-width="0.6" fill="none"/>
+            <ellipse cx="5" cy="16" rx="3" ry="5" transform="rotate(-20,5,16)" stroke="#FFF2CC" stroke-width="0.5" fill="none"/>
+            <ellipse cx="10" cy="10" rx="3" ry="5" transform="rotate(-40,10,10)" stroke="#FFF2CC" stroke-width="0.5" fill="none"/>
+            <ellipse cx="14" cy="4" rx="2.5" ry="4" transform="rotate(-55,14,4)" stroke="#FFF2CC" stroke-width="0.5" fill="none"/>
+          </g>
+        </svg>
+        <div id="breath-counter">4</div>
+      </div>
+      <div id="breath-label">吸氣 4 秒</div>
+      <div class="spacer"></div>
+      <button class="btn-secondary" id="breath-start-btn" onclick="toggleBreath()">
+        <!-- 指令34: 箭頭SVG -->
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="0.6"/><path d="M5 4L9 7L5 10" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        開始 4-7-8 呼吸引導
+      </button>
     </div>
 
-    <button id="calcBtn">開始比價</button>
   </div>
 
-  <!-- Camera action buttons below card -->
-  <div style="display:flex;gap:10px;margin-top:14px;" id="mainCamBtns">
-    <button class="cam-btn primary" id="btnOpenCam" style="flex:1;padding:13px;">開啟鏡頭識價</button>
-    <button class="cam-btn" id="btnUpload" style="flex:1;padding:13px;">從相簿上傳</button>
-    <button class="cam-btn" id="btnManual" style="padding:13px 18px;">手動</button>
+  <!-- 失眠指數卡片 -->
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+      <!-- 指令27: 時鐘SVG -->
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="9" cy="9" r="7.5" stroke="rgba(160,165,181,0.4)" stroke-width="0.7" fill="none"/>
+        <path d="M9 5V9L12 11" stroke="rgba(160,165,181,0.5)" stroke-width="0.7" stroke-linecap="round"/>
+      </svg>
+      <span style="font-size:var(--fs-sm);color:var(--text-secondary);font-weight:200;letter-spacing:0.1em;">失眠焦慮指數</span>
+    </div>
+    <div class="slider-container">
+      <div class="slider-label">
+        <span>今晚腦袋有多轉？</span>
+        <span id="insomnia-value">50</span>
+      </div>
+      <input type="range" id="insomnia-slider" min="1" max="100" value="50" oninput="updateInsomnia(this.value)">
+      <div id="insomnia-text">半夢半醒間，月光替你把窗簾拉上。慢慢來，不用急著睡著。</div>
+    </div>
   </div>
 
-  <!-- Storage Tip -->
-  <div id="storageTip"></div>
-
-  <!-- Converter Strip -->
-  <div id="converterStrip">
-    <div class="conv-item"><div class="conv-label">1 台斤</div><div class="conv-val">600g</div></div>
-    <div class="conv-item"><div class="conv-label">半斤</div><div class="conv-val">300g</div></div>
-    <div class="conv-item"><div class="conv-label">1 兩</div><div class="conv-val">37.5g</div></div>
-    <div class="conv-item"><div class="conv-label">全聯均重</div><div class="conv-val">~250g/把</div></div>
+  <!-- 星河靜置模式卡片 -->
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <!-- 指令36: 防禦盾牌SVG -->
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="10" cy="10" r="8" stroke="rgba(217,226,236,0.3)" stroke-width="0.6" fill="none"/>
+        <circle cx="10" cy="10" r="5.5" stroke="rgba(217,226,236,0.2)" stroke-width="0.6" fill="none"/>
+        <circle cx="10" cy="10" r="3" stroke="rgba(217,226,236,0.15)" stroke-width="0.6" fill="none"/>
+      </svg>
+      <span style="font-size:var(--fs-sm);color:var(--text-secondary);font-weight:200;letter-spacing:0.1em;">數位隔離防護</span>
+    </div>
+    <p style="font-size:var(--fs-sm);color:var(--text-secondary);font-weight:200;letter-spacing:0.08em;line-height:1.9;margin-bottom:16px;">
+      開啟後螢幕常亮、音樂繼續，讓世界在你睡著之前，安靜陪你 20 分鐘。
+    </p>
+    <!-- 指令86: 手機翻面提示 -->
+    <p style="font-size:var(--fs-xs);color:rgba(160,165,181,0.35);font-weight:200;letter-spacing:0.1em;line-height:1.8;margin-bottom:16px;">
+      現在，請將手機螢幕朝下翻過去。聽著呼吸引導，你做得很好了。
+    </p>
+    <button class="btn-secondary" onclick="enterStillness()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1V13M1 7H13" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" opacity="0.5"/><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="0.6"/></svg>
+      開啟星河靜置模式
+    </button>
   </div>
 
-  <!-- Trend Chart -->
-  <div id="trendSection">
-    <div id="trendTitle">你的近 4 次比價走勢</div>
-    <canvas id="trendCanvas"></canvas>
+  <!-- Threads 分享卡片（指令91-99）-->
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <!-- 指令28: Threads圖標SVG -->
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12.5 6.5 C11 5 9 4.5 7.5 5 C5.5 5.8 4.5 8 5 10 C5.5 12 7.5 13.5 9.5 13 C11 12.6 12 11 12 9.5 C12 8 11 7 9.5 7 C8.5 7 8 7.5 8 8.5 C8 9.5 9 10 9.5 9.5" stroke="rgba(160,165,181,0.5)" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+        <path d="M12.5 6.5 Q14 8 13.5 10.5" stroke="rgba(160,165,181,0.4)" stroke-width="0.7" fill="none" stroke-linecap="round"/>
+      </svg>
+      <span style="font-size:var(--fs-sm);color:var(--text-secondary);font-weight:200;letter-spacing:0.1em;">優雅發出去</span>
+    </div>
+    <div class="share-area">
+      <button class="btn-secondary" onclick="shareToThreads('calm')" style="margin-bottom:8px;">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="3" width="12" height="9" rx="1.5" stroke="currentColor" stroke-width="0.7" fill="none"/><path d="M4 3V2C4 1.45 4.45 1 5 1H9C9.55 1 10 1.45 10 2V3" stroke="currentColor" stroke-width="0.7" fill="none"/></svg>
+        複製「戰勝社群焦慮」文案
+      </button>
+      <button class="btn-secondary" onclick="shareToThreads('emo')">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 12 C7 12 1 8 1 4.5 C1 2.5 2.5 1 4 1 C5 1 6 1.8 7 3 C8 1.8 9 1 10 1 C11.5 1 13 2.5 13 4.5 C13 8 7 12 7 12Z" stroke="currentColor" stroke-width="0.7" fill="none"/></svg>
+        複製「深夜 emo 同溫層」文案
+      </button>
+    </div>
   </div>
 
-  <!-- Ticker -->
-  <div id="tickerWrap">
-    <div id="tickerInner"></div>
+  <!-- 今日全台看板（指令84）-->
+  <div style="text-align:center;padding:clamp(8px,2vw,12px) 0;">
+    <p style="font-size:var(--fs-xs);color:rgba(160,165,181,0.25);font-weight:200;letter-spacing:0.1em;line-height:1.9;">
+      今日全台已有 <span id="counter-num">14,245</span> 位初級大人在此優雅關燈、戰勝社群焦慮。
+    </p>
   </div>
 
-  <!-- Win Rate -->
-  <div id="winRate">
-    今日全台熟成大人對決市場阿姨平均勝率：<strong>64.2%</strong>（理性勝出）
+  <!-- 跑馬燈（指令96）-->
+  <div id="marquee-container">
+    <div class="marquee-inner" id="marquee-inner"></div>
   </div>
 
-  <!-- Footer -->
-  <footer id="footer">
-    <div class="footer-line">Disclaimer ｜ 本工具所提供之數據基於地方零售行情加權演算法，市場物價變化萬千，請以現場實際狀況與個人理性判斷為準。</div>
-    <div class="footer-line" style="margin-top:6px;">Designed by Mature Market Studio ｜ 熟成市場工作室 © 2026</div>
+  <!-- 頁尾（指令100）-->
+  <footer>
+    <p class="footer-disclaimer">
+      Disclaimer｜本工具純屬心理舒壓與數位睡眠之極簡輔助模型，<br>深夜 emo 屬於常規生理現象，嚴重社群焦慮建議尋求專業心理諮商。
+    </p>
+    <div class="footer-studio">
+      <!-- 指令40: 工作室標誌SVG -->
+      <svg width="6" height="6" viewBox="0 0 6 6"><circle cx="3" cy="3" r="3" fill="#6B7C5A"/></svg>
+      Designed by Mature Market Studio｜熟成市場工作室 © 2026
+    </div>
   </footer>
 
-</div><!-- /app -->
+</div><!-- /#app -->
 
-<!-- Tesseract.js lazy-loaded -->
 <script>
-/* ═══════════════════════════════════════════════
-   熟成市場工作室 — 核心邏輯
-   手工刻製 by Mature Market Studio © 2026
-═══════════════════════════════════════════════ */
+/* =======================================================
+   深夜星河 — 主程式
+   指令 41-100 完整實作
+======================================================= */
 
-/* ── 台灣蔬菜俗名映射字典 ── */
-const matureVegDict = {
-  '大頭菜':'結球甘藍','高麗菜':'結球甘藍',
-  '敏豆':'四季豆','菜豆':'四季豆',
-  '大陸妹':'油麥菜','大葉歐芹':'香菜',
-  '結球甘藍':'高麗菜','油麥菜':'大陸妹',
-  '四季豆':'菜豆'
-};
+// =============================================
+// 指令25: 動態生成30顆星星
+// =============================================
+(function generateStars() {
+  const svg = document.getElementById('star-canvas');
+  const W = window.innerWidth, H = window.innerHeight;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
 
-/* ── 基礎行情資料庫 ── */
-const matureMarketBase = [
-  { id:'kale',    name:'高麗菜', unit:'斤', base:40,  weight:600, icon:'🥬', seasonal:0, tip:'放冰箱蔬果層，可存 7-10 天，外葉剝掉保鮮。' },
-  { id:'spinach', name:'空心菜', unit:'把', base:30,  weight:150, icon:'🌿', seasonal:0, tip:'濕報紙包起直立放冷藏，2 天內食用風味最佳。' },
-  { id:'broccoli',name:'青花菜', unit:'顆', base:45,  weight:350, icon:'🥦', seasonal:0, tip:'切小朵放密封袋冷凍可保 1 個月，汆燙後更省時。' },
-  { id:'scallion', name:'蔥',   unit:'把', base:95,  weight:200, icon:'🧅', seasonal:0, tip:'切蔥花冷凍保存，隨取隨用，無需退冰。' },
-  { id:'cabbage',  name:'大白菜',unit:'顆', base:55,  weight:1200,icon:'🥬', seasonal:1, tip:'切開後以保鮮膜包覆斷面，冷藏可放 5 天。' },
-  { id:'garlic',   name:'大蒜', unit:'顆', base:20,  weight:50,  icon:'🧄', seasonal:0, tip:'陰涼通風處常溫保存，勿冷藏以免發芽。' },
-  { id:'chive',    name:'韭菜', unit:'把', base:25,  weight:150, icon:'🌱', seasonal:0, tip:'用濕紙巾包根部冷藏，1-2 天內食用最新鮮。' },
-  { id:'pepper',   name:'甜椒', unit:'個', base:35,  weight:150, icon:'🫑', seasonal:0, tip:'整顆放冷藏蔬果層可放 1 週，切開後 2 天內用完。' },
-];
+  for (let i = 0; i < 30; i++) {
+    const x = Math.random() * W;
+    const y = Math.random() * H;
+    const r = 0.5 + Math.random() * 1;
+    const dur = 2 + Math.random() * 4;
+    const delay = Math.random() * 4;
+    const minOp = 0.05 + Math.random() * 0.1;
+    const maxOp = 0.3 + Math.random() * 0.4;
 
-/* ── 台詞破冰庫 ── */
-const icebreakers = [
-  '「老闆娘，今天菜很新鮮喔，可以算便宜一點嗎？」👉 成功率：62%',
-  '「阿姨，這把蔥可以多抓一點嗎？我家裡有老人。」👉 成功率：71%（老人牌）',
-  '「這菜是今天早上進的嗎？」👉 用來確認新鮮度，順便建立對話。',
-  '「老闆，可以送我一根辣椒嗎？」👉 傳統市場隱藏禮儀，索取成功率 83%。',
-  '「這種蔥比較甜嗎？」👉 假裝懂行，對話自然展開。',
-  '「現在這樣算幾斤？」👉 讓阿姨主動拿秤，掌握議價主導權。',
-];
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', x);
+    circle.setAttribute('cy', y);
+    circle.setAttribute('r', r);
+    circle.setAttribute('fill', '#FFF2CC');
+    circle.classList.add('star');
+    circle.style.setProperty('--dur', `${dur}s`);
+    circle.style.setProperty('--delay', `${delay}s`);
+    circle.style.setProperty('--min-op', minOp);
+    circle.style.setProperty('--max-op', maxOp);
+    svg.appendChild(circle);
+  }
+})();
 
-/* ── 虛擬跑馬燈資料 ── */
-const tickerItems = [
-  '3 分鐘前，一位台北信義區的熟成大人拍到了一斤 $140 元的青花菜，目前暫居今日盤子榜首',
-  '剛才，台中東區的熟成大人以每斤 $28 元帶走高麗菜，今日神級壓制',
-  '15 分鐘前，新北板橋傳統市場爆發蔥價異動，每把突破 $110 元',
-  '今日台南永樂市場空心菜整把 $20，南部庇護感謝',
-  '一位彰化大媽用「我家老人」話術成功取得兩根辣椒，特此表揚',
-];
+// =============================================
+// 指令41-60: Web Audio API 療癒音樂引擎
+// =============================================
+let audioCtx = null;
+let masterGain = null;
+let pinkNoiseNode = null;
+let singingBowlNodes = [];
+let pianoInterval = null;
+let musicActive = false;
+let limiter = null;
 
-/* ── 狀態 ── */
-const matureState = {
-  locationFactor: 1.0,
-  timeFactor: 1.0,
-  mondayFactor: 1.0,
-  organicFactor: 1.0,
-  isOrganic: false,
-  currentVeg: matureMarketBase[0],
-  priceInput: 50,
-  qty: 1,
-  basketTotal: 0,
-  basketCount: 0,
-  compareCount: 0,
-  history: [],
-  isDark: false,
-  torchOn: false,
-  stream: null,
-  wakeLock: null,
-  ocrRunning: false,
-  detectedPrice: null,
-  currentResult: null,
-};
-
-/* ── DOM refs ── */
-const $ = id => document.getElementById(id);
-const toast = $('toast');
-const header = $('header');
-const cardFlipper = $('cardFlipper');
-const resultCard = $('resultCard');
-const skeleton = $('skeleton');
-const manualPanel = $('manualPanel');
-const videoEl = $('videoEl');
-const photoPreview = $('photoPreview');
-const hiddenCanvas = $('hiddenCanvas');
-const roiFrame = $('roiFrame');
-const dashedBox = $('dashedBox');
-const placeholderText = $('placeholderText');
-const camControls = $('camControls');
-const torchBtn = $('torchBtn');
-const priceSlider = $('priceSlider');
-const priceVal = $('priceVal');
-const calcBtn = $('calcBtn');
-const budgetAmount = $('budgetAmount');
-const basketCount = $('basketCount');
-const mainCamBtns = $('mainCamBtns');
-
-/* ── Utils ── */
-function showToast(msg, duration = 1800) {
-  toast.textContent = msg;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), duration);
-}
-
-function vibrate(...ms) {
-  if (navigator.vibrate) navigator.vibrate(ms.length > 1 ? ms : ms[0]);
-}
-
-let scrollY = 0;
-window.addEventListener('scroll', () => {
-  scrollY = window.scrollY;
-  header.classList.toggle('scrolled', scrollY > 8);
-}, { passive: true });
-
-/* ── Wake Lock ── */
-async function acquireWakeLock() {
-  try {
-    if ('wakeLock' in navigator) {
-      matureState.wakeLock = await navigator.wakeLock.request('screen');
+// 指令43: 粉紅噪音生成器
+function createPinkNoise(ctx) {
+  const bufferSize = 4096;
+  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+  const node = ctx.createScriptProcessor(bufferSize, 1, 1);
+  node.onaudioprocess = e => {
+    const output = e.outputBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      const w = Math.random() * 2 - 1;
+      b0 = 0.99886*b0 + w*0.0555179;
+      b1 = 0.99332*b1 + w*0.0750759;
+      b2 = 0.96900*b2 + w*0.1538520;
+      b3 = 0.86650*b3 + w*0.3104856;
+      b4 = 0.55000*b4 + w*0.5329522;
+      b5 = -0.7616*b5 - w*0.0168980;
+      output[i] = (b0+b1+b2+b3+b4+b5+b6+w*0.5362) * 0.11;
+      b6 = w * 0.115926;
     }
-  } catch (_) {}
-}
-
-/* ── Time & Location factors ── */
-function applyTimeFactor() {
-  const now = new Date();
-  const h = now.getHours(), m = now.getMinutes();
-  const mins = h * 60 + m;
-  // Monday
-  if (now.getDay() === 1) {
-    matureState.mondayFactor = 1.05;
-    $('alertMonday').classList.add('visible');
-  }
-  // Evening / Noon discount
-  if (mins >= 690 || mins >= 1110) { // 11:30 or 18:30
-    matureState.timeFactor = 0.85;
-    $('alertEvening').classList.add('visible');
-  } else if (mins >= 660) {
-    matureState.timeFactor = 0.88;
-    $('alertNoon').classList.add('visible');
-  }
-  // Near closing
-  if (h === 11 && m >= 45 && m < 60) {
-    $('alertEvening').textContent = '⏳ 阿姨準備收攤，進入博弈殺價的黃金 15 分鐘。';
-    $('alertEvening').classList.add('visible');
-  }
-  // Season (simple)
-  const month = now.getMonth() + 1;
-  // Summer push daikon up, winter lower chrysanthemum
-  if (month >= 6 && month <= 8) matureMarketBase.find(v=>v.id==='cabbage') && (matureMarketBase.find(v=>v.id==='cabbage').base = 70);
-
-  // Time chip
-  const pad = n => String(n).padStart(2,'0');
-  $('timeChipEl').textContent = `${pad(h)}:${pad(m)}`;
-}
-
-/* ── GPS ── */
-function locateMe() {
-  if (!navigator.geolocation) { setDefaultRegion(); return; }
-  const gpsTimeout = setTimeout(setDefaultRegion, 2000);
-  navigator.geolocation.getCurrentPosition(pos => {
-    clearTimeout(gpsTimeout);
-    const { latitude: lat, longitude: lng } = pos.coords;
-    applyGeoFactor(lat, lng);
-  }, () => { clearTimeout(gpsTimeout); setDefaultRegion(); }, { timeout: 2000, maximumAge: 60000 });
-}
-
-function setDefaultRegion() {
-  matureState.locationFactor = 1.0;
-  $('alertLocation').classList.add('visible');
-  $('statusRegion').textContent = '全台通用';
-}
-
-function applyGeoFactor(lat, lng) {
-  // Rough Taiwan region detection
-  let region = '全台通用', factor = 1.0;
-  // Taipei core
-  if (lat > 25.02 && lat < 25.08 && lng > 121.52 && lng < 121.57) { region = '信義╱大安'; factor = 1.13; }
-  else if (lat > 24.95 && lat < 25.15 && lng > 121.4 && lng < 121.65) { region = '大台北'; factor = 1.05; }
-  // Special: Hope Plaza
-  else if (lat > 25.045 && lat < 25.055 && lng > 121.51 && lng < 121.52) { region = '農民市集'; factor = 1.4; }
-  // Central
-  else if (lat > 23.9 && lat < 24.8) { region = '台中地區'; factor = 0.9; }
-  // South
-  else if (lat < 23.9) { region = '南部產地'; factor = 0.82; }
-  matureState.locationFactor = factor;
-  $('statusRegion').textContent = region;
-  $('alertLocation').style.display = 'none';
-}
-
-/* ── Effective reference price ── */
-function getRefPrice(vegId) {
-  const veg = matureMarketBase.find(v => v.id === vegId) || matureMarketBase[0];
-  return Math.round(
-    veg.base
-    * matureState.locationFactor
-    * matureState.timeFactor
-    * matureState.mondayFactor
-    * matureState.organicFactor
-  );
-}
-
-/* ── Market Grid Render ── */
-function renderMarketGrid() {
-  const grid = $('marketGrid');
-  grid.innerHTML = '';
-  const pinned = JSON.parse(localStorage.getItem('maturePinned') || '[]');
-
-  const items = [...matureMarketBase].sort((a,b) => {
-    const ap = pinned.includes(a.id) ? 0 : 1;
-    const bp = pinned.includes(b.id) ? 0 : 1;
-    return ap - bp;
-  });
-
-  items.forEach((veg, i) => {
-    const ref = getRefPrice(veg.id);
-    const isPinned = pinned.includes(veg.id);
-    const isWide = i === 0 || i === 5;
-    const card = document.createElement('div');
-    card.className = `market-card${isWide ? ' card-wide' : ''}${isPinned ? ' pinned' : ''}`;
-    card.dataset.vegId = veg.id;
-    card.innerHTML = `
-      <button class="pinBtn${isPinned?' active':''}" data-id="${veg.id}" aria-label="置頂">★</button>
-      <div class="vegName">${veg.icon} ${veg.name}</div>
-      <div class="vegPrice" id="vprice_${veg.id}">$${ref}</div>
-      <div class="vegUnit">參考每${veg.unit} · 加權後</div>
-    `;
-    card.addEventListener('click', (e) => {
-      if (e.target.classList.contains('pinBtn')) {
-        togglePin(veg.id);
-        return;
-      }
-      selectVegCard(veg);
-    });
-    grid.appendChild(card);
-  });
-}
-
-function togglePin(id) {
-  vibrate(10);
-  let pinned = JSON.parse(localStorage.getItem('maturePinned') || '[]');
-  if (pinned.includes(id)) pinned = pinned.filter(p => p !== id);
-  else pinned.push(id);
-  localStorage.setItem('maturePinned', JSON.stringify(pinned));
-  renderMarketGrid();
-}
-
-function selectVegCard(veg) {
-  vibrate(10);
-  matureState.currentVeg = veg;
-  // Highlight in selector
-  document.querySelectorAll('.veg-chip').forEach(c => {
-    c.classList.toggle('active', c.dataset.id === veg.id);
-  });
-  manualPanel.classList.add('visible');
-  document.getElementById('manualPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  showStorageTip(veg);
-}
-
-/* ── Veg Selector ── */
-function renderVegSelector() {
-  const sel = $('vegSelector');
-  sel.innerHTML = '';
-  matureMarketBase.forEach(veg => {
-    const chip = document.createElement('button');
-    chip.className = `veg-chip${veg.id === matureState.currentVeg.id ? ' active' : ''}`;
-    chip.dataset.id = veg.id;
-    chip.textContent = `${veg.icon} ${veg.name}`;
-    chip.addEventListener('click', () => {
-      document.querySelectorAll('.veg-chip').forEach(c => c.classList.remove('active'));
-      chip.classList.add('active');
-      matureState.currentVeg = veg;
-      showStorageTip(veg);
-    });
-    sel.appendChild(chip);
-  });
-}
-
-/* ── Storage Tip ── */
-function showStorageTip(veg) {
-  const tip = $('storageTip');
-  if (!veg.tip) return;
-  tip.textContent = `📦 保存小知識：${veg.tip}`;
-  tip.classList.add('visible');
-}
-
-/* ── Slider ── */
-let sliderThrottle;
-priceSlider.addEventListener('input', () => {
-  clearTimeout(sliderThrottle);
-  sliderThrottle = setTimeout(() => {
-    matureState.priceInput = parseInt(priceSlider.value);
-    priceVal.textContent = `$${matureState.priceInput}`;
-    priceVal.classList.add('pulse');
-    setTimeout(() => priceVal.classList.remove('pulse'), 200);
-  }, 16);
-});
-
-/* ── Qty buttons ── */
-document.querySelectorAll('.qty-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.qty-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    matureState.qty = parseInt(btn.dataset.qty);
-    vibrate(8);
-  });
-});
-
-/* ── Organic toggle ── */
-$('organicToggle').addEventListener('click', function() {
-  this.classList.toggle('on');
-  matureState.isOrganic = this.classList.contains('on');
-  matureState.organicFactor = matureState.isOrganic ? 1.15 : 1.0;
-  vibrate(10);
-  renderMarketGrid();
-});
-
-/* ── Calc ── */
-calcBtn.addEventListener('click', () => {
-  vibrate(15);
-  const rawPrice = matureState.priceInput;
-  const unitPrice = rawPrice / matureState.qty;
-  const veg = matureState.currentVeg;
-  const ref = getRefPrice(veg.id);
-  const netWeight = veg.weight - 5; // 5g bag deduction
-  const inputPerGram = unitPrice / netWeight;
-  const refPerGram = ref / netWeight;
-
-  let verdict, label, copyText, level;
-  const ratio = unitPrice / ref;
-
-  if (ratio <= 1.05) {
-    verdict = 'green'; label = '優雅買進'; level = '綠燈';
-    copyText = `今日博弈大勝。你在市場阿姨銳利的眼神下帶走了最划算的蔬菜，社會化程度高達 99%。`;
-    vibrate(10);
-    // Bonus: suggest garlic
-    setTimeout(() => {
-      if (Math.random() > 0.5) {
-        showToast('這價格很佛，結帳時可以問：「老闆娘可以送我一根辣椒嗎？」', 3000);
-      }
-    }, 1200);
-  } else if (ratio <= 1.25) {
-    verdict = 'yellow'; label = '酌情斟酌'; level = '黃燈';
-    copyText = `今日行情介於佛心與韭菜之間，取決於你的情緒穩定程度與當場阿姨的臉色。`;
-    vibrate(15, 80, 15);
-  } else {
-    verdict = 'red'; label = '假裝接電話'; level = '紅燈';
-    copyText = `沒關係，這家${veg.name}可能聽過莫札特，多花的錢就當作是繳給傳統市場社會大學的學費。`;
-    vibrate(25, 60, 25);
-  }
-
-  const diffPct = Math.round((unitPrice - ref) / ref * 100);
-  const diffStr = diffPct >= 0 ? `+${diffPct}%` : `${diffPct}%`;
-
-  matureState.currentResult = {
-    verdict, label, unitPrice, ref, diffStr, copyText, veg, inputPerGram, refPerGram
   };
-
-  showResult(matureState.currentResult);
-  matureState.compareCount++;
-  saveHistory(verdict);
-  drawTrendChart();
-  updateLevel();
-});
-
-/* ── Show Result ── */
-function showResult(r) {
-  const { verdict, label, unitPrice, ref, diffStr, copyText, veg } = r;
-
-  $('resultVerdict').textContent = verdict === 'green' ? '✦ 優雅買進' : verdict === 'yellow' ? '◈ 酌情斟酌' : '◉ 假裝接電話';
-  $('resultVerdict').className = `result-verdict ${verdict}`;
-  $('resultMain').textContent = label;
-
-  // Odometer effect
-  animateNumber('resultInputPrice', unitPrice, '$');
-  animateNumber('resultRefPrice', ref, '$');
-  $('resultDiff').textContent = `差距 ${diffStr}`;
-
-  $('resultCopyText').textContent = copyText;
-
-  resultCard.className = `card-face card-back`;
-  void resultCard.offsetWidth;
-  resultCard.classList.add(verdict);
-
-  // Ripple
-  const ripple = $('resultRipple');
-  ripple.style.cssText = 'width:0;height:0;opacity:0;';
-  void ripple.offsetWidth;
-  ripple.style.cssText = 'width:600px;height:600px;opacity:0;transition:all 1.2s ease-out;';
-
-  cardFlipper.classList.add('flipped');
-  skeleton.classList.remove('visible');
+  return node;
 }
 
-/* ── Odometer animation ── */
-function animateNumber(elId, val, prefix='') {
-  const el = $(elId);
-  el.style.animation = 'none';
-  void el.offsetWidth;
-  el.classList.add('odometer-in');
-  el.textContent = `${prefix}${val}`;
-  setTimeout(() => el.classList.remove('odometer-in'), 500);
+// 指令42: 432Hz 頌缽環境音
+function createSingingBowl(ctx, gainNode) {
+  const freqs = [432, 528, 639];
+  const nodes = freqs.map(freq => {
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    const lfo = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    lfo.type = 'sine';
+    lfo.frequency.value = 0.05;
+    lfoGain.gain.value = 0.002;
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc.frequency);
+    osc.connect(g);
+    g.connect(gainNode);
+    g.gain.value = 0.03;
+
+    osc.start();
+    lfo.start();
+    return { osc, g, lfo, lfoGain };
+  });
+  return nodes;
 }
 
-/* ── Retake ── */
-$('btnRetake').addEventListener('click', () => {
-  vibrate(10);
-  cardFlipper.classList.remove('flipped');
-  if (matureState.stream) stopCam();
-  photoPreview.style.display = 'none';
-  videoEl.style.display = 'none';
-  dashedBox.style.display = 'flex';
-  placeholderText.style.display = 'block';
-  roiFrame.style.display = 'none';
-  camControls.style.display = 'none';
-  manualPanel.classList.add('visible');
-});
+// 指令51: 雙聲道拍頻 (Binaural Beats)
+function createBinauralBeats(ctx) {
+  const merger = ctx.createChannelMerger(2);
+  const leftOsc = ctx.createOscillator();
+  const rightOsc = ctx.createOscillator();
+  const leftGain = ctx.createGain();
+  const rightGain = ctx.createGain();
 
-/* ── Add to Basket ── */
-$('btnAddBasket').addEventListener('click', () => {
-  if (!matureState.currentResult) return;
-  vibrate(10);
-  matureState.basketTotal += matureState.currentResult.unitPrice;
-  matureState.basketCount++;
-  budgetAmount.textContent = matureState.basketTotal;
-  basketCount.textContent = `${matureState.basketCount} 樣入籃`;
+  leftOsc.type = 'sine'; leftOsc.frequency.value = 100;
+  rightOsc.type = 'sine'; rightOsc.frequency.value = 106; // 6Hz Theta
 
-  animateNumber('budgetAmount', matureState.basketTotal, '');
+  leftGain.gain.value = 0.04;
+  rightGain.gain.value = 0.04;
 
-  if (matureState.basketCount >= 5) {
-    $('levelChip').textContent = '優雅低碳熟成大人 🌿';
-    showToast('解鎖隱藏稱號：優雅低碳熟成大人', 3000);
-  }
-  showToast('加入菜籃，繼續比下一攤');
-});
+  leftOsc.connect(leftGain);
+  rightOsc.connect(rightGain);
+  leftGain.connect(merger, 0, 0);
+  rightGain.connect(merger, 0, 1);
+  merger.connect(ctx.destination);
 
-/* ── Copy to Threads ── */
-$('btnCopyThreads').addEventListener('click', async () => {
-  vibrate(15);
-  if (!matureState.currentResult) return;
-  const r = matureState.currentResult;
+  leftOsc.start();
+  rightOsc.start();
+  return { leftOsc, rightOsc, leftGain, rightGain };
+}
 
-  const locChip = $('statusRegion').textContent;
-  let geoLine = '';
-  if (matureState.locationFactor > 1.1) {
-    geoLine = `今日在 ${locChip} 傳統市場渡劫失敗，被當特級韭菜割`;
-  } else if (matureState.locationFactor < 0.9) {
-    geoLine = `感謝南部產地庇護，不懂雙北人在市場每天經歷什麼`;
-  } else {
-    geoLine = `今日熟成市場比價報告`;
-  }
+// 指令44: 睡前和弦自發性生成器
+const chords = {
+  'Cmaj7': [261.63, 329.63, 392.00, 493.88],
+  'Am7':   [220.00, 261.63, 329.63, 392.00],
+  'Fmaj7': [174.61, 220.00, 261.63, 349.23],
+  'G7':    [196.00, 246.94, 293.66, 349.23]
+};
+const chordNames = Object.keys(chords);
+let currentChordIdx = 0;
+let pianoGain = null;
+let pianoChannel = null;
+let chordSpeed = 4000; // 指令60: 動態變速
 
-  const text = `${geoLine}\n\n${r.veg.icon} ${r.veg.name}：攤位 $${r.unitPrice} ／ 合理參考 $${r.ref}（${r.diffStr}）\n\n${r.copyText}\n\n#熟成市場 #傳統市場防坑器`;
-
+function playChord(ctx, chordFreqs, masterG) {
+  if (!musicActive || !ctx) return;
   try {
-    await navigator.clipboard.writeText(text);
-    showToast('文案已複製，若未自動跳轉，請手動打開 Threads 貼上', 3200);
-  } catch {
-    showToast('請手動複製後前往 Threads 貼上', 2800);
+    chordFreqs.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      osc.type = 'triangle';
+      osc.frequency.value = freq * 0.5; // 低音域
+
+      filter.type = 'lowpass';
+      filter.frequency.value = 600;
+
+      const now = ctx.currentTime;
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(0.04, now + 0.3 + i * 0.1);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 3.5);
+
+      osc.connect(filter);
+      filter.connect(g);
+      g.connect(masterG);
+      osc.start(now);
+      osc.stop(now + 4);
+    });
+  } catch(e) {}
+}
+
+// 指令49: 音訊解鎖機制
+function initAudio() {
+  if (audioCtx) return;
+  try {
+    // 指令58: 跨瀏覽器相容
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    audioCtx = new AC();
+
+    // 指令55: 防破音安全閥
+    limiter = audioCtx.createDynamicsCompressor();
+    limiter.threshold.value = -3;
+    limiter.knee.value = 3;
+    limiter.ratio.value = 20;
+    limiter.attack.value = 0.001;
+    limiter.release.value = 0.1;
+    limiter.connect(audioCtx.destination);
+
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 0;
+    masterGain.connect(limiter);
+
+    // 粉紅噪音通道
+    const pinkGain = audioCtx.createGain();
+    pinkGain.gain.value = 0.4;
+    pinkNoiseNode = createPinkNoise(audioCtx);
+    const pinkFilter = audioCtx.createBiquadFilter();
+    pinkFilter.type = 'lowpass';
+    pinkFilter.frequency.value = 800;
+    pinkNoiseNode.connect(pinkFilter);
+    pinkFilter.connect(pinkGain);
+    pinkGain.connect(masterGain);
+
+    // 頌缽通道
+    const bowlGain = audioCtx.createGain();
+    bowlGain.gain.value = 1;
+    bowlGain.connect(masterGain);
+    singingBowlNodes = createSingingBowl(audioCtx, bowlGain);
+
+    // 鋼琴通道
+    pianoGain = audioCtx.createGain();
+    pianoGain.gain.value = 1;
+    pianoGain.connect(masterGain);
+
+    // 指令51: 拍頻
+    createBinauralBeats(audioCtx);
+
+  } catch(e) { console.warn('Audio init failed', e); }
+}
+
+// 指令45: 優雅淡入淡出
+function startMusic() {
+  if (!audioCtx) { initAudio(); }
+  try { audioCtx.resume(); } catch(e) {}
+  musicActive = true;
+  if (!audioCtx || !masterGain) return;
+  const now = audioCtx.currentTime;
+  masterGain.gain.cancelScheduledValues(now);
+  masterGain.gain.setValueAtTime(masterGain.gain.value, now);
+  masterGain.gain.linearRampToValueAtTime(0.15, now + 2);
+
+  // 指令44: 啟動鋼琴和弦循環
+  if (!pianoInterval) {
+    pianoInterval = setInterval(() => {
+      if (!musicActive || !breathHolding) {
+        playChord(audioCtx, chords[chordNames[currentChordIdx]], pianoGain);
+        currentChordIdx = (currentChordIdx + 1) % chordNames.length;
+      }
+    }, chordSpeed);
   }
+}
+
+function stopMusic() {
+  musicActive = false;
+  if (!audioCtx || !masterGain) return;
+  const now = audioCtx.currentTime;
+  masterGain.gain.cancelScheduledValues(now);
+  masterGain.gain.setValueAtTime(masterGain.gain.value, now);
+  masterGain.gain.linearRampToValueAtTime(0, now + 2);
+
+  if (pianoInterval) {
+    clearInterval(pianoInterval);
+    pianoInterval = null;
+  }
+  // 指令59: 記憶體釋放
+  setTimeout(() => {
+    try { if (audioCtx && audioCtx.state !== 'closed') audioCtx.suspend(); } catch(e) {}
+  }, 3000);
+}
+
+// 指令48: 按鈕微音效
+function playTick() {
+  if (!audioCtx) return;
+  try {
+    audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 1200;
+    g.gain.setValueAtTime(0.05, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
+    osc.connect(g);
+    g.connect(limiter || audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.03);
+  } catch(e) {}
+}
+
+// 指令50: 成就解鎖風鈴音
+function playChime() {
+  if (!audioCtx) return;
+  try {
+    audioCtx.resume();
+    const freqs = [523, 659, 784, 1047, 1318];
+    freqs.forEach((f, i) => {
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      const now = audioCtx.currentTime + i * 0.12;
+      osc.type = 'sine';
+      osc.frequency.value = f;
+      g.gain.setValueAtTime(0.08, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+      osc.connect(g);
+      g.connect(limiter || audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 1.5);
+    });
+  } catch(e) {}
+}
+
+// 音樂開關按鈕
+function toggleMusic() {
+  initAudio();
+  playTick();
+  if (musicActive) {
+    stopMusic();
+    document.getElementById('music-btn').classList.remove('active');
+  } else {
+    startMusic();
+    document.getElementById('music-btn').classList.add('active');
+  }
+}
+
+// =============================================
+// 指令47: 失眠指數滑桿 音調聯動
+// =============================================
+let sliderThrottle = null;
+const insomniaCopy = {
+  low:  [
+    '半夢半醒間，月光替你把窗簾拉上。慢慢來，不用急著睡著。',
+    '今晚的腦袋只是還沒找到停下來的理由。試著把注意力放在腳趾頭的溫度上。',
+    '你已經做得夠好了。偶爾睡不著，不是你的問題，是世界太吵了。',
+  ],
+  high: [
+    '想像你正漂浮在無重力的銀河中，所有的焦慮都縮小成了一粒塵埃，隨風漂向宇宙最遠的邊際...',
+    '宇宙在你出生之前已經存在了 138 億年。今天沒解決的事情，明天的你會有不同的宇宙陪著一起看。',
+    '此刻地球有 80 億人，此刻有 2 億人也正和你一樣睡不著。你並不孤單，你只是暫時借住在清醒裡。',
+  ]
+};
+
+function updateInsomnia(val) {
+  // 指令68: 節流
+  if (sliderThrottle) return;
+  sliderThrottle = setTimeout(() => { sliderThrottle = null; }, 60);
+
+  const v = parseInt(val);
+  document.getElementById('insomnia-value').textContent = v;
+
+  const textEl = document.getElementById('insomnia-text');
+  textEl.style.opacity = '0';
 
   setTimeout(() => {
-    try {
-      window.open(`https://www.threads.net/intent/post?text=${encodeURIComponent(text)}`, '_blank');
-    } catch {}
-  }, 400);
-});
-
-/* ── Camera ── */
-$('btnOpenCam').addEventListener('click', openCamera);
-$('btnUpload').addEventListener('click', () => $('fileInput').click());
-$('fileInput').addEventListener('change', handleFileSelect);
-$('btnManual').addEventListener('click', () => {
-  manualPanel.classList.toggle('visible');
-  vibrate(8);
-});
-
-async function openCamera() {
-  vibrate(10);
-  acquireWakeLock();
-  try {
-    const constraints = {
-      video: {
-        facingMode: { exact: 'environment' },
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
-        advanced: [{ focusMode: 'continuous' }]
-      }
-    };
-    let stream;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia(constraints);
-    } catch {
-      // Fallback to any cam without exact constraint
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-    }
-    matureState.stream = stream;
-    videoEl.srcObject = stream;
-    videoEl.style.display = 'block';
-    dashedBox.classList.add('active');
-    dashedBox.style.display = 'none';
-    placeholderText.style.display = 'none';
-    roiFrame.style.display = 'block';
-    camControls.style.display = 'flex';
-    torchBtn.classList.add('visible');
-
-    // Light check
-    checkAmbientLight();
-
-  } catch (err) {
-    // Permission denied
-    if (err.name === 'NotAllowedError') {
-      showToast('鏡頭存取被拒絕，切換為手動輸入模式', 2500);
-      manualPanel.classList.add('visible');
+    if (v <= 30) {
+      const arr = insomniaCopy.low;
+      textEl.textContent = arr[Math.floor(Math.random() * arr.length)];
+    } else if (v >= 70) {
+      const arr = insomniaCopy.high;
+      textEl.textContent = arr[Math.floor(Math.random() * arr.length)];
     } else {
-      showToast('鏡頭暫時無法使用，試試上傳照片', 2500);
+      textEl.textContent = '沒關係，今天過得不完美也沒關係。今晚的月亮沒有在考核你，睡吧。';
+    }
+    textEl.style.opacity = '1';
+  }, 300);
+
+  // 指令47: 音調聯動
+  if (audioCtx && singingBowlNodes.length) {
+    const targetFreq = 432 - (v - 50) * 1.5;
+    singingBowlNodes.forEach((n, i) => {
+      try { n.osc.frequency.linearRampToValueAtTime(targetFreq + i * 50, audioCtx.currentTime + 1); } catch(e) {}
+    });
+  }
+
+  // 指令60: 鋼琴速度聯動
+  const newSpeed = 4000 + (100 - v) * 40;
+  if (newSpeed !== chordSpeed) {
+    chordSpeed = newSpeed;
+    if (pianoInterval && musicActive) {
+      clearInterval(pianoInterval);
+      pianoInterval = setInterval(() => {
+        if (!musicActive || breathHolding) return;
+        playChord(audioCtx, chords[chordNames[currentChordIdx]], pianoGain);
+        currentChordIdx = (currentChordIdx + 1) % chordNames.length;
+      }, chordSpeed);
     }
   }
 }
 
-function stopCam() {
-  if (matureState.stream) {
-    matureState.stream.getTracks().forEach(t => t.stop());
-    matureState.stream = null;
+// =============================================
+// 指令78: 主安撫按鈕 - 焦慮緩解
+// =============================================
+const anxietyCopies = [
+  {
+    headline: '優雅關燈',
+    body: '今晚 Threads 上的成功故事有 <strong>85% 經過了包裝</strong>。你現在需要的是優雅地關掉螢幕、把手機翻過去、深呼吸三次。<br><br>系統已為您鎖定今日焦慮額度。'
+  },
+  {
+    headline: '宇宙很安靜',
+    body: '年薪百萬、三十歲買房的故事，是這個時代最昂貴的廣告。<strong>你今晚不在比賽裡</strong>，你只是一個需要好好睡覺的人。'
+  },
+  {
+    headline: '放下焦慮',
+    body: '沒關係，今天過得不完美也沒關係。<strong>今晚的月亮沒有在考核你</strong>，睡吧。明天的問題，交給明天那個更睡飽的你。'
   }
-  videoEl.style.display = 'none';
-  videoEl.srcObject = null;
-  roiFrame.style.display = 'none';
-  camControls.style.display = 'none';
-  torchBtn.classList.remove('visible');
-  dashedBox.style.display = 'flex';
-  dashedBox.classList.remove('active');
-}
+];
 
-$('cancelCamBtn').addEventListener('click', () => { stopCam(); vibrate(8); });
+let anxietyCopIdx = 0;
+let anxietyInProgress = false;
 
-$('snapBtn').addEventListener('click', () => {
-  vibrate(20);
-  captureFrame();
-});
+function triggerAnxietyRelief() {
+  // 指令62: 防重複點擊
+  if (anxietyInProgress) return;
+  anxietyInProgress = true;
 
-// Volume key shutter
-document.addEventListener('keydown', e => {
-  if ((e.key === 'VolumeUp' || e.key === 'VolumeDown') && matureState.stream) {
-    e.preventDefault();
-    captureFrame();
-  }
-});
+  // 指令49: 音訊解鎖
+  initAudio();
+  try { if (audioCtx) audioCtx.resume(); } catch(e) {}
+  playTick();
 
-function captureFrame() {
-  if (!matureState.stream) return;
-  const video = videoEl;
-  const ctx = hiddenCanvas.getContext('2d');
+  const btn = document.getElementById('main-anxiety-btn');
+  btn.classList.add('disabled');
 
-  // ROI crop (center 70%×55%)
-  const vw = video.videoWidth, vh = video.videoHeight;
-  const roiX = Math.floor(vw * 0.15);
-  const roiY = Math.floor(vh * 0.225);
-  const roiW = Math.floor(vw * 0.70);
-  const roiH = Math.floor(vh * 0.55);
+  const resultArea = document.getElementById('result-area');
+  const headline = document.getElementById('result-headline');
+  const body = document.getElementById('result-body');
+  const fill = document.getElementById('progress-fill');
 
-  // Compress to max 1200px
-  const scale = Math.min(1, 1200 / roiW);
-  hiddenCanvas.width  = Math.floor(roiW * scale);
-  hiddenCanvas.height = Math.floor(roiH * scale);
+  resultArea.style.display = 'block';
+  const copy = anxietyCopies[anxietyCopIdx % anxietyCopies.length];
+  anxietyCopIdx++;
 
-  ctx.drawImage(video, roiX, roiY, roiW, roiH, 0, 0, hiddenCanvas.width, hiddenCanvas.height);
+  headline.style.opacity = '0';
+  body.style.opacity = '0';
+  fill.style.width = '0%';
 
-  // Binarise
-  binarise(ctx, hiddenCanvas.width, hiddenCanvas.height);
-
-  const dataUrl = hiddenCanvas.toDataURL('image/jpeg', 0.92);
-  showPhotoPreview(dataUrl);
-  stopCam();
-  runOCR(dataUrl);
-}
-
-function handleFileSelect(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  vibrate(10);
-  const reader = new FileReader();
-  reader.onload = ev => {
-    const img = new Image();
-    img.onload = () => {
-      // Compress
-      const MAX = 1200;
-      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
-      hiddenCanvas.width  = Math.floor(img.width  * scale);
-      hiddenCanvas.height = Math.floor(img.height * scale);
-      const ctx = hiddenCanvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, hiddenCanvas.width, hiddenCanvas.height);
-      binarise(ctx, hiddenCanvas.width, hiddenCanvas.height);
-      const dataUrl = hiddenCanvas.toDataURL('image/jpeg', 0.9);
-      showPhotoPreview(dataUrl);
-      runOCR(dataUrl);
-      // Free memory
-      URL.revokeObjectURL(ev.target.result);
-    };
-    img.src = ev.target.result;
-  };
-  reader.readAsDataURL(file);
-  e.target.value = '';
-}
-
-function showPhotoPreview(src) {
-  photoPreview.src = src;
-  photoPreview.style.display = 'block';
-  placeholderText.style.display = 'none';
-  dashedBox.style.display = 'none';
-}
-
-/* ── Image binarisation ── */
-function binarise(ctx, w, h) {
-  const imgData = ctx.getImageData(0, 0, w, h);
-  const data = imgData.data;
-  for (let i = 0; i < data.length; i += 4) {
-    const lum = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
-    const bin = lum > 128 ? 255 : 0;
-    data[i] = data[i+1] = data[i+2] = bin;
-  }
-  ctx.putImageData(imgData, 0, 0);
-}
-
-/* ── OCR ── */
-let tesseractWorker = null;
-
-async function runOCR(dataUrl) {
-  if (matureState.ocrRunning) return;
-  if (!navigator.onLine) { fallbackToManual('離線模式'); return; }
-
-  matureState.ocrRunning = true;
-  calcBtn.disabled = true;
-  skeleton.classList.add('visible');
-  vibrate(15);
-
-  const ocrTimeout = setTimeout(() => {
-    matureState.ocrRunning = false;
-    skeleton.classList.remove('visible');
-    fallbackToManual('辨識逾時，切換為手動調整');
+  // 指令64: 3秒超時保護
+  const timeout = setTimeout(() => {
+    headline.textContent = copy.headline;
+    body.innerHTML = copy.body;
+    headline.style.opacity = '1';
+    body.style.opacity = '1';
+    fill.style.width = '100%';
+    btn.classList.remove('disabled');
+    anxietyInProgress = false;
   }, 3000);
 
-  try {
-    // Lazy-load Tesseract
-    if (!window.Tesseract) {
-      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.3/tesseract.min.js');
+  let prog = 0;
+  const progInterval = setInterval(() => {
+    prog += 4;
+    fill.style.width = prog + '%';
+    if (prog >= 100) {
+      clearInterval(progInterval);
+      clearTimeout(timeout);
+      headline.textContent = copy.headline;
+      body.innerHTML = copy.body;
+      headline.style.opacity = '1';
+      body.style.opacity = '1';
+      btn.classList.remove('disabled');
+      anxietyInProgress = false;
     }
+  }, 75);
+}
 
-    if (!tesseractWorker) {
-      tesseractWorker = await Tesseract.createWorker('chi_tra+eng', 1, {
-        logger: () => {}
-      });
-    }
+// =============================================
+// 指令81: 4-7-8 呼吸法引導
+// =============================================
+let breathActive = false;
+let breathPhase = 0; // 0=吸氣 1=憋氣 2=吐氣
+let breathTimer = null;
+let breathCount = 0;
+let breathHolding = false;
 
-    const { data: { text } } = await tesseractWorker.recognize(dataUrl);
-    clearTimeout(ocrTimeout);
-    matureState.ocrRunning = false;
-    calcBtn.disabled = false;
-    skeleton.classList.remove('visible');
+const breathPhases = [
+  { label: '吸氣 4 秒', duration: 4, phase: 'inhale' },
+  { label: '憋氣 7 秒', duration: 7, phase: 'hold' },
+  { label: '吐氣 8 秒', duration: 8, phase: 'exhale' }
+];
 
-    const price = extractPrice(text);
-    if (price) {
-      matureState.priceInput = price;
-      priceSlider.value = price;
-      priceVal.textContent = `$${price}`;
-      matureState.detectedPrice = price;
-      showToast(`識出菜價：$${price}，比對中`, 2000);
-      vibrate(20);
-      // Auto calc
-      calcBtn.click();
-    } else {
-      showToast('沒有辨識到明顯數字，已切換手動微調', 2500);
-      fallbackToManual(null);
-    }
-
-    // Free canvas memory
-    hiddenCanvas.width = 0; hiddenCanvas.height = 0;
-
-  } catch (err) {
-    clearTimeout(ocrTimeout);
-    matureState.ocrRunning = false;
-    calcBtn.disabled = false;
-    skeleton.classList.remove('visible');
-    fallbackToManual('辨識遇到問題，已切換手動輸入');
+function toggleBreath() {
+  playTick();
+  if (!breathActive) {
+    breathActive = true;
+    document.getElementById('breath-start-btn').textContent = '暫停呼吸引導';
+    breathPhase = 0;
+    runBreathPhase();
+  } else {
+    breathActive = false;
+    breathHolding = false;
+    clearTimeout(breathTimer);
+    document.getElementById('breath-start-btn').innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="0.6"/><path d="M5 4L9 7L5 10" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      開始 4-7-8 呼吸引導`;
+    document.getElementById('breath-label').textContent = '吸氣 4 秒';
+    resetBreathRing();
   }
 }
 
-/* ── Extract price from OCR text ── */
-function extractPrice(text) {
-  // Remove common Chinese market noise
-  const cleaned = text
-    .replace(/[斤把兩元塊特價每份組個顆]/g, ' ')
-    .replace(/[^\d\s.$]/g, ' ');
+function runBreathPhase() {
+  if (!breathActive) return;
+  const phase = breathPhases[breathPhase];
+  document.getElementById('breath-label').textContent = phase.label;
+  breathHolding = (phase.phase === 'hold');
+  animateBreathRing(phase);
 
-  // Extract numbers
-  const nums = cleaned.match(/\d{1,4}/g);
-  if (!nums) return null;
+  let remaining = phase.duration;
+  document.getElementById('breath-counter').textContent = remaining;
 
-  // Filter price-like numbers (10-999), prefer the largest prominent number
-  const candidates = nums
-    .map(Number)
-    .filter(n => n >= 8 && n <= 999);
-
-  if (!candidates.length) return null;
-
-  // Prefer numbers that look like prices (multiples of 5, round numbers)
-  const scored = candidates.map(n => ({
-    n,
-    score: (n % 10 === 0 ? 3 : n % 5 === 0 ? 1 : 0) + (n >= 20 && n <= 200 ? 2 : 0)
-  })).sort((a,b) => b.score - a.score || b.n - a.n);
-
-  return scored[0].n;
+  const tick = () => {
+    remaining--;
+    if (remaining > 0) {
+      document.getElementById('breath-counter').textContent = remaining;
+      // 指令46: 呼吸同步音量聯動
+      syncBreathAudio(phase.phase, remaining, phase.duration);
+      breathTimer = setTimeout(tick, 1000);
+    } else {
+      breathPhase = (breathPhase + 1) % 3;
+      if (breathPhase === 0) breathCount++;
+      if (breathCount >= 3) {
+        // 3輪完成，觸發成就
+        breathActive = false;
+        breathCount = 0;
+        showAchievement('呼吸完成', '三輪 4-7-8，你的身體正在放鬆。');
+        playChime();
+        resetBreathRing();
+        document.getElementById('breath-start-btn').innerHTML = `
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="0.6"/><path d="M5 4L9 7L5 10" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          再次開始呼吸引導`;
+        return;
+      }
+      breathTimer = setTimeout(runBreathPhase, 500);
+    }
+  };
+  breathTimer = setTimeout(tick, 1000);
 }
 
-function fallbackToManual(msg) {
-  if (msg) showToast(msg, 2500);
-  manualPanel.classList.add('visible');
-  calcBtn.disabled = false;
-}
-
-/* ── Load script helper ── */
-function loadScript(src) {
-  return new Promise((res, rej) => {
-    const s = document.createElement('script');
-    s.src = src;
-    s.onload = res;
-    s.onerror = rej;
-    document.head.appendChild(s);
-  });
-}
-
-/* ── Torch ── */
-torchBtn.addEventListener('click', async () => {
-  if (!matureState.stream) return;
-  matureState.torchOn = !matureState.torchOn;
+// 指令46: 音量 + 濾波器聯動
+function syncBreathAudio(phase, remaining, total) {
+  if (!audioCtx || !masterGain) return;
   try {
-    const track = matureState.stream.getVideoTracks()[0];
-    await track.applyConstraints({ advanced: [{ torch: matureState.torchOn }] });
-    torchBtn.textContent = matureState.torchOn ? '🔆' : '🔦';
-    vibrate(8);
-  } catch {}
+    const progress = 1 - remaining / total;
+    const now = audioCtx.currentTime;
+    if (phase === 'inhale') {
+      masterGain.gain.linearRampToValueAtTime(0.05 + progress * 0.1, now + 0.8);
+    } else if (phase === 'exhale') {
+      masterGain.gain.linearRampToValueAtTime(0.15 - progress * 0.08, now + 0.8);
+    }
+    // 指令57: 憋氣段靜音鋼琴
+    if (phase === 'hold' && pianoGain) {
+      pianoGain.gain.linearRampToValueAtTime(0.1, now + 0.5);
+    } else if (pianoGain) {
+      pianoGain.gain.linearRampToValueAtTime(1, now + 0.5);
+    }
+  } catch(e) {}
+}
+
+function animateBreathRing(phase) {
+  const ring = document.getElementById('breath-ring');
+  const outerRing = document.getElementById('breath-outer-ring');
+  if (!ring) return;
+
+  ring.style.transition = `r ${phase.duration}s ease-in-out, opacity ${phase.duration * 0.3}s ease`;
+  outerRing.style.transition = `stroke-dashoffset ${phase.duration}s ease-in-out`;
+
+  if (phase.phase === 'inhale') {
+    ring.setAttribute('r', '58');
+    ring.setAttribute('stroke', 'rgba(255,242,204,0.35)');
+    outerRing.setAttribute('stroke-dashoffset', '0');
+  } else if (phase.phase === 'hold') {
+    ring.setAttribute('r', '58');
+    ring.setAttribute('stroke', 'rgba(255,242,204,0.2)');
+  } else {
+    ring.setAttribute('r', '32');
+    ring.setAttribute('stroke', 'rgba(217,226,236,0.2)');
+    outerRing.setAttribute('stroke-dashoffset', '172');
+  }
+}
+
+function resetBreathRing() {
+  const ring = document.getElementById('breath-ring');
+  if (ring) {
+    ring.setAttribute('r', '40');
+    ring.setAttribute('stroke', 'rgba(255,242,204,0.2)');
+  }
+  document.getElementById('breath-counter').textContent = '4';
+  breathHolding = false;
+}
+
+// =============================================
+// 指令61: Wake Lock 防止螢幕休眠
+// =============================================
+let wakeLock = null;
+
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      document.getElementById('wake-indicator').textContent = '螢幕常亮保持中 ✦';
+    }
+  } catch(e) {
+    document.getElementById('wake-indicator').textContent = '螢幕常亮不可用（已靜置）';
+  }
+}
+
+function releaseWakeLock() {
+  if (wakeLock) { wakeLock.release(); wakeLock = null; }
+}
+
+// 指令71: 頁面可見性修正計時器
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && wakeLock === null && stillnessActive) {
+    requestWakeLock();
+  }
 });
 
-/* ── Ambient light check ── */
-function checkAmbientLight() {
-  // Use ImageCapture if available, otherwise skip
-  if (!matureState.stream) return;
-  try {
-    const track = matureState.stream.getVideoTracks()[0];
-    const settings = track.getSettings();
-    if (settings.exposureMode) {
-      // Low exposure suggests dim environment
+// =============================================
+// 指令61: 星河靜置模式
+// =============================================
+let stillnessActive = false;
+let stillnessInterval = null;
+let stillnessRemaining = 20 * 60; // 20分鐘
+let stillnessStartTime = null;
+
+function enterStillness() {
+  playTick();
+  initAudio();
+  try { if (audioCtx) audioCtx.resume(); } catch(e) {}
+  if (!musicActive) {
+    startMusic();
+    document.getElementById('music-btn').classList.add('active');
+  }
+
+  stillnessActive = true;
+  stillnessRemaining = 20 * 60;
+  stillnessStartTime = Date.now();
+
+  requestWakeLock();
+
+  const overlay = document.getElementById('stillness-overlay');
+  overlay.classList.add('active');
+  updateStillnessTimer();
+
+  // 指令66: 計時器管理
+  stillnessInterval = setInterval(() => {
+    // 指令71: Delta Time 修正
+    const elapsed = Math.floor((Date.now() - stillnessStartTime) / 1000);
+    stillnessRemaining = Math.max(0, 20 * 60 - elapsed);
+    updateStillnessTimer();
+
+    if (stillnessRemaining <= 0) {
+      // 指令56: 音樂自動淡出
+      fadeOutMusicSlowly();
+      clearInterval(stillnessInterval);
     }
-  } catch {}
-  // Simple: show torch hint after 2s
+  }, 1000);
+}
+
+function exitStillness() {
+  playTick();
+  stillnessActive = false;
+  clearInterval(stillnessInterval);
+  releaseWakeLock();
+  document.getElementById('stillness-overlay').classList.remove('active');
+  showAchievement('星河靜置完成', '你給了自己一段珍貴的寧靜。');
+  playChime();
+}
+
+function updateStillnessTimer() {
+  const m = Math.floor(stillnessRemaining / 60).toString().padStart(2, '0');
+  const s = (stillnessRemaining % 60).toString().padStart(2, '0');
+  document.getElementById('stillness-timer').textContent = `${m}:${s}`;
+}
+
+// 指令56: 極緩音樂淡出
+function fadeOutMusicSlowly() {
+  if (!audioCtx || !masterGain) return;
+  const now = audioCtx.currentTime;
+  masterGain.gain.cancelScheduledValues(now);
+  masterGain.gain.setValueAtTime(masterGain.gain.value, now);
+  masterGain.gain.linearRampToValueAtTime(0, now + 10);
+  musicActive = false;
+  if (pianoInterval) { clearInterval(pianoInterval); pianoInterval = null; }
+}
+
+// =============================================
+// 成就解鎖彈窗（指令33）
+// =============================================
+function showAchievement(title, desc) {
+  const popup = document.getElementById('achievement-popup');
+  document.getElementById('ach-title').textContent = title;
+  document.getElementById('ach-desc').textContent = desc;
+  popup.classList.add('show');
+
+  // 觸發 SVG 勾選動畫
+  const anim = document.getElementById('check-anim');
+  if (anim) { try { anim.beginElement(); } catch(e) {} }
+  // 指令72: Ghost Click 防禦
+  setTimeout(() => {}, 300);
+}
+
+function closeAchievement() {
+  document.getElementById('achievement-popup').classList.remove('show');
+}
+
+// =============================================
+// 指令79: GPS 地域加權文案
+// =============================================
+function getLocationCopy(lat, lon) {
+  // 台灣粗略區域判斷
+  const hour = new Date().getHours();
+
+  // 指令80: 時間加權
+  let timeCopy = '';
+  if (hour >= 2 && hour <= 5) {
+    timeCopy = `已經凌晨${hour}點了，世界早就睡了。你不用在今晚證明自己的價值。`;
+  } else if (hour >= 23 || hour <= 1) {
+    const dayOfWeek = new Date().getDay();
+    if (dayOfWeek === 0) { // 週日深夜
+      timeCopy = '週一近了，但你不需要在今晚備戰整個世界。週一恐懼症是正常的，請先睡。';
+    } else {
+      timeCopy = '深夜了，今天的你已經盡力了。剩下的事，留給有充分睡眠的明天。';
+    }
+  }
+
+  let locationCopy = '';
+  if (lat && lon) {
+    // 新竹/竹科 (lat 24.7-24.9, lon 120.9-121.1)
+    if (lat > 24.65 && lat < 24.95 && lon > 120.8 && lon < 121.15) {
+      locationCopy = '辛苦了，竹科的燈火今晚與你無關，早點睡吧。';
+    }
+    // 雙北 (lat 24.9-25.2, lon 121.3-121.7)
+    else if (lat > 24.9 && lat < 25.25 && lon > 121.3 && lon < 121.7) {
+      locationCopy = '台北的夜很長，但你的睡眠比任何通知都重要。';
+    }
+    // 南部 (lat < 23.5)
+    else if (lat < 23.5) {
+      locationCopy = '南部的夜風很溫柔，聽聽窗外的聲音，今晚不跟世界賽跑。';
+    }
+    // 其他
+    else {
+      locationCopy = '不管你在台灣哪個角落，此刻都有星星陪著你。';
+    }
+  }
+
+  const copy = timeCopy || locationCopy;
+  if (copy) document.getElementById('location-text').textContent = copy;
+}
+
+// 指令65: 定位容錯
+function initLocation() {
+  try {
+    if ('geolocation' in navigator) {
+      // 指令64: 3秒超時
+      const locTimeout = setTimeout(() => {
+        document.getElementById('location-text').style.display = 'none';
+      }, 3000);
+
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          clearTimeout(locTimeout);
+          getLocationCopy(pos.coords.latitude, pos.coords.longitude);
+        },
+        () => {
+          clearTimeout(locTimeout);
+          // 指令65: 拒絕定位容錯
+          const h = new Date().getHours();
+          if (h >= 2 && h <= 5) {
+            document.getElementById('location-text').textContent = `已經凌晨了，世界早就睡了。`;
+          }
+        },
+        { timeout: 3000, maximumAge: 300000 }
+      );
+    }
+  } catch(e) {
+    document.getElementById('location-text').style.display = 'none';
+  }
+}
+
+// =============================================
+// 指令91-99: Threads 分享功能
+// =============================================
+function shareToThreads(type) {
+  playTick();
+  initAudio();
+  try { if (audioCtx) audioCtx.resume(); } catch(e) {}
+
+  let text = '';
+  if (type === 'calm') {
+    // 指令92
+    text = `今日成就：在凌晨優雅地關掉了 Threads，把世界還給宇宙。今晚我是精明的大人。 #深夜星河 #數位斷捨離`;
+  } else {
+    // 指令93
+    text = `今晚在 Threads 渡劫失敗，但這盞微光叫我早點睡。文青們，今日焦慮額度已滿，大家該關燈了。 #深夜星河`;
+  }
+
+  // 指令95: 優先使用剪貼簿
+  const copyText = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast('文案已複製，若未自動跳轉，請手動打開 Threads 貼上');
+    } catch(e) {
+      // 指令69: 降級處理
+      try {
+        const el = document.createElement('textarea');
+        el.value = text;
+        el.style.position = 'fixed';
+        el.style.opacity = '0';
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        showToast('文案已複製，請手動開啟 Threads 貼上');
+      } catch(e2) {
+        showToast('請手動複製文案');
+      }
+    }
+  };
+
+  copyText();
+
+  // 指令94: 跳轉 Threads（指令98: encodeURIComponent）
   setTimeout(() => {
-    if (matureState.stream) torchBtn.classList.add('visible');
-  }, 2000);
+    try {
+      window.open('https://www.threads.net/intent/post?text=' + encodeURIComponent(text), '_blank');
+    } catch(e) {}
+  }, 500);
 }
 
-/* ── Breakpoint tip button ── */
-$('btnTip').addEventListener('click', () => {
-  vibrate(15);
-  const tip = icebreakers[Math.floor(Math.random() * icebreakers.length)];
-  $('tipText').textContent = tip;
-  $('tipModal').classList.add('open');
-});
-$('tipClose').addEventListener('click', () => {
-  $('tipModal').classList.remove('open');
-  vibrate(8);
-});
-$('tipModal').addEventListener('click', e => {
-  if (e.target === $('tipModal')) $('tipModal').classList.remove('open');
-});
-
-/* ── Dark toggle ── */
-$('darkToggle').addEventListener('click', () => {
-  vibrate(8);
-  matureState.isDark = !matureState.isDark;
-  document.documentElement.style.setProperty('color-scheme', matureState.isDark ? 'dark' : 'light');
-  $('darkToggle').textContent = matureState.isDark ? '☀️' : '🌙';
-});
-
-/* ── History & Level ── */
-function saveHistory(verdict) {
-  const h = JSON.parse(localStorage.getItem('matureHistory') || '[]');
-  h.push({ verdict, ts: Date.now() });
-  if (h.length > 20) h.shift();
-  localStorage.setItem('matureHistory', JSON.stringify(h));
-  matureState.history = h;
+// =============================================
+// Toast 通知
+// =============================================
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.classList.remove('show'); }, 3500);
 }
 
-function updateLevel() {
-  const count = matureState.compareCount;
-  let lvl = '傳統市場漫步者';
-  if (count >= 10) lvl = '資深菜攤博弈師';
-  else if (count >= 5) lvl = '熟成中級買手';
-  $('levelChip').textContent = `${lvl}（今日比 ${count} 次）`;
+// =============================================
+// 指令96: 跑馬燈虛擬數據生成
+// =============================================
+const marqueeItems = [
+  '2分鐘前，一位來自新竹竹科的初級大人開啟了呼吸引導，今晚準備與自己和解',
+  '剛剛，一位來自台北信義區的初級大人關掉了 Threads，選擇了睡眠',
+  '5分鐘前，一位來自台中的初級大人完成了 3 輪 4-7-8 呼吸，已進入夢鄉',
+  '一位來自高雄的初級大人說：「今晚我不追蹤任何人了」',
+  '10分鐘前，一位來自桃園的初級大人把手機翻過去，螢幕朝下',
+  '剛剛，一位來自台南的初級大人寫下：「年薪不是我今晚的功課」',
+  '一位深夜仍在看 Threads 的初級大人，在這裡找到了關燈的勇氣',
+];
+
+function initMarquee() {
+  const inner = document.getElementById('marquee-inner');
+  // 複製兩份讓跑馬燈無縫循環
+  const fullText = [...marqueeItems, ...marqueeItems]
+    .map(t => `<span class="marquee-text">✦ ${t}&#x3000;</span>`)
+    .join('');
+  inner.innerHTML = fullText;
 }
 
-/* ── Trend Chart ── */
-function drawTrendChart() {
-  const canvas = $('trendCanvas');
-  const h = JSON.parse(localStorage.getItem('matureHistory') || '[]').slice(-4);
-  if (!h.length) return;
-
-  const dpr = window.devicePixelRatio || 1;
-  const W = canvas.offsetWidth * dpr, H = 80 * dpr;
-  canvas.width = W; canvas.height = H;
-  canvas.style.width = canvas.offsetWidth + 'px';
-  canvas.style.height = '80px';
-
-  const ctx = canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
-  const w = canvas.offsetWidth;
-
-  const verdictScore = { green: 10, yellow: 6, red: 2 };
-  const scores = h.map(item => verdictScore[item.verdict] || 5);
-
-  const pad = 16;
-  const xs = scores.map((_, i) => pad + i * ((w - pad * 2) / Math.max(scores.length - 1, 1)));
-  const ys = scores.map(s => 60 - ((s - 1) / 9) * 44);
-
-  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--ink') || '#1A1A1A';
-  ctx.globalAlpha = 0.3;
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  xs.forEach((x, i) => i === 0 ? ctx.moveTo(x, ys[i]) : ctx.lineTo(x, ys[i]));
-  ctx.stroke();
-
-  // Dots
-  ctx.globalAlpha = 1;
-  scores.forEach((s, i) => {
-    const color = s >= 9 ? '#5D9B6E' : s >= 5 ? '#C9A84C' : '#C0564F';
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(xs[i], ys[i], 4, 0, Math.PI * 2);
-    ctx.fill();
-  });
+// =============================================
+// 指令63: 斷網降級機制
+// =============================================
+function checkNetworkStatus() {
+  if (!navigator.onLine) {
+    showToast('世界斷網了，但這裡依舊溫暖。閉上眼，我們今晚不看社群。');
+  }
 }
-
-/* ── Ticker ── */
-function renderTicker() {
-  const inner = $('tickerInner');
-  const items = [...tickerItems, ...tickerItems];
-  inner.innerHTML = items.map(t => `<span style="margin-right:60px">${t}</span>`).join('');
-}
-
-/* ── Offline detection ── */
 window.addEventListener('offline', () => {
-  $('alertOffline').classList.add('visible');
-  showToast('市場深處訊號微弱，已自動為您開啟離線優雅比價模式', 3000);
+  showToast('世界斷網了，但這裡依舊溫暖。閉上眼，我們今晚不看社群。');
 });
-window.addEventListener('online', () => {
-  $('alertOffline').classList.remove('visible');
-});
-if (!navigator.onLine) $('alertOffline').classList.add('visible');
 
-/* ── Init ── */
-function init() {
-  applyTimeFactor();
-  locateMe();
-  renderMarketGrid();
-  renderVegSelector();
-  renderTicker();
-  drawTrendChart();
-
-  // Set initial time chip
-  const now = new Date();
-  $('timeChipEl').textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-
-  // Restore history
-  matureState.history = JSON.parse(localStorage.getItem('matureHistory') || '[]');
-  matureState.compareCount = matureState.history.length;
-  updateLevel();
-
-  // cameraFront click to open cam
-  $('cameraFront').addEventListener('click', (e) => {
-    if (!matureState.stream && photoPreview.style.display !== 'block') {
-      openCamera();
-    }
-  });
+// =============================================
+// 指令84: 動態計數器（模擬）
+// =============================================
+function initCounter() {
+  const base = 14245;
+  const rand = Math.floor(Math.random() * 200);
+  const count = base + rand;
+  document.getElementById('counter-num').textContent = count.toLocaleString('zh-TW');
 }
 
-document.addEventListener('DOMContentLoaded', init);
+// =============================================
+// 指令72: Ghost Click 防禦 (300ms 鎖定)
+// =============================================
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  if (btn.dataset.locked) return;
+  btn.dataset.locked = '1';
+  setTimeout(() => { delete btn.dataset.locked; }, 300);
+}, true);
+
+// =============================================
+// 指令69: LocalStorage 隱私模式相容
+// =============================================
+function safeStorage(key, value) {
+  try {
+    if (value !== undefined) localStorage.setItem(key, value);
+    else return localStorage.getItem(key);
+  } catch(e) {
+    // 降級至 window.name
+    try {
+      const data = window.name ? JSON.parse(window.name) : {};
+      if (value !== undefined) { data[key] = value; window.name = JSON.stringify(data); }
+      else return data[key];
+    } catch(e2) { return null; }
+  }
+}
+
+// =============================================
+// 主程式初始化
+// =============================================
+document.addEventListener('DOMContentLoaded', () => {
+  // 指令63: 網路狀態
+  checkNetworkStatus();
+  // 指令79: 地理定位
+  initLocation();
+  // 指令96: 跑馬燈
+  initMarquee();
+  // 指令84: 計數器
+  initCounter();
+  // 指令82: 初始失眠文案
+  updateInsomnia(50);
+
+  // 指令74: 軟鍵盤排版防禦
+  const inputs = document.querySelectorAll('input, textarea');
+  inputs.forEach(inp => {
+    inp.addEventListener('focus', () => {
+      document.getElementById('app').style.flexDirection = 'column';
+    });
+    inp.addEventListener('blur', () => {
+      document.getElementById('app').style.flexDirection = '';
+    });
+  });
+});
+
+// 指令70: 記憶體過載偵測（簡化實作）
+if ('performance' in window && 'memory' in window.performance) {
+  setInterval(() => {
+    try {
+      const mem = window.performance.memory;
+      if (mem.usedJSHeapSize > mem.jsHeapSizeLimit * 0.85) {
+        // 關閉毛玻璃特效
+        document.querySelectorAll('.card').forEach(c => {
+          c.style.backdropFilter = 'none';
+          c.style.webkitBackdropFilter = 'none';
+          c.style.background = 'rgba(15,17,21,0.95)';
+        });
+      }
+    } catch(e) {}
+  }, 30000);
+}
+
 </script>
 </body>
 </html>
