@@ -2,2088 +2,1834 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="垃圾車追蹤指標">
-<meta name="theme-color" content="#0f172a">
+<meta name="theme-color" content="#000000">
 <title>垃圾車：台南追蹤指標</title>
-
-<!-- Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
-
-<!-- Leaflet -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<!-- Tailwind CSS -->
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      fontFamily: {
-        'tc': ['"Noto Sans TC"', 'sans-serif'],
-        'mono': ['"Roboto Mono"', 'monospace'],
-      }
-    }
-  }
-}
-</script>
-
 <style>
-  /* ===== GLOBAL RESETS & NATIVE APP SHELL ===== */
-  *, *::before, *::after {
-    -webkit-user-select: none;
-    user-select: none;
-    -webkit-touch-callout: none;
-    -webkit-tap-highlight-color: transparent;
-    box-sizing: border-box;
-  }
+/* ═══════════════════════════════════════════
+   GLOBAL RESET & OLED TRUE BLACK FOUNDATION
+═══════════════════════════════════════════ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0; padding: 0;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+html, body {
+  width: 100%; height: 100%;
+  background: #000000;
+  color: #e2e8f0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+::-webkit-scrollbar { display: none; }
 
-  input[type="text"], input[type="search"] {
-    -webkit-user-select: text !important;
-    user-select: text !important;
-  }
+/* ═══════════════════════════════════════════
+   CSS VARIABLES — DESIGN TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --bg:          #000000;
+  --surface:     rgba(17, 24, 39, 0.45);
+  --surface-hi:  rgba(17, 24, 39, 0.75);
+  --border:      rgba(255, 255, 255, 0.08);
+  --border-hi:   rgba(255, 255, 255, 0.15);
+  --glass-blur:  blur(20px);
 
-  html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: #0f172a;
-    font-family: 'Noto Sans TC', sans-serif;
-    -webkit-text-size-adjust: 100%;
-  }
+  --coral:       #fb7185;
+  --coral-bg:    rgba(251, 113, 133, 0.10);
+  --cyan:        #38bdf8;
+  --cyan-bg:     rgba(56, 189, 248, 0.10);
+  --emerald:     #34d399;
+  --emerald-bg:  rgba(52, 211, 153, 0.10);
+  --laser:       #4ade80;
+  --laser-glow:  0 0 8px rgba(74, 222, 128, 0.30);
+  --orange:      #fb923c;
 
-  #app-shell {
-    position: fixed;
-    inset: 0;
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-    display: flex;
-    flex-direction: column;
-    background: linear-gradient(160deg, #0f172a 0%, #0a0f1e 100%);
-    overflow: hidden;
-  }
+  --text-primary:   #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted:     #475569;
 
-  /* ===== HARDWARE ACCELERATION ===== */
-  .gpu-accel {
-    will-change: transform;
-    transform: translate3d(0,0,0);
-  }
+  --radius-card:  20px;
+  --radius-pill:  999px;
+  --shadow-card:  0 8px 32px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.4);
 
-  /* ===== JELLY BOUNCE EFFECT ===== */
-  .jelly-btn {
-    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  .jelly-btn:active {
-    transform: scale(0.96);
-  }
+  --spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* ===== 120Hz SMOOTH SCROLL ===== */
-  .smooth-scroll {
-    -webkit-overflow-scrolling: touch;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-  }
-  .smooth-scroll-x {
-    -webkit-overflow-scrolling: touch;
-    overflow-x: auto;
-    overflow-y: hidden;
-    overscroll-behavior-x: contain;
-  }
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
 
-  /* ===== SPLASH SCREEN ===== */
-  #splash {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    background: linear-gradient(160deg, #0f172a 0%, #0a0f1e 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-  }
-  #splash.fade-out {
-    opacity: 0;
-    pointer-events: none;
-  }
+/* ═══════════════════════════════════════════
+   SPLASH SCREEN
+═══════════════════════════════════════════ */
+#splash {
+  position: fixed;
+  inset: 0;
+  background: #000000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  gap: 28px;
+  transition: opacity 0.4s var(--ease-out);
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+}
+#splash.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+.splash-icon {
+  width: 80px; height: 80px;
+  animation: splashPulse 2s ease-in-out infinite;
+}
+@keyframes splashPulse {
+  0%,100%{ transform: scale(1); filter: drop-shadow(0 0 12px rgba(74,222,128,0.4)); }
+  50%    { transform: scale(1.08); filter: drop-shadow(0 0 24px rgba(74,222,128,0.7)); }
+}
+.splash-text {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.8;
+  overflow: hidden;
+  position: relative;
+}
+.splash-text::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  animation: shimmer 2s linear infinite;
+}
+@keyframes shimmer {
+  0%  { left: -100%; }
+  100%{ left: 200%; }
+}
+.splash-brand {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--laser);
+  text-shadow: var(--laser-glow);
+}
 
-  @keyframes shimmer {
-    0% { background-position: -200% center; }
-    100% { background-position: 200% center; }
-  }
-  .shimmer-text {
-    background: linear-gradient(90deg, #64748b 0%, #94a3b8 30%, #e2e8f0 50%, #94a3b8 70%, #64748b 100%);
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: shimmer 2s linear infinite;
-    font-family: 'Roboto Mono', monospace;
-  }
+/* ═══════════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════════ */
+#app {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: #000000;
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+  overflow: hidden;
+}
 
-  @keyframes truckBounce {
-    0%, 100% { transform: translateY(0px) translate3d(0,0,0); }
-    50% { transform: translateY(-8px) translate3d(0,0,0); }
-  }
-  .truck-anim {
-    animation: truckBounce 1.8s ease-in-out infinite;
-    will-change: transform;
-  }
+/* ═══════════════════════════════════════════
+   TOP BAR
+═══════════════════════════════════════════ */
+#topbar {
+  flex-shrink: 0;
+  padding: 12px 16px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 0.5px solid var(--border);
+}
+.title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.app-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.app-title svg { flex-shrink: 0; }
+.gps-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.gps-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--laser);
+  box-shadow: 0 0 6px rgba(74,222,128,0.6);
+  animation: breathe 2s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%,100%{ opacity:1; transform:scale(1); }
+  50%    { opacity:0.5; transform:scale(0.85); }
+}
+.gps-dot.offline { background: var(--coral); box-shadow: 0 0 6px rgba(251,113,133,0.6); animation: none; }
 
-  /* ===== HEADER ===== */
-  #app-header {
-    flex-shrink: 0;
-    padding: 10px 16px 8px;
-    background: linear-gradient(180deg, rgba(15,23,42,0.98) 0%, rgba(15,23,42,0.85) 100%);
-    border-bottom: 1px solid rgba(51,65,85,0.5);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-  }
+.topbar-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+#clock {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--laser);
+  text-shadow: var(--laser-glow);
+}
+#weekday {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+}
 
-  /* ===== ZONE TABS ===== */
-  #zone-tabs {
-    display: flex;
-    gap: 8px;
-    padding: 8px 16px;
-    flex-shrink: 0;
-  }
-  .zone-pill {
-    flex-shrink: 0;
-    padding: 6px 14px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-family: 'Noto Sans TC', sans-serif;
-    font-weight: 500;
-    background: rgba(30,41,59,0.8);
-    color: #94a3b8;
-    border: 1px solid rgba(51,65,85,0.5);
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-    white-space: nowrap;
-  }
-  .zone-pill:active { transform: scale(0.96); }
-  .zone-pill.active {
-    background: linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(99,102,241,0.3) 100%);
-    color: #93c5fd;
-    border-color: rgba(99,102,241,0.5);
-    box-shadow: 0 0 12px rgba(99,102,241,0.2);
-  }
+/* ═══════════════════════════════════════════
+   MODE SWITCHER — iOS SEGMENTED CONTROL
+═══════════════════════════════════════════ */
+#mode-switcher {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  background: var(--surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 0.5px solid var(--border);
+}
+.seg-ctrl {
+  position: relative;
+  display: flex;
+  background: rgba(255,255,255,0.04);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 3px;
+  height: 36px;
+}
+.seg-slider {
+  position: absolute;
+  top: 3px; left: 3px;
+  width: calc(50% - 3px);
+  height: calc(100% - 6px);
+  background: rgba(56, 189, 248, 0.18);
+  border: 0.5px solid rgba(56, 189, 248, 0.35);
+  border-radius: var(--radius-pill);
+  transition: transform 0.3s var(--spring);
+  pointer-events: none;
+}
+.seg-slider.right { transform: translateX(calc(100% + 0px)); }
+.seg-btn {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.3s var(--ease-out);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.seg-btn.active { color: var(--cyan); font-weight: 600; }
+.seg-btn:active { transform: scale(0.96); filter: brightness(1.2); transition: all 0.25s var(--spring); }
 
-  /* ===== SEARCH BAR ===== */
-  #search-wrap {
-    padding: 0 16px 8px;
-    flex-shrink: 0;
-  }
-  #search-input {
-    width: 100%;
-    background: rgba(30,41,59,0.8);
-    border: 1px solid rgba(51,65,85,0.6);
-    border-radius: 10px;
-    color: #e2e8f0;
-    font-family: 'Noto Sans TC', sans-serif;
-    font-size: 14px;
-    padding: 9px 14px 9px 38px;
-    outline: none;
-    -webkit-appearance: none;
-  }
-  #search-input::placeholder { color: #475569; }
-  #search-input:focus { border-color: rgba(99,102,241,0.6); }
+/* ═══════════════════════════════════════════
+   DISTRICT PILL STRIP
+═══════════════════════════════════════════ */
+#district-strip {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  background: rgba(0,0,0,0.5);
+  border-bottom: 0.5px solid var(--border);
+  scroll-behavior: smooth;
+}
+.district-pill {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.25s var(--spring);
+}
+.district-pill:active {
+  transform: scale(0.95);
+  filter: brightness(1.2);
+}
+.district-pill.active {
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--cyan);
+  font-weight: 600;
+}
 
-  /* ===== MODE TOGGLE ===== */
-  #mode-toggle {
-    display: flex;
-    gap: 0;
-    padding: 0 16px 8px;
-    flex-shrink: 0;
-  }
-  .mode-btn {
-    flex: 1;
-    padding: 7px;
-    font-size: 12px;
-    font-family: 'Noto Sans TC', sans-serif;
-    font-weight: 500;
-    background: rgba(30,41,59,0.6);
-    color: #64748b;
-    border: 1px solid rgba(51,65,85,0.4);
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  .mode-btn:first-child { border-radius: 8px 0 0 8px; }
-  .mode-btn:last-child { border-radius: 0 8px 8px 0; border-left: none; }
-  .mode-btn.active {
-    background: rgba(59,130,246,0.2);
-    color: #93c5fd;
-    border-color: rgba(99,102,241,0.4);
-  }
+/* ═══════════════════════════════════════════
+   SEARCH BAR
+═══════════════════════════════════════════ */
+#search-wrap {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  background: rgba(0,0,0,0.6);
+  border-bottom: 0.5px solid var(--border);
+}
+.search-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+#search-input {
+  width: 100%;
+  background: rgba(17,24,39,0.7);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 8px 36px 8px 36px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: var(--text-primary);
+  outline: none;
+  transition: box-shadow 0.3s var(--ease-out), border-color 0.3s;
+  -webkit-user-select: text;
+  user-select: text;
+}
+#search-input::placeholder { color: var(--text-muted); }
+#search-input:focus {
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+  border-color: rgba(56,189,248,0.3);
+}
+.search-icon {
+  position: absolute;
+  left: 10px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+#search-clear {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px;
+  display: none;
+  border-radius: 50%;
+  transition: color 0.2s;
+}
+#search-clear.visible { display: flex; }
+#search-clear:active { color: var(--text-primary); }
 
-  /* ===== LIST AREA ===== */
-  #list-view {
-    flex: 1;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-  #list-container {
-    flex: 1;
-    -webkit-overflow-scrolling: touch;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    padding: 0 12px 16px;
-  }
+/* ═══════════════════════════════════════════
+   MAIN CONTENT PANELS
+═══════════════════════════════════════════ */
+#panels {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+#list-panel, #map-panel {
+  position: absolute;
+  inset: 0;
+  transition: opacity 0.3s var(--ease-out), transform 0.3s var(--ease-out);
+}
+#list-panel.hidden { opacity: 0; pointer-events: none; transform: translateX(-20px); }
+#map-panel.hidden  { opacity: 0; pointer-events: none; transform: translateX(20px); }
+/* Map container must always occupy full space so Leaflet can measure it */
+#map-panel { will-change: opacity, transform; }
 
-  /* ===== STOP CARD ===== */
-  .stop-card {
-    display: flex;
-    align-items: flex-start;
-    padding: 11px 13px;
-    margin-bottom: 6px;
-    background: rgba(15,23,42,0.8);
-    border: 1px solid rgba(51,65,85,0.4);
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
-    position: relative;
-    overflow: hidden;
-  }
-  .stop-card:active { transform: scale(0.98); }
-  .stop-card.arriving {
-    border-color: rgba(34,197,94,0.4);
-    box-shadow: 0 0 16px rgba(34,197,94,0.1);
-  }
-  .stop-card.passed {
-    opacity: 0.45;
-  }
+/* ═══════════════════════════════════════════
+   VIRTUAL SCROLL LIST
+═══════════════════════════════════════════ */
+#list-scroll {
+  height: 100%;
+  overflow-y: auto;
+  padding: 10px 12px 20px;
+  overscroll-behavior: contain;
+}
+.group-header {
+  position: sticky;
+  top: 0;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 6px 4px;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 0.5px solid var(--border);
+}
+.group-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--laser);
+}
+.radar-dot {
+  position: relative;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--laser);
+  box-shadow: 0 0 6px rgba(74,222,128,0.7);
+}
+.radar-dot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid var(--laser);
+  animation: radar 1.5s ease-out infinite;
+}
+@keyframes radar {
+  0%  { transform: scale(0.5); opacity: 0.8; }
+  100%{ transform: scale(2.5); opacity: 0; }
+}
 
-  .card-time-col {
-    width: 25%;
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding-right: 10px;
-  }
-  .card-time {
-    font-family: 'Roboto Mono', monospace;
-    font-size: 17px;
-    font-weight: 700;
-    color: #e2e8f0;
-    line-height: 1.1;
-    letter-spacing: -0.5px;
-  }
-  .card-countdown {
-    font-family: 'Roboto Mono', monospace;
-    font-size: 11px;
-    font-weight: 400;
-    color: #f97316;
-    margin-top: 3px;
-    white-space: nowrap;
-  }
-  .card-countdown.arriving { color: #22c55e; font-weight: 700; }
-  .card-countdown.passed { color: #475569; }
+/* ═══════════════════════════════════════════
+   SCHEDULE CARDS
+═══════════════════════════════════════════ */
+.sched-card {
+  background: var(--surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-card);
+  margin-bottom: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.3s, box-shadow 0.3s, opacity 0.3s, transform 0.25s var(--spring);
+  cursor: pointer;
+}
+.sched-card:active {
+  transform: scale(0.98);
+  filter: brightness(1.05);
+  transition: all 0.25s var(--spring);
+}
+.sched-card.past {
+  opacity: 0.35;
+  filter: grayscale(0.5);
+}
+.sched-card.imminent {
+  border-color: rgba(74, 222, 128, 0.35);
+  box-shadow: var(--shadow-card), 0 0 16px rgba(74,222,128,0.10);
+}
 
-  .card-info-col {
-    flex: 1;
-    min-width: 0;
-  }
-  .card-name-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  .card-name {
-    font-family: 'Noto Sans TC', sans-serif;
-    font-size: 13.5px;
-    font-weight: 500;
-    color: #e2e8f0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: calc(100% - 60px);
-  }
-  .card-tag {
-    font-size: 10px;
-    padding: 2px 7px;
-    border-radius: 999px;
-    font-weight: 500;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .card-dist-row {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-top: 3px;
-  }
-  .card-dist {
-    font-family: 'Roboto Mono', monospace;
-    font-size: 11px;
-    color: #64748b;
-  }
+.card-main {
+  display: flex;
+  align-items: center;
+  padding: 12px 14px;
+  gap: 12px;
+}
+.card-left {
+  width: 25%;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+.card-time {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--laser);
+  text-shadow: var(--laser-glow);
+  line-height: 1;
+}
+.card-countdown {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 10px;
+  color: var(--orange);
+  font-weight: 600;
+}
+.card-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.card-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.card-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.3;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tag {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+}
+.tag-general  { color: var(--coral);   background: var(--coral-bg); }
+.tag-recycle  { color: var(--cyan);    background: var(--cyan-bg); }
+.tag-kitchen  { color: var(--emerald); background: var(--emerald-bg); }
 
-  /* ===== STICKY SECTION HEADER ===== */
-  .section-header {
-    position: sticky;
-    top: 0;
-    z-index: 30;
-    background: rgba(10,15,30,0.85);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    padding: 8px 4px 4px;
-    font-family: 'Noto Sans TC', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    color: #475569;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 4px;
-  }
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.card-dist {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.arrow-svg {
+  width: 14px; height: 14px;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+.card-mapbtn {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(56,189,248,0.1);
+  border: 0.5px solid rgba(56,189,248,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.25s var(--spring);
+}
+.card-mapbtn:active { transform: scale(0.9); filter: brightness(1.3); }
 
-  /* ===== ACCORDION ===== */
-  .accordion-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 9px 13px;
-    margin-bottom: 4px;
-    background: rgba(30,41,59,0.5);
-    border: 1px solid rgba(51,65,85,0.3);
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  .accordion-header:active { transform: scale(0.98); }
-  .accordion-title {
-    font-family: 'Noto Sans TC', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    color: #94a3b8;
-  }
-  .accordion-arrow {
-    transition: transform 0.3s ease;
-    flex-shrink: 0;
-  }
-  .accordion-arrow.open { transform: rotate(180deg); }
-  .accordion-body {
-    overflow: hidden;
-    max-height: 0;
-    transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1);
-  }
-  .accordion-body.open { max-height: 9999px; }
+/* Accordion detail panel */
+.card-detail {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s var(--ease-out);
+  border-top: 0.5px solid transparent;
+}
+.card-detail.open {
+  max-height: 200px;
+  border-top-color: var(--border);
+}
+.detail-inner {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.detail-label { color: var(--text-muted); }
+.detail-countdown {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--laser);
+  text-shadow: var(--laser-glow);
+}
+.nav-btns {
+  display: flex;
+  gap: 8px;
+}
+.nav-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 0.5px solid var(--border);
+  transition: all 0.25s var(--spring);
+}
+.nav-btn:active { transform: scale(0.95); filter: brightness(1.2); }
+.nav-btn-apple { background: rgba(255,255,255,0.06); color: #e2e8f0; }
+.nav-btn-google { background: rgba(56,189,248,0.08); color: var(--cyan); }
 
-  /* ===== MAP VIEW ===== */
-  #map-view {
-    flex: 1;
-    display: none;
-    position: relative;
-  }
-  #map-view.active { display: block; }
-  #leaflet-map {
-    width: 100%;
-    height: 100%;
-    background: #0f172a !important;
-  }
-  .leaflet-tile-pane { filter: brightness(0.75) saturate(0.7); }
-  .leaflet-container { background: #0f172a; }
+/* Confetti container */
+.confetti-wrap {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+}
 
-  /* ===== TOPOLOGY VIEW ===== */
-  #topo-view {
-    flex: 1;
-    display: none;
-    overflow: hidden;
-    position: relative;
-    background: #080e1c;
-  }
-  #topo-view.active { display: block; }
-  #topo-svg-wrap {
-    width: 100%;
-    height: 100%;
-    touch-action: none;
-    overflow: hidden;
-  }
+/* ═══════════════════════════════════════════
+   MAP PANEL
+═══════════════════════════════════════════ */
+#map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+.leaflet-container { background: #0a0a0a !important; }
+/* Override Leaflet popup */
+.leaflet-popup-content-wrapper {
+  background: rgba(15, 23, 42, 0.88) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255,255,255,0.15) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.7) !important;
+  color: var(--text-primary) !important;
+}
+.leaflet-popup-tip-container { display: none !important; }
+.leaflet-popup-content { margin: 0 !important; padding: 0 !important; }
+.popup-inner { padding: 14px; min-width: 200px; }
+.popup-name { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+.popup-time { font-family: 'Roboto Mono', monospace; font-size: 16px; font-weight: 700; color: var(--laser); text-shadow: var(--laser-glow); margin-bottom: 4px; }
+.popup-dist { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
+.popup-nav { display: flex; gap: 8px; }
+.popup-nav a {
+  flex: 1; text-align: center; padding: 7px 5px;
+  border-radius: 8px; font-size: 11px; font-weight: 600;
+  text-decoration: none; border: 0.5px solid var(--border);
+}
+.popup-nav .apple { background: rgba(255,255,255,0.06); color: #e2e8f0; }
+.popup-nav .gmap  { background: rgba(56,189,248,0.1); color: var(--cyan); }
+.leaflet-control-attribution { display: none !important; }
+.leaflet-control-zoom a {
+  background: rgba(17,24,39,0.85) !important;
+  color: #94a3b8 !important;
+  border-color: rgba(255,255,255,0.1) !important;
+}
 
-  /* ===== NEON PATH ANIMATION ===== */
-  @keyframes neonFlow {
-    0% { stroke-dashoffset: 0; }
-    100% { stroke-dashoffset: -300; }
-  }
-  .neon-flow {
-    animation: neonFlow 3s linear infinite;
-    will-change: stroke-dashoffset;
-  }
+/* ═══════════════════════════════════════════
+   NIGHT MODE OVERLAY
+═══════════════════════════════════════════ */
+#night-overlay {
+  position: fixed;
+  inset: 0;
+  background: #000000;
+  z-index: 800;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 40px 24px;
+  text-align: center;
+  padding-top: calc(var(--safe-top) + 40px);
+  padding-bottom: calc(var(--safe-bottom) + 40px);
+}
+#night-overlay.visible { display: flex; }
+.night-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.night-sub { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+#night-countdown {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--laser);
+  text-shadow: var(--laser-glow);
+}
 
-  /* ===== RADAR PULSE ===== */
-  @keyframes radarPulse {
-    0% { r: 12; opacity: 0.8; }
-    100% { r: 60; opacity: 0; }
-  }
-  .radar-ring {
-    animation: radarPulse 2s linear infinite;
-    will-change: r;
-  }
-  .radar-ring-2 {
-    animation: radarPulse 2s linear 0.67s infinite;
-    will-change: r;
-  }
-  .radar-ring-3 {
-    animation: radarPulse 2s linear 1.33s infinite;
-    will-change: r;
-  }
+/* ═══════════════════════════════════════════
+   ALERT TOAST
+═══════════════════════════════════════════ */
+#toast {
+  position: fixed;
+  top: calc(var(--safe-top) + 70px);
+  left: 16px; right: 16px;
+  background: rgba(15,23,42,0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 0.5px solid var(--border-hi);
+  border-radius: 14px;
+  padding: 14px 16px;
+  font-size: 13px;
+  color: var(--text-primary);
+  z-index: 5000;
+  transform: translateY(-20px);
+  opacity: 0;
+  transition: all 0.35s var(--spring);
+  pointer-events: none;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+}
+#toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
 
-  /* ===== GOOEY EFFECT ===== */
-  @keyframes gooeyPulse {
-    0% { r: 10; opacity: 0.6; }
-    100% { r: 24; opacity: 0; }
-  }
-  .gooey-ring {
-    animation: gooeyPulse 1.2s ease-out infinite;
-    will-change: r;
-  }
-
-  /* ===== GLASSMORPHISM POPUP ===== */
-  .glass-popup {
-    position: absolute;
-    z-index: 500;
-    background: rgba(15,23,42,0.85);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(99,102,241,0.3);
-    border-radius: 14px;
-    padding: 12px 14px;
-    min-width: 180px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 20px rgba(99,102,241,0.1);
-    pointer-events: auto;
-  }
-  .glass-popup::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0; height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-top: 8px solid rgba(99,102,241,0.3);
-  }
-
-  /* ===== SLEEP MODE OVERLAY ===== */
-  #sleep-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 800;
-    background: linear-gradient(160deg, #020817 0%, #0a0f1e 100%);
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-  }
-  #sleep-overlay.active { display: flex; }
-
-  @keyframes starTwinkle {
-    0%, 100% { opacity: 0.3; } 50% { opacity: 1; }
-  }
-  .star { animation: starTwinkle 2s ease-in-out infinite; }
-
-  @keyframes moonFloat {
-    0%, 100% { transform: translateY(0px) translate3d(0,0,0); }
-    50% { transform: translateY(-6px) translate3d(0,0,0); }
-  }
-  .moon-anim { animation: moonFloat 4s ease-in-out infinite; will-change: transform; }
-
-  /* ===== HOLIDAY BANNER ===== */
-  #holiday-banner {
-    display: none;
-    margin: 0 12px 8px;
-    padding: 12px 14px;
-    background: linear-gradient(135deg, rgba(239,68,68,0.15) 0%, rgba(234,179,8,0.15) 100%);
-    border: 1px solid rgba(239,68,68,0.3);
-    border-radius: 12px;
-    font-family: 'Noto Sans TC', sans-serif;
-    font-size: 13px;
-    color: #fca5a5;
-    line-height: 1.5;
-    flex-shrink: 0;
-  }
-  #holiday-banner.visible { display: block; }
-
-  /* ===== ERROR OVERLAY ===== */
-  #error-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 9998;
-    background: rgba(10,15,30,0.95);
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-  #error-overlay.active { display: flex; }
-
-  /* ===== EMPTY STATE ===== */
-  #empty-state {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 24px;
-    text-align: center;
-    gap: 12px;
-  }
-  #empty-state.visible { display: flex; }
-  #empty-state p {
-    font-family: 'Noto Sans TC', sans-serif;
-    font-size: 14px;
-    color: #475569;
-    line-height: 1.6;
-  }
-
-  /* ===== ARRIVING ALERT ===== */
-  #arriving-alert {
-    display: none;
-    position: fixed;
-    top: calc(env(safe-area-inset-top) + 8px);
-    left: 12px;
-    right: 12px;
-    z-index: 700;
-    padding: 12px 16px;
-    background: linear-gradient(135deg, rgba(239,68,68,0.9) 0%, rgba(220,38,38,0.9) 100%);
-    border-radius: 12px;
-    border: 1px solid rgba(255,100,100,0.5);
-    box-shadow: 0 4px 24px rgba(239,68,68,0.4);
-    font-family: 'Noto Sans TC', sans-serif;
-    font-size: 13px;
-    color: #fff;
-    backdrop-filter: blur(12px);
-    animation: slideDown 0.3s ease;
-  }
-  @keyframes slideDown {
-    from { transform: translateY(-60px) translate3d(0,0,0); opacity: 0; }
-    to { transform: translateY(0) translate3d(0,0,0); opacity: 1; }
-  }
-
-  /* ===== LEAFLET CUSTOM MARKER ===== */
-  .custom-marker {
-    background: none;
-    border: none;
-  }
-
-  /* ===== FAB GPS ===== */
-  #fab-gps {
-    position: absolute;
-    bottom: 20px;
-    right: 16px;
-    z-index: 600;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: rgba(15,23,42,0.9);
-    border: 1px solid rgba(99,102,241,0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-    transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
-  }
-  #fab-gps:active { transform: scale(0.92); }
-
-  /* ===== TOPO CONTROLS ===== */
-  #topo-controls {
-    position: absolute;
-    top: 10px;
-    right: 12px;
-    z-index: 100;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .topo-ctrl-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    background: rgba(15,23,42,0.9);
-    border: 1px solid rgba(51,65,85,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: #94a3b8;
-    font-size: 16px;
-    backdrop-filter: blur(8px);
-    transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
-  }
-  .topo-ctrl-btn:active { transform: scale(0.92); }
-
-  /* Hide scrollbars visually but keep functional */
-  ::-webkit-scrollbar { width: 0; height: 0; background: transparent; }
-
-  /* ===== CATEGORY TAGS ===== */
-  .tag-general {
-    background: linear-gradient(135deg, rgba(178,87,77,0.3) 0%, rgba(154,68,60,0.3) 100%);
-    color: #fca5a5;
-    border: 1px solid rgba(178,87,77,0.4);
-  }
-  .tag-recycle {
-    background: linear-gradient(135deg, rgba(59,100,185,0.3) 0%, rgba(67,80,160,0.3) 100%);
-    color: #93c5fd;
-    border: 1px solid rgba(59,100,185,0.4);
-  }
-  .tag-kitchen {
-    background: linear-gradient(135deg, rgba(74,140,90,0.3) 0%, rgba(60,120,80,0.3) 100%);
-    color: #86efac;
-    border: 1px solid rgba(74,140,90,0.4);
-  }
+/* ═══════════════════════════════════════════
+   WEATHER BANNER
+═══════════════════════════════════════════ */
+#weather-banner {
+  flex-shrink: 0;
+  padding: 6px 16px;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: rgba(0,0,0,0.4);
+  border-bottom: 0.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 </style>
 </head>
 <body>
 
-<!-- ===== SPLASH SCREEN ===== -->
+<!-- ═══════════════════════ SPLASH SCREEN ═══════════════════════ -->
 <div id="splash">
-  <div class="truck-anim gpu-accel">
-    <svg width="90" height="72" viewBox="0 0 90 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="sg1" x1="0" y1="0" x2="90" y2="72" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stop-color="#3b82f6"/>
-          <stop offset="100%" stop-color="#6366f1"/>
-        </linearGradient>
-        <filter id="glowS">
-          <feGaussianBlur stdDeviation="2" result="blur"/>
-          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-      </defs>
-      <!-- Truck body -->
-      <rect x="2" y="22" width="60" height="32" rx="4" fill="url(#sg1)" filter="url(#glowS)" opacity="0.9"/>
-      <!-- Cab -->
-      <rect x="56" y="28" width="28" height="26" rx="3" fill="url(#sg1)" opacity="0.8"/>
-      <!-- Cab window -->
-      <rect x="60" y="32" width="18" height="12" rx="2" fill="rgba(147,197,253,0.4)" stroke="rgba(147,197,253,0.6)" stroke-width="1"/>
-      <!-- Wheels -->
-      <circle cx="18" cy="58" r="10" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
-      <circle cx="18" cy="58" r="5" fill="#334155"/>
-      <circle cx="62" cy="58" r="10" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
-      <circle cx="62" cy="58" r="5" fill="#334155"/>
-      <!-- Exhaust puffs -->
-      <circle cx="4" cy="26" r="4" fill="rgba(148,163,184,0.3)"/>
-      <circle cx="0" cy="22" r="5" fill="rgba(148,163,184,0.2)"/>
-      <!-- Light -->
-      <rect x="82" y="34" width="6" height="4" rx="1" fill="#fde047" opacity="0.9"/>
-      <!-- Lid -->
-      <rect x="5" y="18" width="54" height="6" rx="2" fill="rgba(99,102,241,0.6)" stroke="rgba(99,102,241,0.8)" stroke-width="1"/>
-    </svg>
-  </div>
-  <div style="margin-top:20px; text-align:center;">
-    <div style="font-family:'Roboto Mono',monospace; font-size:11px; color:#6366f1; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:6px;">TAINAN TRACKER</div>
-    <div style="font-family:'Noto Sans TC',sans-serif; font-size:18px; font-weight:700; color:#e2e8f0; margin-bottom:14px;">垃圾車：台南追蹤指標</div>
-    <div class="shimmer-text" style="font-size:13px; letter-spacing:0.04em;" id="splash-msg">🛰️ 正在初始化清運資料庫 . . .</div>
-  </div>
-  <!-- Indeterminate progress bar -->
-  <div style="margin-top:24px; width:160px; height:2px; background:rgba(51,65,85,0.6); border-radius:999px; overflow:hidden;">
-    <div id="splash-bar" style="height:100%; width:30%; background:linear-gradient(90deg,#3b82f6,#6366f1); border-radius:999px; animation:progressSlide 1.5s ease-in-out infinite;"></div>
-  </div>
-  <style>@keyframes progressSlide{0%{transform:translateX(-100%)}100%{transform:translateX(600%)}}</style>
-</div>
-
-<!-- ===== ERROR OVERLAY ===== -->
-<div id="error-overlay">
-  <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-    <circle cx="32" cy="32" r="30" stroke="rgba(239,68,68,0.5)" stroke-width="2"/>
-    <path d="M32 18v18M32 44v2" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
-  </svg>
-  <p style="font-family:'Noto Sans TC',sans-serif; font-size:15px; color:#94a3b8; margin-top:12px; text-align:center; padding:0 24px; line-height:1.6;">
-    系統檢測到異常，正自動還原指標...
-  </p>
-</div>
-
-<!-- ===== ARRIVING ALERT ===== -->
-<div id="arriving-alert"></div>
-
-<!-- ===== MAIN APP SHELL ===== -->
-<div id="app-shell">
-
-  <!-- HEADER -->
-  <div id="app-header">
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-      <!-- SVG Title -->
-      <svg width="220" height="28" viewBox="0 0 220 28" fill="none" class="gpu-accel">
-        <defs>
-          <linearGradient id="titleGrad" x1="0" y1="0" x2="220" y2="0" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#93c5fd"/>
-            <stop offset="50%" stop-color="#a78bfa"/>
-            <stop offset="100%" stop-color="#6366f1"/>
-          </linearGradient>
-        </defs>
-        <text x="0" y="20" font-family="'Noto Sans TC',sans-serif" font-size="14" font-weight="700" fill="url(#titleGrad)">垃圾車：台南追蹤指標</text>
-        <line x1="0" y1="25" x2="220" y2="25" stroke="rgba(99,102,241,0.3)" stroke-width="0.5"/>
-      </svg>
-      <!-- Time display -->
-      <div style="text-align:right;">
-        <div id="live-time" style="font-family:'Roboto Mono',monospace; font-size:14px; font-weight:700; color:#93c5fd; letter-spacing:1px;"></div>
-        <div id="live-day" style="font-family:'Noto Sans TC',sans-serif; font-size:10px; color:#475569; margin-top:1px;"></div>
-      </div>
-    </div>
-    <!-- GPS status -->
-    <div style="display:flex; align-items:center; gap:6px;">
-      <div id="gps-dot" style="width:6px; height:6px; border-radius:50%; background:#475569; flex-shrink:0; transition:background 0.3s;"></div>
-      <span id="gps-status" style="font-family:'Roboto Mono',monospace; font-size:10px; color:#475569; flex:1;">🧭 定位偏移：雷達無法破譯您的座標</span>
-      <div id="data-count" style="font-family:'Roboto Mono',monospace; font-size:10px; color:#334155;"></div>
-    </div>
-  </div>
-
-  <!-- ZONE TABS -->
-  <div class="smooth-scroll-x" id="zone-tabs-wrap" style="flex-shrink:0; display:flex; align-items:center;">
-    <div id="zone-tabs" class="smooth-scroll-x"></div>
-  </div>
-
-  <!-- SEARCH BAR -->
-  <div id="search-wrap">
-    <div style="position:relative;">
-      <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;" width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <circle cx="6.5" cy="6.5" r="5" stroke="#475569" stroke-width="1.5"/>
-        <path d="M10.5 10.5L14 14" stroke="#475569" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      <input type="text" id="search-input" placeholder="搜尋路名、地標..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-    </div>
-  </div>
-
-  <!-- MODE TOGGLE -->
-  <div id="mode-toggle">
-    <button class="mode-btn active jelly-btn" id="btn-list" onclick="setMode('list')">📋 列表模式</button>
-    <button class="mode-btn jelly-btn" id="btn-topo" onclick="setMode('topo')">📊 圖表模式</button>
-    <button class="mode-btn jelly-btn" id="btn-map" onclick="setMode('map')">🗺️ 地圖模式</button>
-  </div>
-
-  <!-- HOLIDAY BANNER -->
-  <div id="holiday-banner"></div>
-
-  <!-- LIST VIEW -->
-  <div id="list-view">
-    <div id="list-container" class="smooth-scroll">
-      <div id="empty-state" class="visible">
-        <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="22" stroke="rgba(51,65,85,0.6)" stroke-width="1.5"/><path d="M16 32s2-8 8-8 8 8 8 8" stroke="#334155" stroke-width="1.5" stroke-linecap="round"/><circle cx="19" cy="20" r="2" fill="#334155"/><circle cx="29" cy="20" r="2" fill="#334155"/></svg>
-        <p>🛰️ 正在初始化清運資料庫<br>資料載入後將自動顯示今日班次</p>
-      </div>
-      <div id="list-content"></div>
-    </div>
-  </div>
-
-  <!-- MAP VIEW -->
-  <div id="map-view">
-    <div id="leaflet-map"></div>
-    <button id="fab-gps" onclick="centerOnUser()" class="jelly-btn">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <circle cx="10" cy="10" r="3.5" stroke="#93c5fd" stroke-width="1.5"/>
-        <path d="M10 1v3M10 16v3M1 10h3M16 10h3" stroke="#93c5fd" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-    </button>
-  </div>
-
-  <!-- TOPOLOGY VIEW -->
-  <div id="topo-view">
-    <div id="topo-svg-wrap">
-      <svg id="topo-svg" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <!-- SVG Filters -->
-          <filter id="neonGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="3" result="blur"/>
-            <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-          <filter id="gooeyFilter" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
-            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="gooey"/>
-          </filter>
-          <linearGradient id="routeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#3b82f6"/>
-            <stop offset="100%" stop-color="#6366f1"/>
-          </linearGradient>
-          <linearGradient id="topoStopGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#93c5fd"/>
-            <stop offset="100%" stop-color="#6366f1"/>
-          </linearGradient>
-        </defs>
-        <g id="topo-g" transform="translate(0,0) scale(1)"></g>
-      </svg>
-    </div>
-    <div id="topo-controls">
-      <button class="topo-ctrl-btn jelly-btn" onclick="topoZoom(1.3)">+</button>
-      <button class="topo-ctrl-btn jelly-btn" onclick="topoZoom(0.77)">−</button>
-      <button class="topo-ctrl-btn jelly-btn" onclick="topoReset()">⊙</button>
-    </div>
-    <div id="topo-popup-wrap" style="position:absolute;pointer-events:none;display:none;z-index:200;"></div>
-  </div>
-</div>
-
-<!-- SLEEP MODE OVERLAY -->
-<div id="sleep-overlay">
-  <svg width="300" height="200" viewBox="0 0 300 200" class="gpu-accel">
+  <svg class="splash-icon" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
-      <radialGradient id="skyGrad" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#1e293b"/>
-        <stop offset="100%" stop-color="#020617"/>
-      </radialGradient>
+      <filter id="glow">
+        <feGaussianBlur stdDeviation="3" result="blur"/>
+        <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+      </filter>
     </defs>
-    <rect width="300" height="200" fill="url(#skyGrad)" rx="16"/>
-    <!-- Stars -->
-    <circle class="star" cx="30" cy="30" r="1.5" fill="#e2e8f0" style="animation-delay:0s"/>
-    <circle class="star" cx="80" cy="15" r="1" fill="#e2e8f0" style="animation-delay:0.3s"/>
-    <circle class="star" cx="150" cy="20" r="1.5" fill="#e2e8f0" style="animation-delay:0.7s"/>
-    <circle class="star" cx="220" cy="35" r="1" fill="#e2e8f0" style="animation-delay:0.2s"/>
-    <circle class="star" cx="270" cy="20" r="1.5" fill="#e2e8f0" style="animation-delay:1.1s"/>
-    <circle class="star" cx="50" cy="70" r="1" fill="#e2e8f0" style="animation-delay:0.5s"/>
-    <circle class="star" cx="250" cy="60" r="1" fill="#e2e8f0" style="animation-delay:0.9s"/>
-    <circle class="star" cx="180" cy="50" r="1.2" fill="#e2e8f0" style="animation-delay:1.4s"/>
-    <!-- Moon -->
-    <g class="moon-anim" transform="translate(140,60)">
-      <circle cx="0" cy="0" r="28" fill="#1e293b"/>
-      <circle cx="-8" cy="-5" r="26" fill="#f1f5f9" opacity="0.9"/>
-      <!-- Craters -->
-      <circle cx="12" cy="-8" r="4" fill="rgba(148,163,184,0.3)"/>
-      <circle cx="6" cy="8" r="3" fill="rgba(148,163,184,0.2)"/>
-      <circle cx="-5" cy="3" r="5" fill="rgba(148,163,184,0.15)"/>
-    </g>
-    <!-- Sleeping bug -->
-    <g transform="translate(58,100)">
-      <ellipse cx="0" cy="0" rx="22" ry="14" fill="#334155"/>
-      <circle cx="0" cy="-8" r="10" fill="#3b4f6b"/>
-      <!-- Eyes closed -->
-      <path d="M-5 -9 Q-3 -11 -1 -9" stroke="#93c5fd" stroke-width="1.5" fill="none"/>
-      <path d="M1 -9 Q3 -11 5 -9" stroke="#93c5fd" stroke-width="1.5" fill="none"/>
-      <!-- ZZZ -->
-      <text x="16" y="-6" font-family="'Roboto Mono',monospace" font-size="9" fill="#6366f1" opacity="0.8">z</text>
-      <text x="20" y="-12" font-family="'Roboto Mono',monospace" font-size="11" fill="#93c5fd" opacity="0.7">z</text>
-      <text x="25" y="-19" font-family="'Roboto Mono',monospace" font-size="13" fill="#a5b4fc" opacity="0.5">Z</text>
+    <g filter="url(#glow)">
+      <rect x="8" y="30" width="54" height="30" rx="8" fill="rgba(74,222,128,0.15)" stroke="#4ade80" stroke-width="1.2"/>
+      <rect x="60" y="38" width="12" height="18" rx="3" fill="rgba(74,222,128,0.1)" stroke="#4ade80" stroke-width="1"/>
+      <circle cx="22" cy="64" r="6" fill="rgba(74,222,128,0.2)" stroke="#4ade80" stroke-width="1.5"/>
+      <circle cx="44" cy="64" r="6" fill="rgba(74,222,128,0.2)" stroke="#4ade80" stroke-width="1.5"/>
+      <rect x="16" y="20" width="28" height="14" rx="4" fill="rgba(56,189,248,0.1)" stroke="#38bdf8" stroke-width="1"/>
+      <rect x="20" y="24" width="6" height="6" rx="1" fill="rgba(56,189,248,0.3)"/>
+      <rect x="30" y="24" width="6" height="6" rx="1" fill="rgba(56,189,248,0.3)"/>
+      <line x1="8" y1="46" x2="62" y2="46" stroke="rgba(74,222,128,0.25)" stroke-width="0.8"/>
     </g>
   </svg>
-  <div style="margin-top:16px; text-align:center;">
-    <div style="font-family:'Noto Sans TC',sans-serif; font-size:16px; font-weight:700; color:#94a3b8; margin-bottom:6px;">🌙 深夜太空休眠模式</div>
-    <div style="font-family:'Noto Sans TC',sans-serif; font-size:13px; color:#475569; line-height:1.7; padding:0 20px;">全市清運大叔已就寢補血</div>
-    <div style="margin-top:12px; font-family:'Roboto Mono',monospace; font-size:11px; color:#6366f1; letter-spacing:0.05em;">距離明日第一班</div>
-    <div id="sleep-countdown" style="font-family:'Roboto Mono',monospace; font-size:28px; font-weight:700; color:#93c5fd; letter-spacing:2px; margin:6px 0;">--:--:--</div>
+  <div>
+    <div class="splash-brand">垃圾車：台南追蹤指標</div>
   </div>
-  <div style="display:flex; gap:10px; margin-top:16px;">
-    <button onclick="dismissSleep()" class="jelly-btn" style="padding:9px 18px; background:rgba(99,102,241,0.2); border:1px solid rgba(99,102,241,0.4); border-radius:10px; font-family:'Noto Sans TC',sans-serif; font-size:13px; color:#a5b4fc; cursor:pointer;">
-      📅 明日時刻表
-    </button>
-    <button onclick="document.getElementById('sleep-overlay').classList.remove('active')" class="jelly-btn" style="padding:9px 18px; background:rgba(51,65,85,0.4); border:1px solid rgba(51,65,85,0.5); border-radius:10px; font-family:'Noto Sans TC',sans-serif; font-size:13px; color:#64748b; cursor:pointer;">
-      強制喚醒
-    </button>
+  <div class="splash-text">
+    正在初始化清運指標系統…<br>
+    <span style="color:var(--laser)">載入台南市 6 批次清運數據</span>
   </div>
 </div>
 
-<!-- ===== MAIN APP SCRIPT ===== -->
+<!-- ═══════════════════════ NIGHT OVERLAY ═══════════════════════ -->
+<div id="night-overlay">
+  <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+    <circle cx="30" cy="30" r="18" fill="rgba(148,163,184,0.08)" stroke="rgba(148,163,184,0.25)" stroke-width="1"/>
+    <path d="M38 22 Q32 20 26 24 Q20 28 22 36 Q26 44 34 42 Q42 40 42 32 Q42 26 38 22Z" fill="rgba(148,163,184,0.15)" stroke="#94a3b8" stroke-width="1"/>
+    <circle cx="20" cy="12" r="2" fill="rgba(74,222,128,0.6)"/>
+    <circle cx="44" cy="8" r="1.5" fill="rgba(74,222,128,0.4)"/>
+    <circle cx="50" cy="20" r="1" fill="rgba(74,222,128,0.5)"/>
+    <circle cx="10" cy="22" r="1.5" fill="rgba(74,222,128,0.3)"/>
+  </svg>
+  <div class="night-title">🌙 深夜太空休眠模式</div>
+  <div class="night-sub">今日所有清運班次已結束<br>系統進入低耗電指標模式</div>
+  <div id="night-countdown">--:--:--</div>
+  <div class="night-sub" style="font-size:12px">距明日首班清運抵達倒數</div>
+</div>
+
+<!-- ═══════════════════════ ALERT TOAST ═══════════════════════ -->
+<div id="toast"></div>
+
+<!-- ═══════════════════════ MAIN APP ═══════════════════════ -->
+<div id="app">
+  <!-- Top Bar -->
+  <div id="topbar">
+    <div class="title-block">
+      <div class="app-title">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <rect x="1" y="7" width="12" height="8" rx="2" fill="rgba(74,222,128,0.15)" stroke="#4ade80" stroke-width="1"/>
+          <rect x="13" y="9" width="4" height="4" rx="1" fill="rgba(74,222,128,0.1)" stroke="#4ade80" stroke-width="0.8"/>
+          <circle cx="4.5" cy="16" r="1.8" fill="none" stroke="#4ade80" stroke-width="1"/>
+          <circle cx="9.5" cy="16" r="1.8" fill="none" stroke="#4ade80" stroke-width="1"/>
+          <rect x="3.5" y="4" width="6" height="4" rx="1" fill="rgba(56,189,248,0.1)" stroke="#38bdf8" stroke-width="0.8"/>
+        </svg>
+        垃圾車：台南追蹤指標
+      </div>
+      <div class="gps-indicator">
+        <div class="gps-dot" id="gps-dot"></div>
+        <span id="gps-label">GPS 指標定位中…</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div id="clock">--:--:--</div>
+      <div id="weekday">---</div>
+    </div>
+  </div>
+
+  <!-- Mode Switcher -->
+  <div id="mode-switcher">
+    <div class="seg-ctrl">
+      <div class="seg-slider" id="seg-slider"></div>
+      <button class="seg-btn active" id="btn-list" onclick="switchMode('list')">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="1" width="13" height="2" rx="1"/><rect x="0" y="5.5" width="10" height="2" rx="1"/><rect x="0" y="10" width="8" height="2" rx="1"/></svg>
+        時刻表
+      </button>
+      <button class="seg-btn" id="btn-map" onclick="switchMode('map')">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6.5" cy="5.5" r="3"/><path d="M6.5 12 C6.5 12 2 8 2 5.5 a4.5 4.5 0 0 1 9 0 C11 8 6.5 12 6.5 12Z"/></svg>
+        地圖
+      </button>
+    </div>
+  </div>
+
+  <!-- District Strip -->
+  <div id="district-strip"></div>
+
+  <!-- Weather Banner -->
+  <div id="weather-banner" id="weather-banner">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" style="color:var(--orange)"><circle cx="6" cy="6" r="2.5"/><line x1="6" y1="0.5" x2="6" y2="2.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><line x1="6" y1="9.5" x2="6" y2="11.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><line x1="0.5" y1="6" x2="2.5" y2="6" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><line x1="9.5" y1="6" x2="11.5" y2="6" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>
+    <span id="weather-text">正在感知環境…</span>
+  </div>
+
+  <!-- Search -->
+  <div id="search-wrap">
+    <div class="search-inner">
+      <svg class="search-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><line x1="9.5" y1="9.5" x2="13" y2="13"/></svg>
+      <input id="search-input" type="text" placeholder="搜尋清運站點…" autocomplete="off" autocorrect="off" spellcheck="false">
+      <button id="search-clear" onclick="clearSearch()">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Panels -->
+  <div id="panels">
+    <!-- List Panel -->
+    <div id="list-panel">
+      <div id="list-scroll"></div>
+    </div>
+    <!-- Map Panel -->
+    <div id="map-panel" class="hidden">
+      <div id="map"></div>
+    </div>
+  </div>
+</div>
+
 <script>
-(function() {
-'use strict';
-
-// ===== GLOBAL ERROR BOUNDARY =====
-window.onerror = function(msg, src, line, col, err) {
-  var el = document.getElementById('error-overlay');
-  if (el) { el.classList.add('active'); }
-  setTimeout(function() { location.reload(); }, 1500);
-  return true;
-};
-window.addEventListener('unhandledrejection', function(e) {
-  var el = document.getElementById('error-overlay');
-  if (el) { el.classList.add('active'); }
-  setTimeout(function() { location.reload(); }, 1500);
-});
-
-// ===== GESTURE LOCK =====
-document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
-document.addEventListener('gesturechange', function(e) { e.preventDefault(); });
-document.addEventListener('gestureend', function(e) { e.preventDefault(); });
-
-var lastTouchEnd = 0;
-document.addEventListener('touchend', function(e) {
-  var now = Date.now();
-  if (now - lastTouchEnd <= 300) { e.preventDefault(); }
-  lastTouchEnd = now;
-}, { passive: false });
-
-// ===== AUDIO ENGINE =====
-var audioCtx = null;
-var audioUnlocked = false;
-
-function initAudio() {
-  if (audioUnlocked) return;
-  try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === 'suspended') { audioCtx.resume(); }
-    audioUnlocked = true;
-  } catch(e) {}
-}
-
-document.body.addEventListener('touchstart', function() {
-  initAudio();
-}, { once: true, passive: true });
-
-function playClick() {
-  if (!audioCtx || !audioUnlocked) return;
-  try {
-    var osc = audioCtx.createOscillator();
-    var gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-    osc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.05);
-    gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.05);
-    osc.start(audioCtx.currentTime);
-    osc.stop(audioCtx.currentTime + 0.06);
-  } catch(e) {}
-}
-
-function playArrivingChime() {
-  if (!audioCtx || !audioUnlocked) return;
-  try {
-    var notes = [523, 659, 784, 659, 523];
-    var delays = [0, 0.12, 0.24, 0.36, 0.48];
-    notes.forEach(function(freq, i) {
-      var osc = audioCtx.createOscillator();
-      var gain = audioCtx.createGain();
-      osc.type = 'square';
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.frequency.setValueAtTime(freq, audioCtx.currentTime + delays[i]);
-      gain.gain.setValueAtTime(0.07, audioCtx.currentTime + delays[i]);
-      gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + delays[i] + 0.1);
-      osc.start(audioCtx.currentTime + delays[i]);
-      osc.stop(audioCtx.currentTime + delays[i] + 0.12);
-    });
-  } catch(e) {}
-}
-
-// ===== APP STATE =====
-var state = {
-  allStops: [],
-  zoneIndex: {},
-  zones: [],
-  currentZone: '',
-  currentMode: 'list',
-  searchQuery: '',
+// ═══════════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════════
+const STATE = {
+  mode: 'list',
+  district: null,
   userLat: null,
   userLng: null,
-  gpsSmoothedLat: null,
-  gpsSmoothedLng: null,
-  lastArrivingAlert: '',
-  showTomorrowSchedule: false
+  userHeading: 0,
+  gpsLocked: false,
+  userDistrictAutoSet: false,
+  userManualDistrict: false,
+  allStops: [],
+  filteredStops: [],
+  expandedCard: null,
+  searchQuery: '',
+  notifiedFlags: {},
+  mapInited: false,
+  map: null,
+  mapMarkers: {},
+  today: new Date(),
 };
 
-var mapInstance = null;
-var mapInitialized = false;
-var userMarker = null;
-var stopMarkers = [];
-var clockInterval = null;
-var countdownInterval = null;
-var sleepCountdownInterval = null;
-var topoState = { tx: 0, ty: 0, scale: 1 };
+const WEEKDAY_MAP = ['日','一','二','三','四','五','六'];
+const DAYS_ZH = ['週日','週一','週二','週三','週四','週五','週六'];
 
-// ===== FALLBACK DATA (安平、永康測試資料) =====
-var FALLBACK_STOPS = [
-  {a:"安平區",n:"安平路與效忠街口",t:"17:00",lg:120.162,lt:22.991,d:"1246"},
-  {a:"安平區",n:"文平路178號",t:"17:10",lg:120.159,lt:22.987,d:"1246"},
-  {a:"安平區",n:"安北路三段",t:"17:20",lg:120.155,lt:22.993,d:"1246"},
-  {a:"永康區",n:"中山南路一段",t:"17:00",lg:120.232,lt:23.031,d:"1356"},
-  {a:"永康區",n:"復興路四段",t:"17:15",lg:120.241,lt:23.025,d:"1356"},
-  {a:"永康區",n:"大灣路口",t:"17:30",lg:120.245,lt:23.020,d:"1356"},
-  {a:"中西區",n:"民族路二段",t:"16:30",lg:120.196,lt:22.998,d:"1246"},
-  {a:"中西區",n:"忠義路二段",t:"16:40",lg:120.199,lt:23.000,d:"1246"},
-];
+// ═══════════════════════════════════════════════════════════════
+//  CLOCK
+// ═══════════════════════════════════════════════════════════════
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+  document.getElementById('weekday').textContent = DAYS_ZH[now.getDay()];
+  updateWeatherBanner(now);
+}
+setInterval(updateClock, 1000);
+updateClock();
 
-// ===== HAVERSINE FORMULA =====
-function haversine(lat1, lng1, lat2, lng2) {
-  var R = 6371000;
-  var dLat = (lat2 - lat1) * Math.PI / 180;
-  var dLng = (lng2 - lng1) * Math.PI / 180;
-  var a = Math.sin(dLat/2)*Math.sin(dLat/2) +
-    Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
-    Math.sin(dLng/2)*Math.sin(dLng/2);
+// ═══════════════════════════════════════════════════════════════
+//  WEATHER BANNER COPY
+// ═══════════════════════════════════════════════════════════════
+function updateWeatherBanner(now) {
+  const h = now.getHours();
+  let msg = '';
+  if      (h >= 5  && h < 9)  msg = '🌅 清晨微涼，早安！今日首班清運即將出發。';
+  else if (h >= 9  && h < 12) msg = '☀️ 陽光正美，記得留意今日清運時刻。';
+  else if (h >= 12 && h < 14) msg = '🌤 午後時分，出門散步曬太陽，順道確認班次。';
+  else if (h >= 14 && h < 17) msg = '🌇 下午陽光充足，注意下班前最後班次。';
+  else if (h >= 17 && h < 19) msg = '🌆 下班辛苦了，一起去巷口捕捉最後一班車。';
+  else if (h >= 19 && h < 21) msg = '🌙 傍晚涼爽，剩下幾班要把握喔！';
+  else                         msg = '🌌 深夜靜好，明日清運班次已預載完畢。';
+  document.getElementById('weather-text').textContent = msg;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DATA LOADING — UNIVERSAL SANDBOX
+// ═══════════════════════════════════════════════════════════════
+function loadAllData() {
+  const raw = [];
+  const sources = [
+    () => { try { return window.rawData1 || stops1 || []; } catch(e){ return []; } },
+    () => { try { return window.rawData2 || stops2 || []; } catch(e){ return []; } },
+    () => { try { return window.rawData3 || stops3 || []; } catch(e){ return []; } },
+    () => { try { return window.rawData4 || stops4 || []; } catch(e){ return []; } },
+    () => { try { return window.rawData5 || stops5 || []; } catch(e){ return []; } },
+    () => { try { return window.rawData6 || stops6 || []; } catch(e){ return []; } },
+  ];
+  for (const src of sources) {
+    try {
+      const arr = src();
+      if (Array.isArray(arr)) {
+        for (const item of arr) {
+          try {
+            const stop = parseStop(item);
+            if (stop) raw.push(stop);
+          } catch(e) { /* skip bad record */ }
+        }
+      }
+    } catch(e) { /* skip bad source */ }
+  }
+  if (raw.length === 0) {
+    return getDefaultMockStops();
+  }
+  return raw;
+}
+
+// Smart field detection
+function parseStop(item) {
+  if (!item || typeof item !== 'object') return null;
+  // latitude
+  const lt = parseFloat(item.lt ?? item.lat ?? item.latitude ?? item.y ?? item.Y ?? 0);
+  // longitude
+  const lg = parseFloat(item.lg ?? item.lng ?? item.lon ?? item.longitude ?? item.x ?? item.X ?? 0);
+  // time
+  const t = String(item.t ?? item.time ?? item.arrivalTime ?? item.arrival ?? '');
+  // name
+  const n = String(item.n ?? item.name ?? item.stopName ?? item.stop ?? '');
+  // district
+  const a = String(item.a ?? item.area ?? item.district ?? item.region ?? '');
+  // day filter
+  const d = String(item.d ?? item.days ?? item.schedule ?? '1234567');
+
+  if (!lt || !lg || !t || !n) return null;
+  if (isNaN(lt) || isNaN(lg)) return null;
+  // Validate Taiwan coords
+  if (lt < 21 || lt > 26 || lg < 118 || lg > 123) return null;
+
+  return { lt, lg, t, n, a, d };
+}
+
+function getDefaultMockStops() {
+  return [
+    { lt: 22.9999, lg: 120.2272, t: '08:00', n: '台南市政府前（示範站）', a: '安平區', d: '1234567' },
+    { lt: 22.9950, lg: 120.2040, t: '09:00', n: '安平港旁（示範站）', a: '安平區', d: '1234567' },
+  ];
+}
+
+// Day-of-week filter: d field contains which days service runs (1=Mon … 7=Sun, or 0=Sun)
+// Field format observed: "1356" means Mon/Wed/Fri/Sat
+// We check if today's day index (0=Sun,1=Mon…6=Sat) is in the schedule
+function isTodayScheduled(d) {
+  try {
+    if (!d || d === '') return true;
+    const dow = new Date().getDay(); // 0=Sun
+    // Map JS day (0=Sun) to common schedule format (0=Sun or 7=Sun)
+    const dayNum = dow; // 0=Sun,1=Mon…6=Sat
+    const alt = dow === 0 ? 7 : dow; // 7=Sun alternative
+    const dStr = String(d);
+    // If string contains '0' it means Sunday in some formats
+    return dStr.includes(String(dayNum)) || dStr.includes(String(alt));
+  } catch(e) { return true; }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DISTRICT STRIP
+// ═══════════════════════════════════════════════════════════════
+function buildDistrictStrip(districts) {
+  const strip = document.getElementById('district-strip');
+  strip.innerHTML = '';
+  for (const d of districts) {
+    const btn = document.createElement('button');
+    btn.className = 'district-pill' + (d === STATE.district ? ' active' : '');
+    btn.textContent = d;
+    btn.onclick = () => selectDistrict(d, true);
+    strip.appendChild(btn);
+  }
+}
+
+function selectDistrict(d, manual = false) {
+  STATE.district = d;
+  if (manual) STATE.userManualDistrict = true;
+  document.querySelectorAll('.district-pill').forEach(p => {
+    p.classList.toggle('active', p.textContent === d);
+  });
+  // Scroll pill into view
+  const activePill = [...document.querySelectorAll('.district-pill')].find(p => p.textContent === d);
+  if (activePill) activePill.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  renderList();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  LIST RENDERING
+// ═══════════════════════════════════════════════════════════════
+function getScheduledStops() {
+  return STATE.allStops.filter(s => isTodayScheduled(s.d));
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SMART TIME-FOCUS AUTO-SCROLL — 時序焦點智慧定位演算法
+// ═══════════════════════════════════════════════════════════════
+/**
+ * Binary-search the rendered card list for the first upcoming stop,
+ * then smoothly snap the scroll container so that card sits at the top.
+ * Works regardless of data volume — O(log n) time search, O(1) DOM query.
+ *
+ * @param {HTMLElement} scrollEl  - the #list-scroll container
+ * @param {number}      nowMin    - current time in minutes since midnight
+ * @param {boolean}     instant   - skip animation (e.g. for periodic refresh)
+ */
+function scrollToNextStop(scrollEl, nowMin, instant = false) {
+  // Collect all rendered cards that carry a data-time stamp
+  const cards = Array.from(scrollEl.querySelectorAll('.sched-card[data-time]'));
+  if (!cards.length) return;
+
+  // Binary search: find first card whose time >= nowMin
+  let lo = 0, hi = cards.length - 1, target = null;
+  while (lo <= hi) {
+    const mid = (lo + hi) >>> 1;
+    const midMin = timeToMinutes(cards[mid].dataset.time);
+    if (midMin >= nowMin) {
+      target = cards[mid];
+      hi = mid - 1;           // keep searching left for an even earlier match
+    } else {
+      lo = mid + 1;
+    }
+  }
+
+  // If every stop has passed, jump to the very last card so the user
+  // sees the most recent activity rather than staring at the top.
+  if (!target) {
+    target = cards[cards.length - 1];
+  }
+
+  // Walk up one sibling: if the card is preceded by a sticky group-header,
+  // scroll to the header instead so it isn't hidden under the sticky bar.
+  const prev = target.previousElementSibling;
+  const anchorEl = (prev && prev.classList.contains('group-header')) ? prev : target;
+
+  // Calculate scrollTop manually so we can respect the sticky header height
+  // (approx 36px) and add a small 8px breathing margin above the card.
+  const STICKY_OFFSET = 36;
+  const MARGIN        = 8;
+  const containerTop  = scrollEl.getBoundingClientRect().top;
+  const anchorTop     = anchorEl.getBoundingClientRect().top;
+  const delta         = anchorTop - containerTop - STICKY_OFFSET - MARGIN;
+  const targetScrollTop = scrollEl.scrollTop + delta;
+
+  if (instant) {
+    scrollEl.scrollTop = Math.max(0, targetScrollTop);
+  } else {
+    scrollEl.scrollTo({
+      top:      Math.max(0, targetScrollTop),
+      behavior: 'smooth',
+    });
+  }
+}
+
+function renderList() {
+  const query = STATE.searchQuery.toLowerCase();
+  let stops = getScheduledStops().filter(s => s.a === STATE.district);
+  if (query) stops = stops.filter(s => s.n.toLowerCase().includes(query) || s.a.toLowerCase().includes(query));
+
+  // Sort by time
+  stops.sort((a, b) => timeToMinutes(a.t) - timeToMinutes(b.t));
+
+  STATE.filteredStops = stops;
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+
+  // Group by hour
+  const groups = {};
+  for (const s of stops) {
+    const h = s.t.split(':')[0];
+    if (!groups[h]) groups[h] = [];
+    groups[h].push(s);
+  }
+
+  const scroll = document.getElementById('list-scroll');
+  scroll.innerHTML = '';
+
+  if (stops.length === 0) {
+    scroll.innerHTML = `<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-size:13px;">
+      <div style="font-size:28px;margin-bottom:12px">🔍</div>
+      <div>${query ? '找不到符合的站點' : '今日此區域無清運班次'}</div>
+    </div>`;
+    return;
+  }
+
+  for (const [h, groupStops] of Object.entries(groups)) {
+    const allPast = groupStops.every(s => timeToMinutes(s.t) < nowMin);
+    const hdr = document.createElement('div');
+    hdr.className = 'group-header';
+    const hasImminent = groupStops.some(s => {
+      const diff = timeToMinutes(s.t) - nowMin;
+      return diff >= 0 && diff <= 15;
+    });
+    if (hasImminent) {
+      hdr.innerHTML = `<div class="radar-dot"></div><span>${h}:00 班次 · ${groupStops.length} 個停靠點</span>`;
+    } else {
+      hdr.innerHTML = `<div class="group-dot"></div><span>${h}:00 班次 · ${groupStops.length} 個停靠點</span>`;
+    }
+    if (allPast) hdr.style.opacity = '0.35';
+    scroll.appendChild(hdr);
+
+    for (const stop of groupStops) {
+      scroll.appendChild(buildCard(stop, nowMin));
+    }
+  }
+
+  // Smart Time-Focus Auto-Scroll: after DOM settles, jump to next upcoming stop
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      scrollToNextStop(scroll, nowMin, STATE._skipScrollAnimation === true);
+      STATE._skipScrollAnimation = false;
+    });
+  });
+}
+
+function buildCard(stop, nowMin) {
+  const stopMin = timeToMinutes(stop.t);
+  const diffMin = stopMin - nowMin;
+  const isPast = diffMin < 0;
+  const isImminent = diffMin >= 0 && diffMin <= 15;
+  const dist = calcDist(STATE.userLat, STATE.userLng, stop.lt, stop.lg);
+  const bearing = calcBearing(STATE.userLat, STATE.userLng, stop.lt, stop.lg);
+  const arrowRot = bearing - STATE.userHeading;
+
+  const card = document.createElement('div');
+  card.className = 'sched-card' + (isPast ? ' past' : '') + (isImminent ? ' imminent' : '');
+  card.dataset.id = `${stop.a}_${stop.t}_${stop.n}`;
+  card.dataset.time = stop.t;
+
+  let cdText = '';
+  if (!isPast && diffMin <= 60) {
+    cdText = `剩 ${diffMin} 分鐘`;
+  } else if (isPast) {
+    cdText = '已過站';
+  }
+
+  let tagHTML = '';
+  // Determine type from stop name keywords
+  const nm = stop.n;
+  if (nm.includes('廚餘') || nm.includes('廚')) {
+    tagHTML = `<span class="tag tag-kitchen">廚餘</span>`;
+  } else if (nm.includes('回收') || nm.includes('資源')) {
+    tagHTML = `<span class="tag tag-recycle">回收</span>`;
+  } else {
+    tagHTML = `<span class="tag tag-general">一般</span>`;
+  }
+
+  const distText = dist !== null ? `距您 ${Math.round(dist)} 公尺` : '距離未知';
+
+  card.innerHTML = `
+    <div class="card-main">
+      <div class="card-left">
+        <div class="card-time">${stop.t}</div>
+        <div class="card-countdown">${cdText}</div>
+      </div>
+      <div class="card-right">
+        <div class="card-name-row">
+          <div class="card-name">${stop.n}</div>
+          ${tagHTML}
+        </div>
+        <div class="card-meta">
+          <span class="card-dist">${distText}</span>
+          <svg class="arrow-svg" viewBox="0 0 14 14" fill="none" stroke="#38bdf8" stroke-width="1.5" style="transform:rotate(${arrowRot}deg)">
+            <path d="M7 2 L7 12 M3 6 L7 2 L11 6"/>
+          </svg>
+        </div>
+      </div>
+      <button class="card-mapbtn" onclick="flyToStop(event, ${stop.lt}, ${stop.lg}, '${escStr(stop.n)}', '${stop.t}')">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="#38bdf8" stroke-width="1.5"><circle cx="6.5" cy="5.5" r="3"/><path d="M6.5 11.5 C6.5 11.5 2 8 2 5.5 a4.5 4.5 0 0 1 9 0 C11 8 6.5 11.5 6.5 11.5Z"/></svg>
+      </button>
+    </div>
+    <div class="card-detail" id="detail_${card.dataset.id.replace(/[^a-zA-Z0-9]/g,'_')}">
+      <div class="detail-inner">
+        <div class="detail-row">
+          <span class="detail-label">行政區</span>
+          <span>${stop.a}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">站點</span>
+          <span>${stop.n}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">即時倒數</span>
+          <span class="detail-countdown" data-target="${stop.t}">--:--</span>
+        </div>
+        <div class="nav-btns">
+          <a class="nav-btn nav-btn-apple" href="maps://?q=${stop.lt},${stop.lg}">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M6 1 A5 5 0 1 1 5.99 1Z"/><path d="M6 6 L8 4"/></svg>
+            Apple Maps
+          </a>
+          <a class="nav-btn nav-btn-google" href="https://google.com/maps?q=${stop.lt},${stop.lg}" target="_blank" rel="noopener">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="5" r="3.5"/><path d="M6 10 C6 10 2 7 2 5 a4 4 0 0 1 8 0 C10 7 6 10 6 10Z"/></svg>
+            Google Maps
+          </a>
+        </div>
+      </div>
+    </div>
+  `;
+
+  card.querySelector('.card-main').addEventListener('click', (e) => {
+    if (e.target.closest('.card-mapbtn')) return;
+    toggleAccordion(card);
+  });
+
+  return card;
+}
+
+function escStr(s) { return s.replace(/'/g, "\\'").replace(/"/g,'&quot;'); }
+
+function toggleAccordion(card) {
+  const detailId = 'detail_' + card.dataset.id.replace(/[^a-zA-Z0-9]/g,'_');
+  const detail = document.getElementById(detailId);
+  if (!detail) return;
+  const isOpen = detail.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.card-detail.open').forEach(d => d.classList.remove('open'));
+  if (!isOpen) {
+    detail.classList.add('open');
+    STATE.expandedCard = card.dataset.id;
+  } else {
+    STATE.expandedCard = null;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  COUNTDOWN TICKER
+// ═══════════════════════════════════════════════════════════════
+function tickCountdowns() {
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const nowSec = nowMin * 60 + now.getSeconds();
+
+  document.querySelectorAll('.detail-countdown[data-target]').forEach(el => {
+    const t = el.dataset.target;
+    const tMin = timeToMinutes(t);
+    const tSec = tMin * 60;
+    const diff = tSec - nowSec;
+    if (diff < 0) {
+      el.textContent = '已過站';
+    } else {
+      const mm = Math.floor(diff / 60);
+      const ss = diff % 60;
+      el.textContent = `${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+    }
+  });
+
+  // Update card countdowns
+  document.querySelectorAll('.card-countdown').forEach(el => {
+    const card = el.closest('.sched-card');
+    if (!card) return;
+    const timeEl = card.querySelector('.card-time');
+    if (!timeEl) return;
+    const t = timeEl.textContent;
+    const diff = timeToMinutes(t) - nowMin;
+    if (diff < 0) { el.textContent = '已過站'; }
+    else if (diff <= 60) { el.textContent = `剩 ${diff} 分鐘`; }
+    else { el.textContent = ''; }
+  });
+
+  checkNightMode();
+}
+setInterval(tickCountdowns, 1000);
+
+// ═══════════════════════════════════════════════════════════════
+//  NIGHT MODE
+// ═══════════════════════════════════════════════════════════════
+function checkNightMode() {
+  const scheduled = getScheduledStops();
+  if (scheduled.length === 0) return;
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const future = scheduled.filter(s => timeToMinutes(s.t) > nowMin);
+  const overlay = document.getElementById('night-overlay');
+  if (future.length === 0) {
+    overlay.classList.add('visible');
+    // Find tomorrow's first stop time
+    const firstTomorrow = scheduled.reduce((a,b) => timeToMinutes(a.t) < timeToMinutes(b.t) ? a : b);
+    const firstMin = timeToMinutes(firstTomorrow.t);
+    const minutesTilMidnight = 24*60 - nowMin;
+    const totalMins = minutesTilMidnight + firstMin;
+    const h = Math.floor(totalMins / 60) % 24;
+    const m = totalMins % 60;
+    const s = 59 - now.getSeconds();
+    document.getElementById('night-countdown').textContent =
+      `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  } else {
+    overlay.classList.remove('visible');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  MODE SWITCH
+// ═══════════════════════════════════════════════════════════════
+function switchMode(mode) {
+  STATE.mode = mode;
+  document.getElementById('list-panel').classList.toggle('hidden', mode !== 'list');
+  document.getElementById('map-panel').classList.toggle('hidden', mode !== 'map');
+  document.getElementById('btn-list').classList.toggle('active', mode === 'list');
+  document.getElementById('btn-map').classList.toggle('active', mode === 'map');
+  document.getElementById('seg-slider').classList.toggle('right', mode === 'map');
+
+  if (mode === 'map') {
+    if (!STATE.mapInited) {
+      // Remove .hidden FIRST so the container has real dimensions before Leaflet init
+      document.getElementById('map-panel').classList.remove('hidden');
+      // Wait one frame for layout, then init Leaflet
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          initMap();
+        });
+      });
+    } else {
+      // Already inited — just tell Leaflet the container size may have changed
+      requestAnimationFrame(() => {
+        if (STATE.map) {
+          STATE.map.invalidateSize({ animate: false });
+          refreshMapMarkers();
+        }
+      });
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  MAP
+// ═══════════════════════════════════════════════════════════════
+function initMap() {
+  STATE.mapInited = true;
+
+  // Ensure map div is visible and has real pixel dimensions before Leaflet init
+  const mapDiv = document.getElementById('map');
+  const panel  = document.getElementById('map-panel');
+  panel.classList.remove('hidden');   // must be visible for Leaflet to measure
+
+  const map = L.map('map', {
+    preferCanvas: true,
+    zoomControl: true,
+    maxBounds: [[22.85, 120.00], [23.45, 120.65]],
+    maxBoundsViscosity: 1.0,
+    minZoom: 11,
+    maxZoom: 18,
+    tap: false,   // prevent iOS ghost-tap issues
+  });
+  STATE.map = map;
+
+  // Primary: CartoDB DarkMatter
+  const cartoLayer = L.tileLayer(
+    'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    { subdomains: 'abcd', maxZoom: 19, attribution: '&copy; CartoDB' }
+  );
+
+  // Fallback: OpenStreetMap (always available, no API key needed)
+  const osmLayer = L.tileLayer(
+    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    { subdomains: 'abc', maxZoom: 19, attribution: '&copy; OpenStreetMap' }
+  );
+
+  // Try CartoDB first; if tiles fail within 8s, swap to OSM
+  cartoLayer.addTo(map);
+  let cartoOK = false;
+  cartoLayer.once('tileload', () => { cartoOK = true; });
+  setTimeout(() => {
+    if (!cartoOK) {
+      map.removeLayer(cartoLayer);
+      osmLayer.addTo(map);
+      console.warn('[Map] CartoDB unreachable, switched to OpenStreetMap');
+    }
+  }, 8000);
+
+  const center = STATE.userLat ? [STATE.userLat, STATE.userLng] : [23.0, 120.21];
+  map.setView(center, 13);
+
+  // Critical: after setView, force Leaflet to re-measure container
+  // (handles edge case where panel was still animating when setView was called)
+  setTimeout(() => {
+    map.invalidateSize({ animate: false });
+    refreshMapMarkers();
+  }, 350);
+}
+
+function makePinSVG(color, glow) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
+    <defs>
+      <filter id="f1" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
+        <feColorMatrix in="blur" type="saturate" values="3" result="sat"/>
+        <feComposite in="SourceGraphic" in2="sat" operator="over"/>
+      </filter>
+    </defs>
+    <path d="M14 2 A10 10 0 0 1 24 12 C24 20 14 34 14 34 C14 34 4 20 4 12 A10 10 0 0 1 14 2Z" 
+      fill="${color}" fill-opacity="0.18" stroke="${color}" stroke-width="1.5" filter="url(#f1)"/>
+    <circle cx="14" cy="12" r="4" fill="${color}" fill-opacity="0.85"/>
+    <circle cx="14" cy="12" r="2" fill="white" fill-opacity="0.9"/>
+  </svg>`;
+}
+
+function makePinIcon(color) {
+  return L.divIcon({
+    html: makePinSVG(color, true),
+    className: '',
+    iconSize: [28, 36],
+    iconAnchor: [14, 34],
+    popupAnchor: [0, -30],
+  });
+}
+
+function refreshMapMarkers() {
+  if (!STATE.map) return;
+  // Clear existing
+  Object.values(STATE.mapMarkers).forEach(m => STATE.map.removeLayer(m));
+  STATE.mapMarkers = {};
+
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const stops = getScheduledStops().filter(s => s.a === STATE.district);
+
+  for (const stop of stops) {
+    const diff = timeToMinutes(stop.t) - nowMin;
+    let color = '#38bdf8';
+    if (diff < 0) color = '#475569';
+    else if (diff <= 15) color = '#4ade80';
+    else if (diff <= 60) color = '#fb923c';
+
+    const marker = L.marker([stop.lt, stop.lg], { icon: makePinIcon(color) });
+    const dist = calcDist(STATE.userLat, STATE.userLng, stop.lt, stop.lg);
+    const distStr = dist !== null ? `距您 ${Math.round(dist)} 公尺` : '';
+    marker.bindPopup(`
+      <div class="popup-inner">
+        <div class="popup-name">${stop.n}</div>
+        <div class="popup-time">${stop.t}</div>
+        <div class="popup-dist">${distStr}</div>
+        <div class="popup-nav">
+          <a class="apple" href="maps://?q=${stop.lt},${stop.lg}">🍏 Apple Maps</a>
+          <a class="gmap" href="https://google.com/maps?q=${stop.lt},${stop.lg}" target="_blank" rel="noopener">🌐 Google Maps</a>
+        </div>
+      </div>
+    `);
+    marker.addTo(STATE.map);
+    const key = `${stop.a}_${stop.t}_${stop.n}`;
+    STATE.mapMarkers[key] = marker;
+  }
+
+  // User location marker
+  if (STATE.userLat) {
+    const userIcon = L.divIcon({
+      html: `<div style="width:16px;height:16px;border-radius:50%;background:rgba(56,189,248,0.9);border:2px solid white;box-shadow:0 0 12px rgba(56,189,248,0.7);"></div>`,
+      className: '',
+      iconSize: [16,16],
+      iconAnchor: [8,8],
+    });
+    L.marker([STATE.userLat, STATE.userLng], { icon: userIcon }).addTo(STATE.map);
+  }
+}
+
+function flyToStop(e, lat, lng, name, time) {
+  e.stopPropagation();
+  switchMode('map');
+  setTimeout(() => {
+    if (STATE.map) {
+      STATE.map.flyTo([lat, lng], 17, { animate: true, duration: 0.5 });
+      const key = Object.keys(STATE.mapMarkers).find(k => k.includes(name.substring(0,5)));
+      if (key && STATE.mapMarkers[key]) {
+        setTimeout(() => STATE.mapMarkers[key].openPopup(), 600);
+      }
+    }
+  }, 350);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  GPS
+// ═══════════════════════════════════════════════════════════════
+function initGPS() {
+  if (!navigator.geolocation) {
+    document.getElementById('gps-label').textContent = 'GPS 不支援';
+    document.getElementById('gps-dot').classList.add('offline');
+    return;
+  }
+  const opts = { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 };
+  navigator.geolocation.watchPosition(onGPS, onGPSError, opts);
+}
+
+function onGPS(pos) {
+  const { latitude, longitude } = pos.coords;
+  const wasLocked = STATE.gpsLocked;
+  STATE.userLat = latitude;
+  STATE.userLng = longitude;
+  STATE.gpsLocked = true;
+  document.getElementById('gps-label').textContent = 'GPS 指標已連線';
+  document.getElementById('gps-dot').classList.remove('offline');
+
+  if (!wasLocked && !STATE.userManualDistrict) {
+    // Auto-select nearest district
+    const nearest = findNearestDistrict(latitude, longitude);
+    if (nearest) selectDistrict(nearest, false);
+    STATE.userDistrictAutoSet = true;
+  } else if (!STATE.userManualDistrict) {
+    // Only update distances
+    renderList();
+  }
+
+  if (STATE.mapInited && STATE.map) refreshMapMarkers();
+}
+
+function onGPSError(err) {
+  document.getElementById('gps-label').textContent = 'GPS 離線';
+  document.getElementById('gps-dot').classList.add('offline');
+}
+
+function findNearestDistrict(lat, lng) {
+  const districts = [...new Set(STATE.allStops.map(s => s.a))];
+  let best = null, bestDist = Infinity;
+  for (const d of districts) {
+    const stops = STATE.allStops.filter(s => s.a === d);
+    if (!stops.length) continue;
+    const avgLat = stops.reduce((s,x) => s + x.lt, 0) / stops.length;
+    const avgLng = stops.reduce((s,x) => s + x.lg, 0) / stops.length;
+    const dist = Math.hypot(lat - avgLat, lng - avgLng);
+    if (dist < bestDist) { bestDist = dist; best = d; }
+  }
+  return best;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ORIENTATION / COMPASS
+// ═══════════════════════════════════════════════════════════════
+function initOrientation() {
+  if (window.DeviceOrientationEvent) {
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+      // iOS 13+ requires permission
+      document.addEventListener('click', async () => {
+        try {
+          const perm = await DeviceOrientationEvent.requestPermission();
+          if (perm === 'granted') {
+            window.addEventListener('deviceorientation', onOrientation, true);
+          }
+        } catch(e){}
+      }, { once: true });
+    } else {
+      window.addEventListener('deviceorientation', onOrientation, true);
+    }
+  }
+}
+
+function onOrientation(e) {
+  if (e.alpha !== null) {
+    STATE.userHeading = e.alpha;
+    // Update arrow rotations
+    document.querySelectorAll('.arrow-svg').forEach(svg => {
+      const card = svg.closest('.sched-card');
+      if (!card) return;
+      const timeEl = card.querySelector('.card-time');
+      const distEl = card.querySelector('.card-dist');
+      if (!timeEl) return;
+      // Find matching stop
+      const t = timeEl.textContent;
+      const stop = STATE.filteredStops.find(s => s.t === t);
+      if (!stop) return;
+      const bearing = calcBearing(STATE.userLat, STATE.userLng, stop.lt, stop.lg);
+      svg.style.transform = `rotate(${bearing - STATE.userHeading}deg)`;
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  GEOFENCING ALERT (WEB WORKER SIMULATION)
+// ═══════════════════════════════════════════════════════════════
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playBeep(type) {
+  try {
+    const ctx = getAudioCtx();
+    if (type === 'short') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.3);
+    } else {
+      // 8-bit chord
+      [523, 659, 784].forEach((f, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'square';
+        osc.frequency.value = f;
+        gain.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.12);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.12 + 0.4);
+        osc.start(ctx.currentTime + i * 0.12);
+        osc.stop(ctx.currentTime + i * 0.12 + 0.5);
+      });
+    }
+  } catch(e) {}
+}
+
+function showToast(msg, duration = 5000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function checkGeofence() {
+  if (!STATE.userLat) return;
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const stops = getScheduledStops();
+
+  for (const stop of stops) {
+    const diff = timeToMinutes(stop.t) - nowMin;
+    const dist = calcDist(STATE.userLat, STATE.userLng, stop.lt, stop.lg);
+    if (dist === null) continue;
+    const key = `${stop.a}_${stop.t}_${stop.n}`;
+
+    if (diff > 0 && diff <= 3 && dist <= 200 && !STATE.notifiedFlags[key + '_3']) {
+      STATE.notifiedFlags[key + '_3'] = true;
+      playBeep('chord');
+      showToast(`🚨 警告：清運指標已進入最終攔截窗口（200米內）！請立即前往巷口！`, 8000);
+    } else if (diff > 0 && diff <= 10 && dist <= 500 && !STATE.notifiedFlags[key + '_10']) {
+      STATE.notifiedFlags[key + '_10'] = true;
+      playBeep('short');
+      showToast(`🛰️ 清運指標已進入防禦半徑（500米內），請準備下樓。`, 6000);
+    }
+  }
+}
+setInterval(checkGeofence, 30000);
+
+// ═══════════════════════════════════════════════════════════════
+//  SEARCH
+// ═══════════════════════════════════════════════════════════════
+document.getElementById('search-input').addEventListener('input', (e) => {
+  STATE.searchQuery = e.target.value;
+  const clearBtn = document.getElementById('search-clear');
+  clearBtn.classList.toggle('visible', STATE.searchQuery.length > 0);
+  renderList();
+});
+function clearSearch() {
+  const inp = document.getElementById('search-input');
+  inp.value = '';
+  STATE.searchQuery = '';
+  document.getElementById('search-clear').classList.remove('visible');
+  inp.focus();
+  renderList();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  GESTURE PREVENTION
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('gesturestart', e => e.preventDefault());
+let lastTouch = 0;
+document.addEventListener('touchend', e => {
+  const now = Date.now();
+  if (now - lastTouch < 300) e.preventDefault();
+  lastTouch = now;
+}, { passive: false });
+
+// ═══════════════════════════════════════════════════════════════
+//  CONFETTI
+// ═══════════════════════════════════════════════════════════════
+function launchConfetti(container) {
+  const wrap = document.createElement('div');
+  wrap.className = 'confetti-wrap';
+  container.style.position = 'relative';
+  container.appendChild(wrap);
+  const colors = ['#fb7185','#38bdf8','#34d399','#4ade80','#fb923c','#a78bfa'];
+  for (let i = 0; i < 30; i++) {
+    const dot = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    dot.setAttribute('width','8'); dot.setAttribute('height','8');
+    dot.style.cssText = `position:absolute;left:${Math.random()*100}%;top:50%;`;
+    const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx','4'); c.setAttribute('cy','4'); c.setAttribute('r','4');
+    c.setAttribute('fill', colors[Math.floor(Math.random()*colors.length)]);
+    dot.appendChild(c);
+    wrap.appendChild(dot);
+    const tx = (Math.random()-0.5)*200;
+    const ty = -(Math.random()*150+50);
+    dot.animate([
+      { transform: `translate(0,0) scale(1)`, opacity: 1 },
+      { transform: `translate(${tx}px,${ty}px) scale(0)`, opacity: 0 }
+    ], { duration: 1000 + Math.random()*500, easing: 'cubic-bezier(0.4,0,0.2,1)', fill: 'forwards' });
+  }
+  setTimeout(() => wrap.remove(), 1600);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  HAVERSINE & BEARING
+// ═══════════════════════════════════════════════════════════════
+function calcDist(lat1, lng1, lat2, lng2) {
+  if (lat1 == null || lng1 == null) return null;
+  const R = 6371000;
+  const φ1 = lat1 * Math.PI/180, φ2 = lat2 * Math.PI/180;
+  const Δφ = (lat2-lat1) * Math.PI/180;
+  const Δλ = (lng2-lng1) * Math.PI/180;
+  const a = Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-// ===== GPS KALMAN SMOOTH =====
-function smoothGPS(newLat, newLng) {
-  var alpha = 0.25;
-  if (state.gpsSmoothedLat === null) {
-    state.gpsSmoothedLat = newLat;
-    state.gpsSmoothedLng = newLng;
-  } else {
-    state.gpsSmoothedLat = alpha * newLat + (1-alpha) * state.gpsSmoothedLat;
-    state.gpsSmoothedLng = alpha * newLng + (1-alpha) * state.gpsSmoothedLng;
-  }
+function calcBearing(lat1, lng1, lat2, lng2) {
+  if (lat1 == null) return 0;
+  const φ1 = lat1 * Math.PI/180, φ2 = lat2 * Math.PI/180;
+  const Δλ = (lng2-lng1) * Math.PI/180;
+  const y = Math.sin(Δλ)*Math.cos(φ2);
+  const x = Math.cos(φ1)*Math.sin(φ2) - Math.sin(φ1)*Math.cos(φ2)*Math.cos(Δλ);
+  return ((Math.atan2(y,x)*180/Math.PI)+360) % 360;
 }
 
-// ===== SAFE TEXT ESCAPE (XSS Prevention) =====
-function safeText(str) {
-  var div = document.createElement('div');
-  div.textContent = String(str || '');
-  return div.innerHTML;
+function timeToMinutes(t) {
+  try {
+    const [h, m] = t.split(':').map(Number);
+    return h*60 + m;
+  } catch(e) { return 0; }
 }
 
-function rawText(str) {
-  return String(str || '').replace(/[<>&"']/g, function(c) {
-    return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c];
-  });
-}
-
-// ===== SCHEDULE DAY FILTER =====
-// d field: "1"=Mon,"2"=Tue,"3"=Wed,"4"=Thu,"5"=Fri,"6"=Sat (no Sun=7)
-// Tues & Wed are rest days for the most common routes; actual rest encoded in d field
-function isTodayActive(dStr) {
-  var now = new Date();
-  var dow = now.getDay(); // 0=Sun,1=Mon,...,6=Sat
-  // Map JS day to data day codes: Sun=7(not in data=skip), Mon=1,Tue=2,Wed=3,Thu=4,Fri=5,Sat=6
-  var dayMap = {0: null, 1:'1', 2:'2', 3:'3', 4:'4', 5:'5', 6:'6'};
-  var code = dayMap[dow];
-  if (!code) return false; // Sunday: no service
-  return String(dStr || '').indexOf(code) !== -1;
-}
-
-// ===== SMART FIELD DETECTION =====
-function parseStop(raw) {
-  if (!raw || typeof raw !== 'object') return null;
-  var lng = raw.lg || raw.lng || raw.longitude || raw.X || raw.lon || null;
-  var lat = raw.lt || raw.lat || raw.latitude || raw.Y || null;
-  var time = raw.t || raw.time || raw.arrivalTime || raw.cleanTime || "17:00";
-  var name = raw.n || raw.name || raw.location || raw.addr || "未知地點";
-  var zone = raw.a || raw.area || raw.district || "未分類";
-  var days = raw.d || raw.days || raw.curb_days || raw.week || "1246";
-  var cat = raw.c || raw.category || raw.type || "一般";
-
-  if (!lng || !lat) return null;
-  lng = parseFloat(lng);
-  lat = parseFloat(lat);
-  if (isNaN(lng) || isNaN(lat)) return null;
-  if (lat < 22 || lat > 24 || lng < 119 || lng > 122) return null;
-
-  return { lng: lng, lat: lat, time: String(time), name: String(name), zone: String(zone), days: String(days), cat: String(cat) };
-}
-
-// ===== ZONE CENTER COORDS FOR GPS AUTO-DETECT =====
-var ZONE_CENTERS = {
-  "中西區":[120.199,22.999],"東區":[120.233,22.997],"南區":[120.195,22.978],"北區":[120.202,23.018],
-  "安平區":[120.158,22.989],"安南區":[120.173,23.047],"永康區":[120.238,23.028],"歸仁區":[120.301,22.975],
-  "新化區":[120.316,23.035],"左鎮區":[120.328,23.014],"玉井區":[120.453,23.120],"楠西區":[120.485,23.162],
-  "南化區":[120.475,23.080],"仁德區":[120.245,22.956],"關廟區":[120.344,22.920],"龍崎區":[120.371,22.902],
-  "官田區":[120.357,23.152],"麻豆區":[120.247,23.180],"佳里區":[120.178,23.164],"西港區":[120.212,23.126],
-  "七股區":[120.120,23.148],"將軍區":[120.136,23.194],"學甲區":[120.168,23.234],"北門區":[120.132,23.268],
-  "新營區":[120.312,23.304],"後壁區":[120.356,23.357],"白河區":[120.425,23.358],"東山區":[120.409,23.240],
-  "六甲區":[120.345,23.226],"下營區":[120.283,23.229],"柳營區":[120.308,23.275],"鹽水區":[120.264,23.318],
-  "善化區":[120.299,23.148],"大內區":[120.376,23.093],"山上區":[120.367,23.079],"新市區":[120.303,23.088],
-  "安定區":[120.224,23.093]
-};
-
-// ===== PARSE ALL 6 DATA BLOCKS =====
-function parseAllData() {
-  var allStops = [];
-  // The data scripts define globals: stops1 … stops6
-  // Each is an array of {a, n, t, lg, lt, d} objects
-  var globals = [
-    window.stops1, window.stops2, window.stops3,
-    window.stops4, window.stops5, window.stops6
-  ];
-
-  globals.forEach(function(data, idx) {
-    try {
-      if (!Array.isArray(data) || data.length === 0) return;
-      data.forEach(function(raw) {
-        try {
-          var stop = parseStop(raw);
-          if (stop) allStops.push(stop);
-        } catch(e) {}
-      });
-    } catch(e) {
-      console.warn('Data block error #' + (idx+1), e);
-    }
-  });
-
-  // Use fallback if nothing parsed
-  if (allStops.length === 0) {
-    FALLBACK_STOPS.forEach(function(raw) {
-      var stop = parseStop(raw);
-      if (stop) allStops.push(stop);
-    });
-  }
-
-  return allStops;
-}
-
-// ===== BUILD ZONE INDEX (O(1) HASH MAP) =====
-function buildZoneIndex(stops) {
-  window.zoneIndex = {};
-  stops.forEach(function(stop) {
-    var z = stop.zone;
-    if (!window.zoneIndex[z]) window.zoneIndex[z] = [];
-    window.zoneIndex[z].push(stop);
-  });
-  return window.zoneIndex;
-}
-
-// ===== GET STOPS FOR CURRENT VIEW =====
-function getCurrentStops() {
-  var zone = state.currentZone;
-  var all = state.showTomorrowSchedule ? getTomorrowStops() : getTodayStops();
-
-  if (zone === '全部') return all;
-  var zoneStops = window.zoneIndex[zone] || [];
-  if (state.showTomorrowSchedule) {
-    var tomorrow = getTomorrowDayCode();
-    zoneStops = zoneStops.filter(function(s) { return s.days.indexOf(tomorrow) !== -1; });
-  } else {
-    zoneStops = zoneStops.filter(function(s) { return isTodayActive(s.days); });
-  }
-  return zoneStops;
-}
-
-function getTodayStops() {
-  return state.allStops.filter(function(s) { return isTodayActive(s.days); });
-}
-
-function getTomorrowDayCode() {
-  var now = new Date();
-  var tom = new Date(now.getTime() + 86400000);
-  var dow = tom.getDay();
-  var map = {0:null,1:'1',2:'2',3:'3',4:'4',5:'5',6:'6'};
-  return map[dow];
-}
-
-function getTomorrowStops() {
-  var code = getTomorrowDayCode();
-  if (!code) return [];
-  return state.allStops.filter(function(s) { return s.days.indexOf(code) !== -1; });
-}
-
-// ===== TIME UTILITIES =====
-function parseTime(str) {
-  var parts = String(str).split(':');
-  if (parts.length < 2) return null;
-  var h = parseInt(parts[0], 10);
-  var m = parseInt(parts[1], 10);
-  if (isNaN(h) || isNaN(m)) return null;
-  return h * 60 + m;
-}
-
-function minutesUntil(timeStr) {
-  var now = new Date();
-  var curMin = now.getHours() * 60 + now.getMinutes();
-  var stopMin = parseTime(timeStr);
-  if (stopMin === null) return null;
-  return stopMin - curMin;
-}
-
-function formatCountdown(mins) {
-  if (mins === null) return '';
-  if (mins < -60) return '已過';
-  if (mins < 0) return '剛走 ' + Math.abs(mins) + '分';
-  if (mins === 0) return '現在！';
-  if (mins <= 5) return '🚨 ' + mins + ' 分鐘';
-  if (mins <= 10) return '⚡ ' + mins + ' 分鐘';
-  if (mins <= 30) return '剩 ' + mins + ' 分';
-  var h = Math.floor(mins/60), m = mins%60;
-  if (h > 0) return h + 'h' + (m>0 ? m+'m' : '');
-  return '剩 ' + mins + ' 分';
-}
-
-function getBearingLabel(fromLat, fromLng, toLat, toLng) {
-  var dLng = (toLng - fromLng) * Math.PI / 180;
-  var lat1 = fromLat * Math.PI / 180;
-  var lat2 = toLat * Math.PI / 180;
-  var y = Math.sin(dLng) * Math.cos(lat2);
-  var x = Math.cos(lat1)*Math.sin(lat2) - Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLng);
-  var bearing = Math.atan2(y, x) * 180 / Math.PI;
-  bearing = (bearing + 360) % 360;
-  var dirs = ['↑N','↗NE','→E','↘SE','↓S','↙SW','←W','↖NW'];
-  return dirs[Math.round(bearing/45) % 8];
-}
-
-// ===== CATEGORY TAG HTML =====
-function getCatTag(cat, days) {
-  // Simple heuristic: most stops are general. Distinguish by cat field or time patterns
-  var cls = 'tag-general', label = '一般垃圾';
-  var catStr = String(cat).toLowerCase();
-  if (catStr.indexOf('回收') !== -1 || catStr.indexOf('recycle') !== -1) {
-    cls = 'tag-recycle'; label = '♻ 資源回收';
-  } else if (catStr.indexOf('廚餘') !== -1 || catStr.indexOf('kitchen') !== -1 || catStr.indexOf('food') !== -1) {
-    cls = 'tag-kitchen'; label = '🌿 廚餘';
-  }
-  return '<span class="card-tag ' + cls + '">' + label + '</span>';
-}
-
-// ===== DIRECTION SVG ARROW =====
-function dirArrow(bearing) {
-  var angles = {'↑N':0,'↗NE':45,'→E':90,'↘SE':135,'↓S':180,'↙SW':225,'←W':270,'↖NW':315};
-  var angle = angles[bearing] || 0;
-  return '<svg width="12" height="12" viewBox="0 0 12 12" style="transform:rotate('+angle+'deg);display:inline-block;vertical-align:middle;"><path d="M6 10V2M6 2L3 5M6 2L9 5" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-}
-
-// ===== CLOCK =====
-var DAY_NAMES = ['週日','週一','週二','週三','週四','週五','週六'];
-
-function updateClock() {
-  var now = new Date();
-  var h = String(now.getHours()).padStart(2,'0');
-  var m = String(now.getMinutes()).padStart(2,'0');
-  var s = String(now.getSeconds()).padStart(2,'0');
-  var el = document.getElementById('live-time');
-  if (el) el.textContent = h + ':' + m + ':' + s;
-  var dayEl = document.getElementById('live-day');
-  if (dayEl) dayEl.textContent = DAY_NAMES[now.getDay()] + ' ' + (now.getMonth()+1) + '/' + now.getDate();
-}
-
-// ===== HOLIDAY CHECK =====
-function isHoliday() {
-  var dow = new Date().getDay();
-  return dow === 0; // Sunday off; Wednesday varies per route
-}
-
-// ===== SLEEP MODE CHECK =====
-function checkSleepMode() {
-  var now = new Date();
-  var h = now.getHours();
-  // Sleep mode: midnight to 5am
-  if (h >= 1 && h < 5) {
-    document.getElementById('sleep-overlay').classList.add('active');
-    startSleepCountdown();
-  }
-}
-
-function startSleepCountdown() {
-  if (sleepCountdownInterval) clearInterval(sleepCountdownInterval);
-  function updateSleepClock() {
-    var now = new Date();
-    // First truck: 16:00 next day approx
-    var target = new Date(now);
-    target.setDate(target.getDate() + 1);
-    target.setHours(16, 0, 0, 0);
-    var diff = Math.max(0, Math.floor((target - now) / 1000));
-    var hh = Math.floor(diff / 3600);
-    var mm = Math.floor((diff % 3600) / 60);
-    var ss = diff % 60;
-    var el = document.getElementById('sleep-countdown');
-    if (el) el.textContent = String(hh).padStart(2,'0') + ':' + String(mm).padStart(2,'0') + ':' + String(ss).padStart(2,'0');
-  }
-  updateSleepClock();
-  sleepCountdownInterval = setInterval(updateSleepClock, 1000);
-}
-
-function dismissSleep() {
-  state.showTomorrowSchedule = true;
-  document.getElementById('sleep-overlay').classList.remove('active');
-  renderList();
-}
-
-// ===== RENDER ZONE TABS =====
-function renderZoneTabs() {
-  var container = document.getElementById('zone-tabs');
-  if (!container) return;
-  var zones = ['全部'].concat(state.zones);
-  container.innerHTML = '';
-  zones.forEach(function(z) {
-    var btn = document.createElement('button');
-    btn.className = 'zone-pill jelly-btn' + (z === state.currentZone ? ' active' : '');
-    btn.textContent = z;
-    btn.setAttribute('data-zone', z);
-    btn.addEventListener('click', function() {
-      playClick();
-      setZone(z);
-      btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-    });
-    container.appendChild(btn);
-  });
-}
-
-function setZone(z) {
-  state.currentZone = z;
-  localStorage.setItem('lastZone', z);
-  // Update tab active state
-  document.querySelectorAll('.zone-pill').forEach(function(btn) {
-    btn.classList.toggle('active', btn.getAttribute('data-zone') === z);
-  });
-  renderList();
-  if (state.currentMode === 'topo') renderTopo();
-  if (state.currentMode === 'map') renderMapMarkers();
-}
-
-// ===== RENDER LIST (VIRTUAL SCROLL APPROX) =====
-var listRenderTimeout = null;
-
-function renderList() {
-  var container = document.getElementById('list-content');
-  var emptyEl = document.getElementById('empty-state');
-  if (!container) return;
-
-  var stops = getCurrentStops();
-
-  // Apply search filter within current zone
-  if (state.searchQuery.trim()) {
-    var q = state.searchQuery.trim().toLowerCase();
-    stops = stops.filter(function(s) {
-      return s.name.toLowerCase().indexOf(q) !== -1 || s.zone.toLowerCase().indexOf(q) !== -1;
-    });
-  }
-
-  if (stops.length === 0) {
-    container.innerHTML = '';
-    if (emptyEl) { emptyEl.classList.add('visible'); }
-
-    // Check if holiday
-    if (isHoliday()) {
-      var hb = document.getElementById('holiday-banner');
-      if (hb) { hb.classList.add('visible'); hb.textContent = '⏱️ 系統提示：今日全市清運大叔公休！垃圾車已返廠回補全糖電力 🧋 隔壁阿嬤已將物資撤回，請停止追車，回房躺平。'; }
-    }
-    return;
-  }
-
-  if (emptyEl) emptyEl.classList.remove('visible');
-
-  // Check holiday for banner
-  var hb = document.getElementById('holiday-banner');
-  var dow = new Date().getDay();
-  if (hb) {
-    if (dow === 0) {
-      hb.classList.add('visible');
-      hb.textContent = '⏱️ 系統提示：今日全市清運大叔公休！垃圾車已返廠回補全糖電力 🧋 隔壁阿嬤已將物資撤回，請停止追車，回房躺平。';
-    } else {
-      hb.classList.remove('visible');
-    }
-  }
-
-  // Sort by time
-  stops.sort(function(a, b) {
-    var ta = parseTime(a.time) || 0;
-    var tb = parseTime(b.time) || 0;
-    return ta - tb;
-  });
-
-  // Group into accordion sections by first char of time (e.g., 16:xx, 17:xx)
-  var groups = {};
-  var groupOrder = [];
-  stops.forEach(function(s) {
-    var h = (parseTime(s.time) || 0);
-    var hourLabel = String(Math.floor(h/60)).padStart(2,'0') + ':00';
-    if (!groups[hourLabel]) { groups[hourLabel] = []; groupOrder.push(hourLabel); }
-    groups[hourLabel].push(s);
-  });
-
-  // Build HTML with virtual scroll window (show all but use requestIdleCallback for large sets)
-  var html = '';
-  var now = new Date();
-  var curMin = now.getHours() * 60 + now.getMinutes();
-
-  // Check if any arriving soon for alert
-  var arrivingSoon = stops.filter(function(s) {
-    var m = minutesUntil(s.time);
-    return m !== null && m >= 0 && m <= 5;
-  });
-
-  if (arrivingSoon.length > 0 && state.lastArrivingAlert !== arrivingSoon[0].name) {
-    state.lastArrivingAlert = arrivingSoon[0].name;
-    showArrivingAlert(arrivingSoon[0]);
-    playArrivingChime();
-  }
-
-  groupOrder.forEach(function(hourLabel, groupIdx) {
-    var groupStops = groups[hourLabel];
-
-    html += '<div class="section-header">';
-    html += '<svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="rgba(99,102,241,0.7)"/></svg>';
-    html += rawText(hourLabel) + ' 班次 &nbsp;·&nbsp; ' + groupStops.length + ' 個停靠點';
-    html += '</div>';
-
-    // Sub-group by zone prefix (accordion)
-    var subGroups = {};
-    var subOrder = [];
-    groupStops.forEach(function(s) {
-      var key = s.zone;
-      if (!subGroups[key]) { subGroups[key] = []; subOrder.push(key); }
-      subGroups[key].push(s);
-    });
-
-    subOrder.forEach(function(zone, si) {
-      var zStops = subGroups[zone];
-      var accordionId = 'acc_' + groupIdx + '_' + si;
-      html += '<div class="accordion-header jelly-btn" onclick="toggleAccordion(\''+accordionId+'\')">';
-      html += '<span class="accordion-title">' + rawText(zone) + ' <span style="font-family:\'Roboto Mono\',monospace;font-size:11px;color:#475569;">'+zStops.length+'站</span></span>';
-      html += '<svg class="accordion-arrow gpu-accel" id="arrow_'+accordionId+'" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="#475569" stroke-width="1.5" stroke-linecap="round"/></svg>';
-      html += '</div>';
-      html += '<div class="accordion-body open" id="' + accordionId + '">';
-
-      zStops.forEach(function(stop, idx) {
-        var mins = minutesUntil(stop.time);
-        var countdown = formatCountdown(mins);
-        var isArriving = mins !== null && mins >= 0 && mins <= 10;
-        var isPassed = mins !== null && mins < -5;
-        var cardClass = 'stop-card jelly-btn' + (isArriving ? ' arriving' : '') + (isPassed ? ' passed' : '');
-
-        var dist = '';
-        var bearing = '';
-        if (state.gpsSmoothedLat !== null) {
-          var d = haversine(state.gpsSmoothedLat, state.gpsSmoothedLng, stop.lat, stop.lng);
-          if (d < 10000) {
-            dist = Math.round(d) + ' 公尺';
-          } else {
-            dist = (d/1000).toFixed(1) + ' 公里';
-          }
-          bearing = getBearingLabel(state.gpsSmoothedLat, state.gpsSmoothedLng, stop.lat, stop.lng);
-        }
-
-        var countdownClass = isArriving ? 'arriving' : (isPassed ? 'passed' : '');
-
-        html += '<div class="' + cardClass + '" onclick="onCardClick('+stop.lat+','+stop.lng+',\''+rawText(stop.name)+'\',\''+rawText(stop.time)+'\','+idx+')">';
-        html += '<div class="card-time-col">';
-        html += '<div class="card-time">' + rawText(stop.time) + '</div>';
-        if (countdown) html += '<div class="card-countdown ' + countdownClass + '">' + rawText(countdown) + '</div>';
-        html += '</div>';
-
-        html += '<div class="card-info-col">';
-        html += '<div class="card-name-row">';
-        html += '<div class="card-name">' + rawText(stop.name) + '</div>';
-        html += getCatTag(stop.cat, stop.days);
-        html += '</div>';
-
-        if (dist) {
-          html += '<div class="card-dist-row">';
-          html += dirArrow(bearing);
-          html += '<span class="card-dist">距您 ' + rawText(dist) + '</span>';
-          html += '</div>';
-        }
-
-        html += '</div>'; // card-info-col
-
-        // Gooey SVG for arriving stops
-        if (isArriving) {
-          html += '<svg style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;" width="24" height="24" viewBox="0 0 24 24">';
-          html += '<circle class="gooey-ring" cx="12" cy="12" r="6" fill="none" stroke="#22c55e" stroke-width="1.5" opacity="0.5"/>';
-          html += '<circle cx="12" cy="12" r="5" fill="rgba(34,197,94,0.2)"/>';
-          html += '<circle cx="12" cy="12" r="3" fill="#22c55e"/>';
-          html += '</svg>';
-        }
-
-        html += '</div>'; // stop-card
-      });
-
-      html += '</div>'; // accordion-body
-    });
-  });
-
-  container.innerHTML = html;
-}
-
-function toggleAccordion(id) {
-  playClick();
-  var body = document.getElementById(id);
-  var arrow = document.getElementById('arrow_' + id);
-  if (!body) return;
-  body.classList.toggle('open');
-  if (arrow) arrow.classList.toggle('open');
-}
-
-// ===== ARRIVING ALERT =====
-function showArrivingAlert(stop) {
-  var el = document.getElementById('arriving-alert');
-  if (!el) return;
-  el.style.display = 'block';
-  el.innerHTML = '🚨 <strong>警告：清運指標正在飆速迫近！</strong> 最後 ' +
-    rawText(formatCountdown(minutesUntil(stop.time))) +
-    ' 攔截窗口！<br><span style="font-size:11px;opacity:0.85;">' + rawText(stop.name) + ' · 請立即更換室外裝備，攜帶物資衝刺！🏃‍♂️💨</span>';
-  setTimeout(function() { el.style.display = 'none'; }, 8000);
-}
-
-// ===== CARD CLICK =====
-function onCardClick(lat, lng, name, time, idx) {
-  playClick();
-  if (mapInstance) {
-    mapInstance.flyTo([lat, lng], 16, { duration: 0.8 });
-  }
-  // If in topo/map mode, scroll to this card
-  if (state.currentMode === 'map') {
-    setMode('map');
-    if (mapInstance) {
-      mapInstance.flyTo([lat, lng], 17, { duration: 0.8 });
-    }
-  }
-}
-
-// ===== MODE SWITCHING =====
-function setMode(mode) {
-  playClick();
-  state.currentMode = mode;
-
-  var listView = document.getElementById('list-view');
-  var mapView = document.getElementById('map-view');
-  var topoView = document.getElementById('topo-view');
-
-  listView.style.display = mode === 'list' ? 'flex' : 'none';
-  mapView.classList.toggle('active', mode === 'map');
-  topoView.classList.toggle('active', mode === 'topo');
-
-  document.getElementById('btn-list').classList.toggle('active', mode === 'list');
-  document.getElementById('btn-map').classList.toggle('active', mode === 'map');
-  document.getElementById('btn-topo').classList.toggle('active', mode === 'topo');
-
-  if (mode === 'map') {
-    initMap();
-    setTimeout(function() { if (mapInstance) mapInstance.invalidateSize(); }, 100);
-    renderMapMarkers();
-  }
-  if (mode === 'topo') {
-    renderTopo();
-  }
-}
-
-// ===== LEAFLET MAP =====
-function initMap() {
-  if (mapInitialized) return;
-  mapInitialized = true;
-
-  var tainanCenter = [23.1, 120.32];
-  var tainanBounds = L.latLngBounds([22.85, 119.98], [23.45, 120.65]);
-
-  mapInstance = L.map('leaflet-map', {
-    center: tainanCenter,
-    zoom: 12,
-    minZoom: 11,
-    maxZoom: 18,
-    maxBounds: tainanBounds,
-    maxBoundsViscosity: 1.0,
-    preferCanvas: true,
-    zoomControl: false,
-    attributionControl: false,
-    tap: false
-  });
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap',
-    maxZoom: 18
-  }).addTo(mapInstance);
-
-  // Custom attribution
-  L.control.attribution({ prefix: '台南垃圾車追蹤指標' }).addTo(mapInstance);
-}
-
-function renderMapMarkers() {
-  if (!mapInstance) return;
-
-  // Clear old markers
-  stopMarkers.forEach(function(m) { mapInstance.removeLayer(m); });
-  stopMarkers = [];
-
-  var stops = getCurrentStops();
-  if (stops.length === 0) return;
-
-  // Use canvas renderer (set in preferCanvas:true)
-  stops.forEach(function(stop) {
-    var mins = minutesUntil(stop.time);
-    var isArriving = mins !== null && mins >= 0 && mins <= 10;
-    var isPassed = mins !== null && mins < -5;
-
-    var color = isArriving ? '#22c55e' : (isPassed ? '#334155' : '#3b82f6');
-    var radius = isArriving ? 9 : 6;
-
-    var m = L.circleMarker([stop.lat, stop.lng], {
-      radius: radius,
-      fillColor: color,
-      color: isArriving ? '#86efac' : '#1e293b',
-      weight: isArriving ? 2 : 1,
-      opacity: isPassed ? 0.4 : 1,
-      fillOpacity: isPassed ? 0.3 : 0.85
-    });
-
-    m.bindPopup(
-      '<div style="font-family:\'Noto Sans TC\',sans-serif;font-size:13px;color:#e2e8f0;background:#0f172a;padding:8px;border-radius:8px;min-width:160px;">' +
-      '<div style="font-weight:700;margin-bottom:4px;">' + rawText(stop.name) + '</div>' +
-      '<div style="font-family:\'Roboto Mono\',monospace;font-size:15px;color:#93c5fd;">' + rawText(stop.time) + '</div>' +
-      (mins !== null ? '<div style="font-size:11px;color:#f97316;margin-top:2px;">' + rawText(formatCountdown(mins)) + '</div>' : '') +
-      '<div style="font-size:11px;color:#475569;margin-top:2px;">' + rawText(stop.zone) + '</div>' +
-      '</div>',
-      { className: 'glass-popup-leaflet', autoPan: true }
-    );
-
-    m.on('click', function() {
-      playClick();
-    });
-
-    m.addTo(mapInstance);
-    stopMarkers.push(m);
-  });
-
-  // Add user marker with radar
-  if (userMarker && mapInstance.hasLayer(userMarker)) {
-    mapInstance.removeLayer(userMarker);
-  }
-
-  if (state.gpsSmoothedLat !== null) {
-    var radarSvg = '<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">' +
-      '<circle class="radar-ring" cx="40" cy="40" r="12" fill="none" stroke="rgba(59,130,246,0.5)" stroke-width="1.5"/>' +
-      '<circle class="radar-ring-2" cx="40" cy="40" r="12" fill="none" stroke="rgba(59,130,246,0.4)" stroke-width="1.5"/>' +
-      '<circle class="radar-ring-3" cx="40" cy="40" r="12" fill="none" stroke="rgba(59,130,246,0.3)" stroke-width="1.5"/>' +
-      '<circle cx="40" cy="40" r="7" fill="rgba(59,130,246,0.3)"/>' +
-      '<circle cx="40" cy="40" r="4" fill="#3b82f6"/>' +
-      '</svg>';
-
-    var radarIcon = L.divIcon({
-      html: radarSvg,
-      className: 'custom-marker',
-      iconSize: [80, 80],
-      iconAnchor: [40, 40]
-    });
-
-    userMarker = L.marker([state.gpsSmoothedLat, state.gpsSmoothedLng], { icon: radarIcon });
-    userMarker.addTo(mapInstance);
-  }
-}
-
-function centerOnUser() {
-  if (state.gpsSmoothedLat !== null && mapInstance) {
-    mapInstance.flyTo([state.gpsSmoothedLat, state.gpsSmoothedLng], 15, { duration: 0.6 });
-  } else {
-    requestGPS();
-  }
-}
-
-// ===== GPS =====
-function requestGPS() {
-  if (!navigator.geolocation) {
-    setGPSStatus(false, null);
-    return;
-  }
-  navigator.geolocation.watchPosition(
-    function(pos) {
-      var lat = pos.coords.latitude;
-      var lng = pos.coords.longitude;
-      // Bounds check
-      if (lat < 22.5 || lat > 23.8 || lng < 119.5 || lng > 121) {
-        setGPSStatus(false, null);
-        return;
-      }
-      smoothGPS(lat, lng);
-      state.userLat = lat;
-      state.userLng = lng;
-      setGPSStatus(true, lat, lng);
-
-      // Auto-detect zone
-      autoDetectZone();
-
-      if (state.currentMode === 'map') renderMapMarkers();
-    },
-    function(err) {
-      setGPSStatus(false, null);
-    },
-    { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
-  );
-}
-
-function setGPSStatus(ok, lat, lng) {
-  var dot = document.getElementById('gps-dot');
-  var status = document.getElementById('gps-status');
-  if (ok) {
-    if (dot) dot.style.background = '#22c55e';
-    if (status && lat !== null) {
-      status.textContent = '📍 定位成功 · ' + lat.toFixed(4) + ', ' + lng.toFixed(4);
-      status.style.color = '#22c55e';
-    }
-  } else {
-    if (dot) dot.style.background = '#ef4444';
-    if (status) {
-      status.textContent = '🧭 定位偏移：雷達無法破譯您的座標。請手動選擇行政區。';
-      status.style.color = '#ef4444';
-    }
-  }
-}
-
-function autoDetectZone() {
-  if (state.gpsSmoothedLat === null) return;
-  var bestZone = null;
-  var bestDist = Infinity;
-  Object.keys(ZONE_CENTERS).forEach(function(z) {
-    var c = ZONE_CENTERS[z];
-    var d = haversine(state.gpsSmoothedLat, state.gpsSmoothedLng, c[1], c[0]);
-    if (d < bestDist) { bestDist = d; bestZone = z; }
-  });
-  if (bestZone && bestZone !== state.currentZone && bestDist < 8000) {
-    setZone(bestZone);
-    // Scroll to active zone tab
-    var pill = document.querySelector('.zone-pill[data-zone="' + bestZone + '"]');
-    if (pill) pill.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-  }
-}
-
-// ===== TOPOLOGY VIEW =====
-var topoPointerDown = false;
-var topoPointerStart = null;
-var topoInitialPinch = 0;
-var topoInitialScale = 1;
-var topoInitialTx = 0;
-var topoInitialTy = 0;
-var activePointers = {};
-
-function renderTopo() {
-  var g = document.getElementById('topo-g');
-  if (!g) return;
-  g.innerHTML = '';
-
-  var stops = getCurrentStops();
-  if (stops.length === 0) {
-    g.innerHTML = '<text x="50%" y="50%" text-anchor="middle" font-family="Noto Sans TC" font-size="14" fill="#475569">無班次資料</text>';
-    return;
-  }
-
-  // Get SVG dimensions
-  var svgEl = document.getElementById('topo-svg');
-  var W = svgEl.clientWidth || window.innerWidth;
-  var H = svgEl.clientHeight || (window.innerHeight - 180);
-
-  // Sort by time
-  stops.sort(function(a, b) { return (parseTime(a.time)||0) - (parseTime(b.time)||0); });
-
-  // Limit to first 60 for topo performance
-  var display = stops.slice(0, 60);
-
-  // Bounding box auto-scale
-  var minLng = Infinity, maxLng = -Infinity, minLat = Infinity, maxLat = -Infinity;
-  display.forEach(function(s) {
-    if (s.lng < minLng) minLng = s.lng;
-    if (s.lng > maxLng) maxLng = s.lng;
-    if (s.lat < minLat) minLat = s.lat;
-    if (s.lat > maxLat) maxLat = s.lat;
-  });
-
-  var pad = 48;
-  var dLng = maxLng - minLng || 0.01;
-  var dLat = maxLat - minLat || 0.01;
-  var scaleX = (W - pad*2) / dLng;
-  var scaleY = (H - pad*2) / dLat;
-  var sc = Math.min(scaleX, scaleY);
-
-  function toSVG(s) {
-    return {
-      x: pad + (s.lng - minLng) * sc + (W - pad*2 - dLng*sc)/2,
-      y: H - pad - (s.lat - minLat) * sc - (H - pad*2 - dLat*sc)/2
-    };
-  }
-
-  // Build path string
-  var pts = display.map(function(s) { return toSVG(s); });
-  var pathData = pts.map(function(p, i) { return (i===0?'M':'L') + p.x.toFixed(1) + ' ' + p.y.toFixed(1); }).join(' ');
-
-  var svgContent = '';
-
-  // Neon glow path (background)
-  svgContent += '<path d="' + pathData + '" stroke="rgba(59,130,246,0.15)" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';
-
-  // Main route path
-  svgContent += '<path d="' + pathData + '" stroke="url(#routeGrad)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#neonGlow)"/>';
-
-  // Animated flow
-  var totalLen = 300;
-  svgContent += '<path class="neon-flow gpu-accel" d="' + pathData + '" stroke="rgba(147,197,253,0.7)" stroke-width="2" fill="none" stroke-linecap="round" stroke-dasharray="20 280" stroke-dashoffset="0" filter="url(#neonGlow)"/>';
-
-  var now = new Date();
-  var curMin = now.getHours()*60 + now.getMinutes();
-
-  // Stop nodes
-  display.forEach(function(s, i) {
-    var p = pts[i];
-    var mins = minutesUntil(s.time);
-    var isNext = mins !== null && mins >= 0 && mins <= 10;
-    var isPassed = mins !== null && mins < 0;
-    var isCurrent = mins !== null && mins >= -2 && mins <= 2;
-
-    var fill = isPassed ? '#334155' : (isNext ? '#22c55e' : '#3b82f6');
-    var stroke = isPassed ? '#475569' : (isNext ? '#86efac' : '#93c5fd');
-    var r = isNext ? 9 : 6;
-
-    // Gooey for arriving
-    if (isNext) {
-      svgContent += '<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="6" fill="none" stroke="#22c55e" stroke-width="1.5" opacity="0.5" class="gooey-ring"/>';
-    }
-
-    svgContent += '<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="'+r+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1.5" style="cursor:pointer;" data-idx="'+i+'" class="topo-stop gpu-accel" onclick="showTopoPopup('+i+','+p.x.toFixed(1)+','+p.y.toFixed(1)+')"/>';
-
-    // Label for key stops (every 8th)
-    if (i % 8 === 0 || isNext) {
-      var labelY = p.y - 12;
-      var anchor = (p.x < W/2) ? 'start' : 'end';
-      var lx = (p.x < W/2) ? p.x + 7 : p.x - 7;
-      svgContent += '<text x="'+lx.toFixed(1)+'" y="'+labelY.toFixed(1)+'" font-family="Noto Sans TC" font-size="9" fill="'+(isNext?'#22c55e':'#64748b')+'" text-anchor="'+anchor+'" class="gpu-accel">';
-      var shortName = String(s.name).substring(0, 8);
-      svgContent += rawText(shortName);
-      svgContent += '</text>';
-    }
-  });
-
-  // GPS user dot on topo
-  if (state.gpsSmoothedLat !== null) {
-    // Find closest stop
-    var closestIdx = 0;
-    var closestDist = Infinity;
-    display.forEach(function(s, i) {
-      var d = haversine(state.gpsSmoothedLat, state.gpsSmoothedLng, s.lat, s.lng);
-      if (d < closestDist) { closestDist = d; closestIdx = i; }
-    });
-    // Show user position interpolated near closest stop
-    if (closestDist < 2000) {
-      var up = pts[closestIdx];
-      svgContent += '<circle cx="'+up.x.toFixed(1)+'" cy="'+up.y.toFixed(1)+'" r="14" fill="rgba(59,130,246,0.12)" class="radar-ring"/>';
-      svgContent += '<circle cx="'+up.x.toFixed(1)+'" cy="'+up.y.toFixed(1)+'" r="5" fill="#3b82f6" stroke="#93c5fd" stroke-width="2"/>';
-    }
-  }
-
-  g.innerHTML = svgContent;
-
-  // Setup pan/zoom
-  setupTopoPanZoom();
-}
-
-// ===== TOPO POPUP =====
-function showTopoPopup(idx, x, y) {
-  playClick();
-  var stops = getCurrentStops();
-  stops.sort(function(a, b) { return (parseTime(a.time)||0) - (parseTime(b.time)||0); });
-  var display = stops.slice(0, 60);
-  var stop = display[idx];
-  if (!stop) return;
-
-  var wrap = document.getElementById('topo-popup-wrap');
-  if (!wrap) return;
-
-  var mins = minutesUntil(stop.time);
-  wrap.style.display = 'block';
-  wrap.innerHTML = '';
-
-  var popup = document.createElement('div');
-  popup.className = 'glass-popup';
-  popup.style.left = Math.min(x, window.innerWidth - 200) + 'px';
-  popup.style.top = Math.max(y - 90, 10) + 'px';
-
-  popup.innerHTML =
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
-    '<span style="font-family:\'Roboto Mono\',monospace;font-size:18px;font-weight:700;color:#93c5fd;">' + rawText(stop.time) + '</span>' +
-    '<span onclick="document.getElementById(\'topo-popup-wrap\').style.display=\'none\'" style="color:#475569;font-size:16px;cursor:pointer;padding:0 4px;">×</span>' +
-    '</div>' +
-    '<div style="font-family:\'Noto Sans TC\',sans-serif;font-size:13px;font-weight:500;color:#e2e8f0;margin-bottom:4px;">' + rawText(stop.name) + '</div>' +
-    (mins !== null ? '<div style="font-family:\'Roboto Mono\',monospace;font-size:12px;color:#f97316;">' + rawText(formatCountdown(mins)) + '</div>' : '') +
-    '<div style="font-size:11px;color:#475569;margin-top:4px;">' + rawText(stop.zone) + '</div>';
-
-  wrap.appendChild(popup);
-}
-
-// ===== TOPO PAN/ZOOM =====
-function setupTopoPanZoom() {
-  var wrap = document.getElementById('topo-svg-wrap');
-  if (!wrap || wrap._topoSetup) return;
-  wrap._topoSetup = true;
-
-  wrap.addEventListener('pointerdown', function(e) {
-    activePointers[e.pointerId] = { x: e.clientX, y: e.clientY };
-    if (Object.keys(activePointers).length === 1) {
-      topoPointerStart = { tx: topoState.tx, ty: topoState.ty, x: e.clientX, y: e.clientY };
-    } else if (Object.keys(activePointers).length === 2) {
-      var ids = Object.keys(activePointers);
-      var p1 = activePointers[ids[0]];
-      var p2 = activePointers[ids[1]];
-      topoInitialPinch = Math.hypot(p2.x - p1.x, p2.y - p1.y);
-      topoInitialScale = topoState.scale;
-      topoInitialTx = topoState.tx;
-      topoInitialTy = topoState.ty;
-    }
-  }, { passive: true });
-
-  wrap.addEventListener('pointermove', function(e) {
-    if (!activePointers[e.pointerId]) return;
-    activePointers[e.pointerId] = { x: e.clientX, y: e.clientY };
-    var ids = Object.keys(activePointers);
-
-    if (ids.length === 1 && topoPointerStart) {
-      var dx = e.clientX - topoPointerStart.x;
-      var dy = e.clientY - topoPointerStart.y;
-      topoState.tx = topoPointerStart.tx + dx;
-      topoState.ty = topoPointerStart.ty + dy;
-      applyTopoTransform();
-    } else if (ids.length === 2) {
-      var p1 = activePointers[ids[0]];
-      var p2 = activePointers[ids[1]];
-      var pinch = Math.hypot(p2.x - p1.x, p2.y - p1.y);
-      var scaleFactor = pinch / topoInitialPinch;
-      topoState.scale = Math.max(0.5, Math.min(5, topoInitialScale * scaleFactor));
-      applyTopoTransform();
-    }
-  }, { passive: true });
-
-  function cleanPointer(e) {
-    delete activePointers[e.pointerId];
-    if (Object.keys(activePointers).length === 0) {
-      topoPointerStart = null;
-    }
-  }
-  wrap.addEventListener('pointerup', cleanPointer, { passive: true });
-  wrap.addEventListener('pointercancel', cleanPointer, { passive: true });
-}
-
-function applyTopoTransform() {
-  var g = document.getElementById('topo-g');
-  if (!g) return;
-  g.setAttribute('transform', 'translate(' + topoState.tx.toFixed(1) + ',' + topoState.ty.toFixed(1) + ') scale(' + topoState.scale.toFixed(3) + ')');
-}
-
-function topoZoom(factor) {
-  playClick();
-  topoState.scale = Math.max(0.5, Math.min(5, topoState.scale * factor));
-  applyTopoTransform();
-}
-
-function topoReset() {
-  playClick();
-  topoState = { tx: 0, ty: 0, scale: 1 };
-  applyTopoTransform();
-}
-
-// ===== SEARCH =====
-document.getElementById('search-input').addEventListener('input', function(e) {
-  state.searchQuery = e.target.value;
-  if (listRenderTimeout) clearTimeout(listRenderTimeout);
-  listRenderTimeout = setTimeout(renderList, 200);
-});
-
-// ===== LIVE COUNTDOWN REFRESH =====
-function startLiveCountdown() {
-  if (countdownInterval) clearInterval(countdownInterval);
-  countdownInterval = setInterval(function() {
-    if (state.currentMode === 'list') {
-      // Only re-render countdowns, not full HTML
-      document.querySelectorAll('.card-countdown').forEach(function(el, idx) {
-        // We can't easily re-bind without full re-render; do a lightweight re-render
-      });
-      // Full re-render every 30s, quick text update every 1s
-      renderList();
-    }
-    if (state.currentMode === 'topo') renderTopo();
-  }, 30000);
-}
-
-// ===== MAIN INIT =====
+// ═══════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════
 function init() {
-  // Restore state from localStorage
-  var savedZone = localStorage.getItem('lastZone') || '';
-
-  // Force splash unlock timeout
-  var splashUnlocked = false;
-  var splashEl = document.getElementById('splash');
-
-  function unlockSplash() {
-    if (splashUnlocked) return;
-    splashUnlocked = true;
-    if (splashEl) {
-      splashEl.classList.add('fade-out');
-      setTimeout(function() {
-        if (splashEl) splashEl.style.display = 'none';
-      }, 500);
+  // Load data with 1.5s timeout fallback
+  const loadTimeout = setTimeout(() => {
+    if (STATE.allStops.length === 0) {
+      STATE.allStops = getDefaultMockStops();
+      finishInit();
     }
+  }, 1500);
+
+  try {
+    STATE.allStops = loadAllData();
+  } catch(e) {
+    STATE.allStops = getDefaultMockStops();
+  }
+  clearTimeout(loadTimeout);
+  finishInit();
+}
+
+function finishInit() {
+  // Build district list
+  const districts = [...new Set(STATE.allStops.map(s => s.a))].sort((a,b) => a.localeCompare(b,'zh-TW'));
+  buildDistrictStrip(districts);
+
+  // Default district
+  if (districts.length > 0) {
+    STATE.district = districts[0];
+    document.querySelectorAll('.district-pill').forEach((p,i) => {
+      if (i === 0) p.classList.add('active');
+    });
   }
 
-  setTimeout(unlockSplash, 1500);
+  renderList();
+  tickCountdowns();
 
-  // Parse data asynchronously
-  function doParseData() {
-    try {
-      var splashMsg = document.getElementById('splash-msg');
-      if (splashMsg) splashMsg.textContent = '🛰️ 正在解析台南清運資料庫...';
+  // Hide splash, then trigger smart scroll 100ms after fade completes
+  setTimeout(() => {
+    const splash = document.getElementById('splash');
+    splash.classList.add('fade-out');
+    setTimeout(() => {
+      splash.style.display = 'none';
+      // 100ms after splash gone → smart scroll to next upcoming stop
+      setTimeout(() => {
+        const scrollEl = document.getElementById('list-scroll');
+        const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+        scrollToNextStop(scrollEl, nowMin, false);
+      }, 100);
+    }, 420);
+  }, 1200);
 
-      state.allStops = parseAllData();
-      window.zoneIndex = buildZoneIndex(state.allStops);
-      state.zones = Object.keys(window.zoneIndex).sort();
+  initGPS();
+  initOrientation();
 
-      var countEl = document.getElementById('data-count');
-      if (countEl) countEl.textContent = state.allStops.length + ' 站';
-
-      // Set default zone
-      if (savedZone && window.zoneIndex[savedZone]) {
-        state.currentZone = savedZone;
-      } else if (state.zones.length > 0) {
-        state.currentZone = '全部';
-      }
-
-      renderZoneTabs();
+  // Periodic list refresh
+  setInterval(() => {
+    if (STATE.mode === 'list') {
+      STATE._skipScrollAnimation = true;  // periodic refresh = no scroll jump
       renderList();
-      unlockSplash();
-
-      // Start GPS
-      requestGPS();
-
-      // Check holiday
-      if (isHoliday()) {
-        var hb = document.getElementById('holiday-banner');
-        if (hb) { hb.classList.add('visible'); hb.textContent = '⏱️ 系統提示：今日全市清運大叔公休！垃圾車已返廠回補全糖電力 🧋 隔壁阿嬤已將物資撤回，請停止追車，回房躺平。'; }
-      }
-
-      // Check sleep mode
-      checkSleepMode();
-
-    } catch(e) {
-      console.error('Init error:', e);
-      unlockSplash();
     }
-  }
-
-  // Use requestIdleCallback if available, else setTimeout
-  if (window.requestIdleCallback) {
-    requestIdleCallback(doParseData, { timeout: 1200 });
-  } else {
-    setTimeout(doParseData, 100);
-  }
-
-  // Start clock
-  updateClock();
-  if (clockInterval) clearInterval(clockInterval);
-  clockInterval = setInterval(updateClock, 1000);
-
-  // Start list countdown refresh
-  startLiveCountdown();
+    if (STATE.mapInited) refreshMapMarkers();
+  }, 60000);
 }
 
 // Boot
-window.addEventListener('load', function() {
-  setTimeout(init, 50);
+window.addEventListener('DOMContentLoaded', () => {
+  // Small delay to let script tags below finish executing
+  setTimeout(init, 100);
 });
-
-// Expose for inline event handlers
-window.setMode = setMode;
-window.setZone = setZone;
-window.toggleAccordion = toggleAccordion;
-window.onCardClick = onCardClick;
-window.centerOnUser = centerOnUser;
-window.showTopoPopup = showTopoPopup;
-window.topoZoom = topoZoom;
-window.topoReset = topoReset;
-window.dismissSleep = dismissSleep;
-
-}());
 </script>
 
-<!-- ========================================
-     資料區塊 1/6：七股區、下營區、中西區、仁德區、佳里區、六甲區
-     請將 tainan_stops_1.js 的完整內容貼入下方 script 標籤內
-     ======================================== -->
-<!-- ========================================
-     資料區塊 1/6：七股區、下營區、中西區、仁德區、佳里區、六甲區
-     ======================================== -->
+<!-- ╔══════════════════════════════════════════════════════╗ -->
+<!-- ║          RAW DATA BLOCKS — 請將原始資料貼入以下區塊          ║ -->
+<!-- ║  每個 script 區塊對應一份 tainan_stops_N.js 文字檔           ║ -->
+<!-- ╚══════════════════════════════════════════════════════╝ -->
+
+<!-- ════════════════════════════════════════
+     【批次 1/6】請將 tainan_stops_1.js 的完整內容貼入此處
+     (七股區、下營區、中西區、仁德區、佳里區、六甲區)
+════════════════════════════════════════ -->
 <script id="raw-data-1">
 // 批次 1/6：七股區、下營區、中西區、仁德區、佳里區、六甲區
-var stops1 = [
+const stops1 = [
 {a:"七股區",n:"中寮里砂崙寮7-1號路口",t:"16:43",lg:120.110460,lt:23.146741,d:"1356"},
 {a:"七股區",n:"鹽埕里南聖宮",t:"16:52",lg:120.088698,lt:23.150136,d:"1356"},
 {a:"七股區",n:"西寮里活動中心",t:"17:02",lg:120.095542,lt:23.172349,d:"1356"},
@@ -4525,14 +4271,16 @@ var stops1 = [
 {a:"六甲區",n:"中正路485巷41弄29號",t:"19:25",lg:120.350118,lt:23.230431,d:"1356"},
 {a:"六甲區",n:"中正路485巷3號",t:"19:34",lg:120.351010,lt:23.229718,d:"1356"}
 ];
+
 </script>
 
-<!-- ========================================
-     資料區塊 2/6：北區、北門區、南化區、南區、善化區、大內區
-     ======================================== -->
+<!-- ════════════════════════════════════════
+     【批次 2/6】請將 tainan_stops_2.js 的完整內容貼入此處
+     (北區、北門區、南化區、南區、善化區、大內區)
+════════════════════════════════════════ -->
 <script id="raw-data-2">
 // 批次 2/6：北區、北門區、南化區、南區、善化區、大內區
-var stops2 = [
+const stops2 = [
 {a:"北門區",n:"蚵寮984號",t:"17:00",lg:120.140874,lt:23.286629,d:"1356"},
 {a:"北門區",n:"蚵寮814號",t:"17:06",lg:120.136483,lt:23.285621,d:"1356"},
 {a:"北門區",n:"蚵寮560號",t:"17:12",lg:120.137246,lt:23.288197,d:"1356"},
@@ -6751,14 +6499,16 @@ var stops2 = [
 {a:"南區",n:"利南街237號對面",t:"10:33",lg:120.187775,lt:22.974310,d:"123456"},
 {a:"南區",n:"健康路一段391巷3號",t:"13:30",lg:120.199532,lt:22.981016,d:"123456"}
 ];
+
 </script>
 
-<!-- ========================================
-     資料區塊 3/6：學甲區、安南區、安定區、安平區、官田區、將軍區
-     ======================================== -->
+<!-- ════════════════════════════════════════
+     【批次 3/6】請將 tainan_stops_3.js 的完整內容貼入此處
+     (學甲區、安南區、安定區、安平區、官田區、將軍區)
+════════════════════════════════════════ -->
 <script id="raw-data-3">
 // 批次 3/6：學甲區、安南區、安定區、安平區、官田區、將軍區
-var stops3 = [
+const stops3 = [
 {a:"安定區",n:"管寮橋西:海寮里205-8號",t:"17:45",lg:120.216116,lt:23.099110,d:"1356"},
 {a:"安定區",n:"兩輪機車行:海寮里205-2號",t:"17:46",lg:120.214812,lt:23.099022,d:"1356"},
 {a:"安定區",n:"二姐美容美髮店:海寮里55-1號",t:"17:47",lg:120.214495,lt:23.098874,d:"1356"},
@@ -10057,14 +9807,16 @@ var stops3 = [
 {a:"官田區",n:"三塊厝65-11號",t:"19:08",lg:120.340857,lt:23.162591,d:"1246"},
 {a:"官田區",n:"三塊厝67-13號",t:"19:10",lg:120.340891,lt:23.160772,d:"1246"}
 ];
+
 </script>
 
-<!-- ========================================
-     資料區塊 4/6：山上區、左鎮區、後壁區、新化區、新市區、新營區
-     ======================================== -->
+<!-- ════════════════════════════════════════
+     【批次 4/6】請將 tainan_stops_4.js 的完整內容貼入此處
+     (山上區、左鎮區、後壁區、新化區、新市區、新營區)
+════════════════════════════════════════ -->
 <script id="raw-data-4">
 // 批次 4/6：山上區、左鎮區、後壁區、新化區、新市區、新營區
-var stops4 = [
+const stops4 = [
 {a:"山上區",n:"隙子口1-1號前",t:"17:00",lg:120.367805,lt:23.079028,d:"1246"},
 {a:"山上區",n:"隙子口58-3號前",t:"17:10",lg:120.360335,lt:23.081829,d:"1246"},
 {a:"山上區",n:"隙子口4號前",t:"17:16",lg:120.367699,lt:23.078702,d:"1246"},
@@ -11445,14 +11197,16 @@ var stops4 = [
 {a:"新營區",n:"建國路302號",t:"11:25",lg:120.305931,lt:23.330440,d:"12345"},
 {a:"新營區",n:"建國路350-1號(每一.五收運)",t:"11:29",lg:120.274907,lt:23.319948,d:"12345"}
 ];
+
 </script>
 
-<!-- ========================================
-     資料區塊 5/6：東區、東山區、柳營區、楠西區、歸仁區、永康區
-     ======================================== -->
+<!-- ════════════════════════════════════════
+     【批次 5/6】請將 tainan_stops_5.js 的完整內容貼入此處
+     (東區、東山區、柳營區、楠西區、歸仁區、永康區)
+════════════════════════════════════════ -->
 <script id="raw-data-5">
 // 批次 5/6：東區、東山區、柳營區、楠西區、歸仁區、永康區
-var stops5 = [
+const stops5 = [
 {a:"柳營區",n:"博愛街20號",t:"17:50",lg:120.311178,lt:23.278289,d:"15"},
 {a:"柳營區",n:"進學1，2街61號",t:"17:52",lg:120.309583,lt:23.275588,d:"15"},
 {a:"柳營區",n:"育英街107號",t:"17:54",lg:120.309754,lt:23.275043,d:"15"},
@@ -15280,14 +15034,16 @@ var stops5 = [
 {a:"楠西區",n:"中興南路81號",t:"19:05",lg:120.483893,lt:23.177219,d:"1246"},
 {a:"楠西區",n:"區公所停車場",t:"19:07",lg:120.486371,lt:23.174177,d:"1246"}
 ];
+
 </script>
 
-<!-- ========================================
-     資料區塊 6/6：玉井區、白河區、西港區、關廟區、鹽水區、麻豆區
-     ======================================== -->
+<!-- ════════════════════════════════════════
+     【批次 6/6】請將 tainan_stops_6.js 的完整內容貼入此處
+     (玉井區、白河區、西港區、關廟區、鹽水區、麻豆區)
+════════════════════════════════════════ -->
 <script id="raw-data-6">
 // 批次 6/6：玉井區、白河區、西港區、關廟區、鹽水區、麻豆區
-var stops6 = [
+const stops6 = [
 {a:"關廟區",n:"長裕街26號",t:"16:00",lg:120.344158,lt:22.924794,d:"1246"},
 {a:"關廟區",n:"長文街10號",t:"16:07",lg:120.347626,lt:22.919832,d:"1246"},
 {a:"關廟區",n:"長文街66號",t:"16:08",lg:120.346604,lt:22.919221,d:"1246"},
@@ -16337,7 +16093,12 @@ var stops6 = [
 {a:"鹽水區",n:"忠孝路158號",t:"19:30",lg:120.255708,lt:23.320640,d:"1246"},
 {a:"鹽水區",n:"後宅71-1號",t:"19:35",lg:120.242540,lt:23.301454,d:"1246"}
 ];
+
 </script>
+
+<!-- ╔══════════════════════════════════════════════════════╗ -->
+<!-- ║              資料區塊結束 END OF DATA BLOCKS              ║ -->
+<!-- ╚══════════════════════════════════════════════════════╝ -->
 
 </body>
 </html>
