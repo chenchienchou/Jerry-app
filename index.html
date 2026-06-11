@@ -1,1848 +1,1423 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <!-- 指令7: 頂部狀態欄融合 -->
-  <meta name="theme-color" content="#0F1115">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-  <!-- 指令11: Open Graph Meta Tags -->
-  <meta property="og:title" content="深夜星河｜初級大人的數位斷捨離與睡眠避風港">
-  <meta property="og:description" content="今晚 Threads 的訊息滑不完，但你的睡眠只有一次。讓我們陪你把世界輕輕關掉。">
-  <meta property="og:type" content="website">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="深夜星河｜數位斷捨離">
-  <meta name="twitter:description" content="Threads 的訊息滑不完，但今晚的睡眠只有一次。">
-
-  <title>深夜星河｜初級大人的數位斷捨離與睡眠避風港</title>
-
-  <!-- 指令1: 頂級開源字體載入 Noto Serif TC + Noto Sans TC -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@200;300;400&family=Noto+Sans+TC:wght@200;300;400;500&display=swap" rel="stylesheet">
-
-  <style>
-    /* =============================================
-       全域重置與基礎變數
-    ============================================= */
-    :root {
-      --midnight: #0F1115;
-      --carbon: #1E1E24;
-      --moonlight: #FFF2CC;
-      --ocean: #D9E2EC;
-      --text-primary: #F4F4F6;
-      --text-secondary: #A0A5B5;
-      --amber-glow: rgba(255,224,178,0.15);
-      --ocean-glow: rgba(217,226,236,0.12);
-      --border: 0.5px solid rgba(255,255,255,0.06);
-      --divider: 0.5px solid rgba(255,255,255,0.03);
-      --radius: 20px;
-      --radius-sm: 12px;
-      /* 指令14: clamp 流體字體 */
-      --fs-xl: clamp(1.8rem, 5vw, 2.8rem);
-      --fs-lg: clamp(1.2rem, 3.5vw, 1.6rem);
-      --fs-md: clamp(0.9rem, 2.5vw, 1.05rem);
-      --fs-sm: clamp(0.75rem, 2vw, 0.85rem);
-      --fs-xs: clamp(0.6rem, 1.5vw, 0.7rem);
-    }
-
-    /* 指令73: 全域防文字選取 */
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      user-select: none;
-      -webkit-user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    html {
-      /* 指令12: 流暢滾動 */
-      scroll-behavior: smooth;
-    }
-
-    body {
-      background-color: var(--midnight);
-      color: var(--text-primary);
-      font-family: 'Noto Sans TC', sans-serif;
-      font-weight: 300;
-      /* 指令9: 療癒字體排版 */
-      letter-spacing: 0.08em;
-      line-height: 1.9;
-      /* 指令2: iOS 安全區 */
-      padding-top: env(safe-area-inset-top, 20px);
-      padding-bottom: env(safe-area-inset-bottom, 20px);
-      min-height: 100vh;
-      overflow-x: hidden;
-      /* 指令8: 高級滾動慣性 */
-      -webkit-overflow-scrolling: touch;
-    }
-
-    /* 指令20: 全域色彩過渡 */
-    * {
-      transition: color 0.6s ease-in-out, background-color 0.6s ease-in-out, opacity 0.6s ease-in-out, border-color 0.6s ease-in-out;
-    }
-    /* 避免過渡影響動畫效果的元素 */
-    .star, .breath-ring, .marquee-inner {
-      transition: none !important;
-    }
-
-    /* =============================================
-       星河背景 SVG（指令25）
-    ============================================= */
-    #star-canvas {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .star {
-      animation: twinkle var(--dur, 3s) ease-in-out infinite alternate;
-      animation-delay: var(--delay, 0s);
-    }
-
-    @keyframes twinkle {
-      from { opacity: var(--min-op, 0.1); }
-      to   { opacity: var(--max-op, 0.6); }
-    }
-
-    /* =============================================
-       主容器佈局（指令6: 非對稱大留白）
-    ============================================= */
-    #app {
-      position: relative;
-      z-index: 1;
-      max-width: 480px;
-      margin: 0 auto;
-      padding: clamp(24px, 6vw, 48px) clamp(16px, 5vw, 28px);
-      padding-top: calc(env(safe-area-inset-top, 20px) + clamp(16px, 4vw, 32px));
-      padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 80px);
-    }
-
-    /* =============================================
-       毛玻璃卡片（指令3: 深夜暖調毛玻璃）
-    ============================================= */
-    .card {
-      background: rgba(15,17,21,0.82);
-      backdrop-filter: blur(30px);
-      -webkit-backdrop-filter: blur(30px);
-      border: var(--border);
-      border-radius: var(--radius);
-      padding: clamp(20px, 5vw, 32px);
-      margin-bottom: clamp(16px, 4vw, 24px);
-      /* 指令4: 星河微光動態陰影（預設海藍） */
-      box-shadow: 0 8px 40px rgba(217,226,236,0.06), 0 2px 12px rgba(0,0,0,0.4);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card.amber-shadow {
-      box-shadow: 0 8px 40px rgba(255,224,178,0.08), 0 2px 12px rgba(0,0,0,0.4);
-    }
-
-    /* =============================================
-       頂部區域
-    ============================================= */
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: clamp(24px, 6vw, 40px);
-    }
-
-    .badge {
-      font-size: var(--fs-xs);
-      color: var(--text-secondary);
-      font-weight: 200;
-      letter-spacing: 0.12em;
-      /* 指令85: 熟成大人清明勳章 */
-    }
-
-    /* 指令22: 月亮SVG容器 */
-    .moon-container {
-      width: 36px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* 指令16: 音樂按鈕 */
-    #music-btn {
-      background: rgba(255,255,255,0.04);
-      border: var(--border);
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: background 0.4s, box-shadow 0.4s !important;
-    }
-    #music-btn:active, #music-btn.active {
-      background: rgba(255,242,204,0.08);
-      box-shadow: 0 0 12px rgba(255,242,204,0.12);
-    }
-
-    /* =============================================
-       標題區
-    ============================================= */
-    .hero-title {
-      font-family: 'Noto Serif TC', serif;
-      font-weight: 200;
-      font-size: var(--fs-xl);
-      color: var(--text-primary);
-      line-height: 1.4;
-      letter-spacing: 0.06em;
-      margin-bottom: 12px;
-    }
-
-    .hero-subtitle {
-      font-size: var(--fs-sm);
-      color: var(--text-secondary);
-      font-weight: 200;
-      letter-spacing: 0.1em;
-      line-height: 2;
-    }
-
-    /* 指令83: 空白頁面人文詩意 */
-    .poetic-hint {
-      font-size: var(--fs-sm);
-      color: rgba(160,165,181,0.5);
-      font-weight: 200;
-      letter-spacing: 0.1em;
-      line-height: 2;
-      text-align: center;
-      padding: clamp(16px, 4vw, 24px) 0;
-    }
-
-    /* =============================================
-       主按鈕（指令16: 半透明微光）
-    ============================================= */
-    .btn-primary {
-      display: block;
-      width: 100%;
-      background: rgba(255,242,204,0.06);
-      border: 0.5px solid rgba(255,242,204,0.15);
-      border-radius: var(--radius-sm);
-      padding: clamp(16px, 4vw, 20px) clamp(20px, 5vw, 28px);
-      color: var(--moonlight);
-      font-family: 'Noto Sans TC', sans-serif;
-      font-size: var(--fs-md);
-      font-weight: 300;
-      letter-spacing: 0.1em;
-      line-height: 1.6;
-      cursor: pointer;
-      text-align: left;
-      transition: background 0.4s, box-shadow 0.4s, transform 0.3s !important;
-      /* 指令19: Flexbox 對齊 */
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 12px;
-    }
-
-    .btn-primary:active {
-      background: rgba(255,242,204,0.10);
-      box-shadow: 0 0 20px rgba(255,242,204,0.1);
-      transform: scale(0.99);
-    }
-
-    .btn-primary.disabled {
-      opacity: 0.4;
-      pointer-events: none;
-    }
-
-    .btn-secondary {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: rgba(217,226,236,0.04);
-      border: 0.5px solid rgba(217,226,236,0.12);
-      border-radius: var(--radius-sm);
-      padding: clamp(12px, 3vw, 16px) clamp(16px, 4vw, 20px);
-      color: var(--ocean);
-      font-family: 'Noto Sans TC', sans-serif;
-      font-size: var(--fs-sm);
-      font-weight: 300;
-      letter-spacing: 0.1em;
-      cursor: pointer;
-      width: 100%;
-      margin-bottom: 10px;
-      transition: background 0.4s !important;
-    }
-    .btn-secondary:active {
-      background: rgba(217,226,236,0.08);
-    }
-
-    /* =============================================
-       分隔線（指令17）
-    ============================================= */
-    .divider {
-      border: none;
-      border-top: var(--divider);
-      margin: clamp(16px, 4vw, 24px) 0;
-    }
-
-    /* =============================================
-       結果卡片文字（指令77, 78）
-    ============================================= */
-    .result-headline {
-      font-family: 'Noto Serif TC', serif;
-      font-weight: 200;
-      font-size: var(--fs-lg);
-      color: var(--moonlight);
-      letter-spacing: 0.08em;
-      line-height: 1.5;
-      margin-bottom: 16px;
-    }
-
-    .result-body {
-      font-size: var(--fs-md);
-      color: var(--text-secondary);
-      font-weight: 300;
-      letter-spacing: 0.08em;
-      line-height: 1.9;
-      margin-bottom: 20px;
-    }
-
-    .result-body strong {
-      color: var(--text-primary);
-      font-weight: 400;
-    }
-
-    /* =============================================
-       呼吸引導（指令26, 81）
-    ============================================= */
-    #breath-section {
-      text-align: center;
-      padding: clamp(20px, 5vw, 32px) 0;
-    }
-
-    #breath-ring-container {
-      position: relative;
-      width: 160px;
-      height: 160px;
-      margin: 0 auto 20px;
-    }
-
-    #breath-ring {
-      transition: all 0.5s ease-in-out !important;
-    }
-
-    #breath-label {
-      font-family: 'Noto Serif TC', serif;
-      font-weight: 200;
-      font-size: var(--fs-sm);
-      color: var(--text-secondary);
-      letter-spacing: 0.15em;
-      margin-top: 12px;
-      min-height: 24px;
-    }
-
-    #breath-counter {
-      font-family: 'Noto Serif TC', serif;
-      font-weight: 200;
-      font-size: clamp(2.5rem, 8vw, 4rem);
-      color: var(--moonlight);
-      letter-spacing: 0.05em;
-      line-height: 1;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    /* =============================================
-       失眠滑桿（指令32, 82）
-    ============================================= */
-    .slider-container {
-      padding: clamp(16px, 4vw, 24px) 0;
-    }
-
-    .slider-label {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .slider-label span:first-child {
-      font-size: var(--fs-sm);
-      color: var(--text-secondary);
-      font-weight: 300;
-    }
-
-    #insomnia-value {
-      font-family: 'Noto Serif TC', serif;
-      font-weight: 200;
-      font-size: var(--fs-lg);
-      color: var(--moonlight);
-    }
-
-    #insomnia-slider {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 100%;
-      height: 2px;
-      background: rgba(255,255,255,0.08);
-      border-radius: 2px;
-      outline: none;
-      cursor: pointer;
-    }
-
-    #insomnia-slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: rgba(255,242,204,0.6);
-      box-shadow: 0 0 12px rgba(255,242,204,0.3), 0 0 0 4px rgba(255,242,204,0.1);
-      cursor: pointer;
-      transition: box-shadow 0.3s !important;
-    }
-
-    #insomnia-slider::-webkit-slider-thumb:active {
-      box-shadow: 0 0 20px rgba(255,242,204,0.5), 0 0 0 6px rgba(255,242,204,0.15);
-    }
-
-    #insomnia-text {
-      font-size: var(--fs-sm);
-      color: var(--text-secondary);
-      font-weight: 200;
-      letter-spacing: 0.08em;
-      line-height: 1.9;
-      margin-top: 16px;
-      min-height: 60px;
-      font-style: italic;
-      transition: opacity 0.4s !important;
-    }
-
-    /* =============================================
-       靜置模式（指令61）
-    ============================================= */
-    #stillness-mode {
-      display: none;
-      text-align: center;
-      padding: clamp(32px, 8vw, 60px) 0;
-    }
-
-    #stillness-mode.active {
-      display: block;
-    }
-
-    #stillness-timer {
-      font-family: 'Noto Serif TC', serif;
-      font-weight: 200;
-      font-size: clamp(3rem, 10vw, 5rem);
-      color: rgba(255,242,204,0.4);
-      letter-spacing: 0.1em;
-      line-height: 1;
-      margin-bottom: 16px;
-    }
-
-    #stillness-hint {
-      font-size: var(--fs-sm);
-      color: rgba(160,165,181,0.4);
-      font-weight: 200;
-      letter-spacing: 0.12em;
-    }
-
-    /* =============================================
-       Threads 發文區（指令91-99）
-    ============================================= */
-    .share-area {
-      text-align: center;
-    }
-
-    /* =============================================
-       Toast 通知
-    ============================================= */
-    #toast {
-      position: fixed;
-      bottom: calc(env(safe-area-inset-bottom, 20px) + 24px);
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: rgba(30,30,36,0.95);
-      border: var(--border);
-      border-radius: 40px;
-      padding: 10px 20px;
-      font-size: var(--fs-xs);
-      color: var(--text-secondary);
-      letter-spacing: 0.1em;
-      opacity: 0;
-      pointer-events: none;
-      z-index: 100;
-      white-space: nowrap;
-      backdrop-filter: blur(20px);
-      transition: opacity 0.4s, transform 0.4s !important;
-    }
-    #toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-
-    /* =============================================
-       跑馬燈（指令96）
-    ============================================= */
-    #marquee-container {
-      overflow: hidden;
-      padding: 12px 0;
-      border-top: var(--divider);
-      border-bottom: var(--divider);
-      margin: 24px 0;
-    }
-
-    .marquee-inner {
-      display: flex;
-      white-space: nowrap;
-      animation: marquee 40s linear infinite;
-    }
-
-    .marquee-text {
-      font-size: 11px;
-      color: rgba(160,165,181,0.3);
-      letter-spacing: 0.08em;
-      font-weight: 200;
-      padding-right: 60px;
-    }
-
-    @keyframes marquee {
-      from { transform: translateX(0); }
-      to   { transform: translateX(-50%); }
-    }
-
-    /* =============================================
-       頁尾（指令100）
-    ============================================= */
-    footer {
-      margin-top: clamp(32px, 8vw, 60px);
-      padding-top: clamp(20px, 5vw, 28px);
-      border-top: var(--divider);
-      text-align: center;
-    }
-
-    .footer-disclaimer {
-      font-size: 11px;
-      color: rgba(160,165,181,0.25);
-      font-weight: 200;
-      letter-spacing: 0.08em;
-      line-height: 2;
-      margin-bottom: 8px;
-    }
-
-    .footer-studio {
-      font-size: 11px;
-      color: rgba(160,165,181,0.2);
-      font-weight: 200;
-      letter-spacing: 0.12em;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    /* =============================================
-       成就解鎖動畫（指令33）
-    ============================================= */
-    #achievement-popup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0.8);
-      background: rgba(15,17,21,0.95);
-      border: var(--border);
-      border-radius: var(--radius);
-      padding: 32px 40px;
-      text-align: center;
-      z-index: 200;
-      opacity: 0;
-      pointer-events: none;
-      backdrop-filter: blur(40px);
-      transition: opacity 0.5s, transform 0.5s !important;
-    }
-
-    #achievement-popup.show {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-      pointer-events: auto;
-    }
-
-    #achievement-popup .ach-title {
-      font-family: 'Noto Serif TC', serif;
-      font-weight: 200;
-      font-size: var(--fs-lg);
-      color: var(--moonlight);
-      margin-top: 16px;
-      letter-spacing: 0.1em;
-    }
-
-    #achievement-popup .ach-desc {
-      font-size: var(--fs-sm);
-      color: var(--text-secondary);
-      font-weight: 200;
-      margin-top: 8px;
-      letter-spacing: 0.08em;
-    }
-
-    /* 頁面切換 */
-    .page { display: none; }
-    .page.active { display: block; }
-
-    /* 指令13: 文字呼吸間距 */
-    .spacer { height: clamp(16px, 4vw, 28px); }
-
-    /* GPS文案 */
-    #location-text {
-      font-size: var(--fs-sm);
-      color: rgba(217,226,236,0.4);
-      font-weight: 200;
-      letter-spacing: 0.08em;
-      text-align: center;
-      margin-bottom: 8px;
-      min-height: 20px;
-    }
-
-    /* 進度條（指令37）*/
-    .progress-bar-wrap {
-      position: relative;
-      height: 2px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 2px;
-      overflow: visible;
-      margin: 12px 0;
-    }
-    .progress-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, rgba(255,242,204,0.3), rgba(255,242,204,0.6));
-      border-radius: 2px;
-      transition: width 0.5s ease !important;
-    }
-
-    /* 靜置模式全螢幕覆蓋 */
-    #stillness-overlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: var(--midnight);
-      z-index: 50;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 40px;
-    }
-    #stillness-overlay.active {
-      display: flex;
-    }
-
-    /* Wake Lock 狀態 */
-    #wake-indicator {
-      font-size: 10px;
-      color: rgba(160,165,181,0.2);
-      letter-spacing: 0.1em;
-      margin-top: 8px;
-    }
-
-    canvas { display: none; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>台南垃圾車即時班表</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;}
+:root{
+  --bg:#0B0F19;--bg2:#111827;--gold:#F59E0B;--gold10:rgba(245,158,11,0.10);
+  --emerald:#10B981;--neon-blue:#00F2FE;--panel:rgba(17,24,39,0.88);
+  --border:rgba(245,158,11,0.12);--text:#F1F5F9;--muted:#94A3B8;
+  --yellow-neon:#FFE500;--green-neon:#00FF9D;
+  --card:rgba(11,17,30,0.93);--radius:16px;
+}
+.light-mode{
+  --bg:#F0F4F8;--bg2:#E2E8F0;--gold:#D97706;--panel:rgba(240,244,248,0.93);
+  --border:rgba(37,99,235,0.14);--text:#1E293B;--muted:#64748B;
+  --card:rgba(255,255,255,0.96);--yellow-neon:#C47F00;--green-neon:#059669;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',system-ui,sans-serif;}
+#app{display:flex;flex-direction:column;width:100%;height:100dvh;
+  padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);}
+
+/* ── TOP PANEL ── */
+#top-panel{
+  position:relative;z-index:1000;padding:10px 14px 8px;
+  background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--border);flex-shrink:0;
+}
+#status-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+#status-dot{width:8px;height:8px;border-radius:50%;background:var(--emerald);
+  flex-shrink:0;animation:pulse-dot 2s ease-in-out infinite;}
+#status-text{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.4px;flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#theme-btn{width:30px;height:30px;border-radius:50%;background:var(--bg2);
+  border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;
+  justify-content:center;font-size:14px;flex-shrink:0;transition:transform .2s;}
+#theme-btn:active{transform:scale(.88);}
+#district-scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x;overscroll-behavior-x:contain;}
+#district-scroll::-webkit-scrollbar{display:none;}
+.district-btn{
+  flex-shrink:0;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;
+  background:var(--bg2);border:1px solid var(--border);color:var(--muted);
+  cursor:pointer;transition:all .18s;white-space:nowrap;letter-spacing:.3px;
+  -webkit-tap-highlight-color:transparent;
+}
+.district-btn.active,.district-btn:active{background:var(--gold);color:#000;border-color:var(--gold);}
+
+/* ── SKELETON ── */
+#skeleton{
+  position:absolute;inset:0;z-index:500;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+  transition:opacity .7s ease;pointer-events:none;
+}
+#skeleton.hidden{opacity:0;}
+.sk-bar{height:13px;border-radius:7px;
+  background:linear-gradient(90deg,rgba(255,255,255,.04) 0%,rgba(255,255,255,.13) 45%,rgba(255,255,255,.04) 90%);
+  background-size:200% 100%;animation:shimmer 1.7s infinite;}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+#progress-text{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.4px;}
+#prog-wrap{width:150px;height:3px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;}
+#prog-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--neon-blue));
+  border-radius:3px;transition:width .25s ease;}
+
+/* ── MAP ── */
+#map{flex:1;z-index:1;position:relative;}
+.leaflet-container{background:#090D16!important;}
+.light-mode .leaflet-container{background:#E8EEF4!important;}
+.leaflet-pane.leaflet-shadow-pane{mix-blend-mode:plus-lighter;}
+.leaflet-pane.leaflet-overlay-pane{mix-blend-mode:normal;}
+
+/* ── BOTTOM NAV ── */
+#bottom-nav{
+  display:flex;align-items:center;justify-content:space-around;
+  padding:6px 0 calc(6px + env(safe-area-inset-bottom));
+  background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-top:1px solid var(--border);z-index:1000;flex-shrink:0;
+}
+.nav-btn{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  width:52px;height:52px;border-radius:14px;border:none;background:none;
+  cursor:pointer;transition:transform .15s;justify-content:center;
+  -webkit-tap-highlight-color:transparent;
+}
+.nav-btn:active{transform:scale(.85);}
+.nav-icon{font-size:21px;line-height:1;}
+.nav-label{font-size:9px;color:var(--muted);font-weight:700;letter-spacing:.3px;}
+.nav-btn.active .nav-label{color:var(--gold);}
+#filter-gear-icon{display:inline-block;transition:transform .3s ease,color .3s ease;}
+#filter-btn.active #filter-gear-icon{transform:rotate(45deg);filter:drop-shadow(0 0 4px #00FF9D);}
+
+/* ── DRAWERS ── */
+.drawer{
+  position:absolute;bottom:0;left:0;right:0;z-index:2000;
+  background:var(--card);backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px);
+  border-top:1px solid var(--border);border-radius:24px 24px 0 0;
+  transform:translateY(102%);transition:transform .38s cubic-bezier(.34,1.56,.64,1);
+  max-height:72vh;display:flex;flex-direction:column;
+  padding-bottom:calc(8px + env(safe-area-inset-bottom));
+}
+.drawer.open{transform:translateY(0);}
+.drawer-handle{width:36px;height:4px;background:rgba(255,255,255,.14);border-radius:4px;margin:10px auto 0;flex-shrink:0;}
+.drawer-title{font-size:13px;font-weight:800;color:var(--text);padding:12px 16px 8px;
+  letter-spacing:.3px;border-bottom:1px solid var(--border);flex-shrink:0;}
+
+/* ── SEARCH ── */
+#search-input{
+  margin:10px 14px 6px;padding:10px 14px;border-radius:12px;
+  background:var(--bg2);border:1px solid var(--border);color:var(--text);
+  font-size:14px;outline:none;-webkit-user-select:text;user-select:text;flex-shrink:0;
+}
+#search-input::placeholder{color:var(--muted);}
+#search-results{flex:1;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;padding:0 8px 4px;-webkit-overflow-scrolling:touch;}
+.result-item{
+  padding:9px 10px;border-radius:12px;margin-bottom:4px;cursor:pointer;
+  transition:background .13s;border:1px solid transparent;
+}
+.result-item:active{background:var(--bg2);border-color:var(--border);}
+.r1{font-size:13px;font-weight:700;color:var(--text);}
+.r2{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* ── CALENDAR ── */
+#cal-district-lbl{font-size:15px;font-weight:900;color:var(--gold);padding:4px 16px 2px;letter-spacing:-.2px;}
+#cal-recycle-lbl{font-size:11px;color:var(--emerald);padding:0 16px 10px;font-weight:600;}
+#week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;padding:0 12px 12px;flex-shrink:0;}
+.day-cell{
+  aspect-ratio:1;border-radius:10px;background:var(--bg2);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:9px;gap:1px;border:1px solid var(--border);
+}
+.day-cell.today{border-color:var(--gold);animation:border-pulse 2s ease-in-out infinite;
+  box-shadow:0 0 10px rgba(245,158,11,.22);}
+.day-cell .dn{font-size:8px;color:var(--muted);font-weight:700;letter-spacing:.3px;}
+.day-cell .dd{font-size:14px;font-weight:800;color:var(--text);}
+@keyframes border-pulse{0%,100%{box-shadow:0 0 6px rgba(245,158,11,.18)}50%{box-shadow:0 0 14px rgba(245,158,11,.45)}}
+
+/* ── POPUP ── */
+/* Glassmorphism 2.0 */
+.custom-popup .leaflet-popup-content-wrapper{
+  background:var(--card)!important;border:1px solid var(--border)!important;
+  border-radius:18px!important;box-shadow:0 10px 40px rgba(0,0,0,.55)!important;
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  padding:0!important;min-width:224px;overflow:hidden;
+}
+.custom-popup .leaflet-popup-tip-container{display:none;}
+.custom-popup .leaflet-popup-content{margin:0!important;padding:16px!important;}
+.pu-type{font-size:11px;font-weight:800;letter-spacing:.5px;margin-bottom:5px;text-transform:uppercase;}
+.pu-type.g{color:var(--yellow-neon);}
+.pu-type.r{color:var(--green-neon);}
+.pu-time{font-size:34px;font-weight:900;line-height:1;margin-bottom:5px;letter-spacing:-1.5px;}
+.pu-time.g{color:var(--gold);}
+.pu-time.r{color:var(--emerald);}
+.pu-loc{font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.pu-vil{font-size:11px;color:var(--muted);margin-bottom:6px;}
+.pu-cd{font-size:12px;font-weight:700;color:var(--neon-blue);margin-bottom:6px;}
+.pu-note{font-size:10px;color:var(--muted);line-height:1.55;padding:7px 9px;
+  background:rgba(255,255,255,.04);border-radius:8px;border-left:2px solid;}
+.pu-note.g{border-color:var(--gold);}
+.pu-note.r{border-color:var(--emerald);}
+
+/* ── MARKERS ── */
+.mk-wrap{position:relative;display:flex;align-items:center;justify-content:center;}
+.pr{position:absolute;border-radius:50%;animation:radar-ring 2.2s ease-out infinite;}
+.pr1y{width:34px;height:34px;background:rgba(255,229,0,.20);animation-delay:0s;}
+.pr2y{width:50px;height:50px;background:rgba(255,229,0,.11);animation-delay:.55s;}
+.pr3y{width:66px;height:66px;background:rgba(255,229,0,.06);animation-delay:1.1s;}
+.pr1g{width:34px;height:34px;background:rgba(0,255,157,.20);animation-delay:0s;}
+.pr2g{width:50px;height:50px;background:rgba(0,255,157,.11);animation-delay:.55s;}
+.pr3g{width:66px;height:66px;background:rgba(0,255,157,.06);animation-delay:1.1s;}
+@keyframes radar-ring{0%{transform:scale(.45);opacity:1}100%{transform:scale(1.25);opacity:0}}
+@keyframes mk-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+.zoom-breathe .mk-core{animation:mk-breathe 2.8s ease-in-out infinite;}
+.mk-core{border-radius:50%;display:flex;align-items:center;justify-content:center;
+  position:relative;z-index:2;transition:transform .4s cubic-bezier(.34,1.56,.64,1);}
+.mk-core.g{background:rgba(255,229,0,.13);border:2px solid var(--yellow-neon);}
+.mk-core.r{background:rgba(0,255,157,.13);border:2px solid var(--green-neon);}
+#app.sleep-mode .pr{animation:none;opacity:0!important;}
+.low-power .pr{animation:none;opacity:0!important;}
+
+/* ── ANIMS ── */
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ── NIGHT / SLEEP ── */
+#app.sleep-mode{--bg:#0A0520;}
+#app.sleep-mode #top-panel,#app.sleep-mode #bottom-nav{background:rgba(15,6,40,.92);}
+#app.sleep-mode #status-text{color:#A78BFA;}
+
+/* ── TOAST ── */
+#toast{
+  position:absolute;left:50%;transform:translateX(-50%) translateY(-14px);
+  z-index:4000;background:rgba(17,25,45,.96);border:1px solid var(--border);
+  border-radius:14px;padding:8px 18px;font-size:12px;font-weight:700;
+  color:var(--text);opacity:0;transition:opacity .28s,transform .28s;
+  pointer-events:none;white-space:pre-wrap;backdrop-filter:blur(16px);
+  max-width:calc(100vw - 28px);text-align:center;top:90px;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── NEARBY ── */
+#nearby-panel{
+  position:absolute;left:10px;right:10px;z-index:900;
+  background:var(--card);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  border:1px solid var(--border);border-radius:16px;padding:10px 12px;
+  display:none;transition:opacity .3s;
+}
+#nearby-panel.visible{display:block;}
+.nb-title{font-size:9px;font-weight:800;color:var(--muted);letter-spacing:.5px;margin-bottom:6px;text-transform:uppercase;}
+.nb-item{display:flex;justify-content:space-between;align-items:center;
+  padding:5px 0;border-bottom:1px solid var(--border);}
+.nb-item:last-child{border-bottom:none;}
+.nb-name{font-size:12px;font-weight:700;color:var(--text);}
+.nb-dist{font-size:11px;color:var(--neon-blue);font-weight:700;}
+
+/* ── ZOOM HINT ── */
+#zoom-hint{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:900;
+  background:rgba(11,15,25,.88);border:1px solid var(--border);border-radius:14px;
+  padding:10px 18px;font-size:12px;font-weight:700;color:var(--muted);
+  pointer-events:none;display:none;backdrop-filter:blur(14px);white-space:nowrap;
+}
+#zoom-hint.vis{display:block;}
+
+/* ── OVERLAY ── */
+#doverlay{position:absolute;inset:0;z-index:1990;background:rgba(0,0,0,.42);
+  display:none;backdrop-filter:blur(3px);}
+#doverlay.show{display:block;}
+
+/* ── CNY ── */
+#cny-modal{
+  position:absolute;inset:0;z-index:6000;background:rgba(0,0,0,.94);
+  display:none;align-items:center;justify-content:center;flex-direction:column;
+  gap:14px;padding:28px;
+}
+#cny-modal.show{display:flex;}
+.cny-txt{font-size:15px;font-weight:800;color:#EF4444;text-align:center;line-height:1.9;}
+
+/* ── SCROLLBAR ── */
+#search-results::-webkit-scrollbar{width:3px;}
+#search-results::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+.leaflet-control-zoom{display:none!important;}
+.leaflet-control-attribution{font-size:9px!important;opacity:.35!important;
+  background:rgba(0,0,0,.35)!important;color:var(--muted)!important;}
+.leaflet-popup-close-button{color:var(--muted)!important;font-size:18px!important;right:12px!important;top:10px!important;}
+</style>
 </head>
 <body>
-
-<!-- 指令25: 星河背景 SVG -->
-<svg id="star-canvas" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
-
-<!-- Toast 通知 -->
-<div id="toast"></div>
-
-<!-- 成就解鎖彈窗（指令33, 50）-->
-<div id="achievement-popup">
-  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- 成功勾選 SVG 動畫 -->
-    <circle cx="20" cy="20" r="18" stroke="rgba(255,242,204,0.3)" stroke-width="0.5"/>
-    <path id="check-path" d="M10 20 L17 27 L30 13" stroke="#FFF2CC" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
-          fill="none" stroke-dasharray="30" stroke-dashoffset="30">
-      <animate attributeName="stroke-dashoffset" from="30" to="0" dur="0.6s" fill="freeze" begin="indefinite" id="check-anim"/>
-    </path>
-  </svg>
-  <div class="ach-title" id="ach-title">優雅關燈</div>
-  <div class="ach-desc" id="ach-desc">你做得很好了</div>
-  <div class="spacer"></div>
-  <button class="btn-secondary" onclick="closeAchievement()" style="justify-content:center;">
-    繼續靜置
-  </button>
-</div>
-
-<!-- 靜置模式全螢幕（指令61）-->
-<div id="stillness-overlay">
-  <!-- 月亮SVG -->
-  <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:24px;opacity:0.5;">
-    <path d="M30 8 C20 10 14 18 14 26 C14 35 21 42 30 42 C22 42 10 35 10 24 C10 14 18 7 28 6 C28.7 5.9 29.4 5.95 30 8Z" stroke="#FFF2CC" stroke-width="1" fill="none" stroke-linecap="round"/>
-  </svg>
-  <div id="stillness-timer">20:00</div>
-  <div id="stillness-hint" style="font-size:var(--fs-sm);color:rgba(160,165,181,0.4);letter-spacing:0.12em;line-height:2.2;">
-    現在，請將手機螢幕朝下翻過去<br>聽著呼吸引導，你做得很好了
-  </div>
-  <div id="wake-indicator">螢幕常亮保持中</div>
-  <div class="spacer"></div>
-  <div class="spacer"></div>
-  <button class="btn-secondary" onclick="exitStillness()" style="justify-content:center;width:auto;padding:12px 28px;">
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7L9 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    回到星河
-  </button>
-</div>
-
-<!-- 隱藏 Canvas（指令75, 91）-->
-<canvas id="share-canvas"></canvas>
-
-<!-- =====================================================
-     主應用容器
-===================================================== -->
 <div id="app">
-
-  <!-- 頂部導航 -->
-  <div class="top-bar">
-    <div>
-      <!-- 指令85: 熟成大人清明勳章 -->
-      <div class="badge">清明等級：星河漫步者</div>
+  <div id="top-panel">
+    <div id="status-row">
+      <div id="status-dot"></div>
+      <span id="status-text">初始化系統中...</span>
+      <button id="theme-btn" aria-label="切換主題">☀️</button>
     </div>
-    <div style="display:flex;align-items:center;gap:12px;">
-      <!-- 指令53: 音樂開關按鈕（指令31: 喇叭SVG）-->
-      <button id="music-btn" onclick="toggleMusic()" aria-label="切換音樂">
-        <svg id="speaker-icon" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 6.5H6L10 3V15L6 11.5H3V6.5Z" stroke="rgba(160,165,181,0.6)" stroke-width="0.8" stroke-linejoin="round" fill="none"/>
-          <path id="wave1" d="M12 6 C13.5 7 13.5 11 12 12" stroke="rgba(160,165,181,0.6)" stroke-width="0.8" stroke-linecap="round" fill="none"/>
-          <path id="wave2" d="M13.5 4.5 C16 6.5 16 11.5 13.5 13.5" stroke="rgba(160,165,181,0.4)" stroke-width="0.8" stroke-linecap="round" fill="none"/>
-        </svg>
-      </button>
-      <!-- 指令22: 月亮SVG -->
-      <div class="moon-container">
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M18 4 C11 5.5 7 11 7 16 C7 21.5 11.5 26 17 26 C12 26 4 20.5 4 14 C4 8 10 3 17 2.5 C17.4 2.45 17.7 2.48 18 4Z" stroke="#FFF2CC" stroke-width="0.8" fill="none" stroke-linecap="round"/>
-        </svg>
-      </div>
-    </div>
+    <div id="district-scroll"></div>
   </div>
-
-  <!-- 英雄標題 -->
-  <div style="margin-bottom:clamp(20px,5vw,32px);">
-    <h1 class="hero-title">深夜星河</h1>
-    <p class="hero-subtitle">初級大人的數位斷捨離<br>與睡眠避風港</p>
-  </div>
-
-  <!-- GPS 定位文案（指令79）-->
-  <div id="location-text"></div>
-
-  <!-- 指令83: 空白頁詩意引文 -->
-  <div class="poetic-hint">
-    Threads 的訊息滑不完，<br>但今晚的睡眠只有一次。<br>點擊下方，我們陪你把世界關掉。
-  </div>
-
-  <div class="spacer"></div>
-
-  <!-- 主卡片 -->
-  <div class="card amber-shadow">
-
-    <!-- 指令78: 主安撫按鈕 -->
-    <button class="btn-primary" id="main-anxiety-btn" onclick="triggerAnxietyRelief()">
-      <!-- 指令35: 愛心SVG -->
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
-        <path d="M10 16 C10 16 2 11 2 6 C2 3.5 4 2 6 2 C7.5 2 9 3 10 4.5 C11 3 12.5 2 14 2 C16 2 18 3.5 18 6 C18 11 10 16 10 16Z" stroke="rgba(255,242,204,0.5)" stroke-width="0.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <span>我現在很焦慮，停不下來</span>
+  <div id="map"></div>
+  <div id="bottom-nav">
+    <button class="nav-btn" id="locate-btn">
+      <span class="nav-icon">📍</span><span class="nav-label">定位</span>
     </button>
-
-    <hr class="divider">
-
-    <!-- 結果區（初始隱藏）-->
-    <div id="result-area" style="display:none;">
-      <div class="result-headline" id="result-headline">優雅關燈</div>
-      <div class="result-body" id="result-body"></div>
-
-      <!-- 進度條（指令37）-->
-      <div class="progress-bar-wrap">
-        <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
-        <!-- 指令37: 進度條光點 SVG -->
-        <svg style="position:absolute;right:0;top:50%;transform:translateY(-50%);pointer-events:none;" width="8" height="8" viewBox="0 0 8 8" xmlns="http://www.w3.org/2000/svg">
-          <defs><filter id="glow"><feGaussianBlur stdDeviation="1.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-          <circle cx="4" cy="4" r="3" fill="rgba(255,242,204,0.6)" filter="url(#glow)" id="progress-dot"/>
-        </svg>
-      </div>
-
-      <hr class="divider">
-    </div>
-
-    <!-- 指令81: 呼吸引導 -->
-    <div id="breath-section">
-      <div id="breath-ring-container">
-        <svg width="160" height="160" viewBox="0 0 160 160" id="breath-svg">
-          <!-- 外圈靜態 -->
-          <circle cx="80" cy="80" r="70" stroke="rgba(255,255,255,0.04)" stroke-width="0.5" fill="none"/>
-          <!-- 動態呼吸圓環（指令26: stroke-dashoffset）-->
-          <circle cx="80" cy="80" r="55" stroke="rgba(255,242,204,0.15)" stroke-width="0.5" fill="none"
-                  stroke-dasharray="345" stroke-dashoffset="0" id="breath-outer-ring"/>
-          <!-- 呼吸主圓 -->
-          <circle cx="80" cy="80" r="40" stroke="rgba(255,242,204,0.2)" stroke-width="0.8" fill="rgba(255,242,204,0.02)" id="breath-ring"/>
-          <!-- 橄欖枝裝飾（指令23）-->
-          <g transform="translate(55,65)" opacity="0.15">
-            <path d="M0 20 Q5 15 8 10 Q12 5 15 0" stroke="#FFF2CC" stroke-width="0.6" fill="none"/>
-            <ellipse cx="5" cy="16" rx="3" ry="5" transform="rotate(-20,5,16)" stroke="#FFF2CC" stroke-width="0.5" fill="none"/>
-            <ellipse cx="10" cy="10" rx="3" ry="5" transform="rotate(-40,10,10)" stroke="#FFF2CC" stroke-width="0.5" fill="none"/>
-            <ellipse cx="14" cy="4" rx="2.5" ry="4" transform="rotate(-55,14,4)" stroke="#FFF2CC" stroke-width="0.5" fill="none"/>
-          </g>
-        </svg>
-        <div id="breath-counter">4</div>
-      </div>
-      <div id="breath-label">吸氣 4 秒</div>
-      <div class="spacer"></div>
-      <button class="btn-secondary" id="breath-start-btn" onclick="toggleBreath()">
-        <!-- 指令34: 箭頭SVG -->
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="0.6"/><path d="M5 4L9 7L5 10" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        開始 4-7-8 呼吸引導
-      </button>
-    </div>
-
-  </div>
-
-  <!-- 失眠指數卡片 -->
-  <div class="card">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-      <!-- 指令27: 時鐘SVG -->
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="9" cy="9" r="7.5" stroke="rgba(160,165,181,0.4)" stroke-width="0.7" fill="none"/>
-        <path d="M9 5V9L12 11" stroke="rgba(160,165,181,0.5)" stroke-width="0.7" stroke-linecap="round"/>
-      </svg>
-      <span style="font-size:var(--fs-sm);color:var(--text-secondary);font-weight:200;letter-spacing:0.1em;">失眠焦慮指數</span>
-    </div>
-    <div class="slider-container">
-      <div class="slider-label">
-        <span>今晚腦袋有多轉？</span>
-        <span id="insomnia-value">50</span>
-      </div>
-      <input type="range" id="insomnia-slider" min="1" max="100" value="50" oninput="updateInsomnia(this.value)">
-      <div id="insomnia-text">半夢半醒間，月光替你把窗簾拉上。慢慢來，不用急著睡著。</div>
-    </div>
-  </div>
-
-  <!-- 星河靜置模式卡片 -->
-  <div class="card">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-      <!-- 指令36: 防禦盾牌SVG -->
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="10" cy="10" r="8" stroke="rgba(217,226,236,0.3)" stroke-width="0.6" fill="none"/>
-        <circle cx="10" cy="10" r="5.5" stroke="rgba(217,226,236,0.2)" stroke-width="0.6" fill="none"/>
-        <circle cx="10" cy="10" r="3" stroke="rgba(217,226,236,0.15)" stroke-width="0.6" fill="none"/>
-      </svg>
-      <span style="font-size:var(--fs-sm);color:var(--text-secondary);font-weight:200;letter-spacing:0.1em;">數位隔離防護</span>
-    </div>
-    <p style="font-size:var(--fs-sm);color:var(--text-secondary);font-weight:200;letter-spacing:0.08em;line-height:1.9;margin-bottom:16px;">
-      開啟後螢幕常亮、音樂繼續，讓世界在你睡著之前，安靜陪你 20 分鐘。
-    </p>
-    <!-- 指令86: 手機翻面提示 -->
-    <p style="font-size:var(--fs-xs);color:rgba(160,165,181,0.35);font-weight:200;letter-spacing:0.1em;line-height:1.8;margin-bottom:16px;">
-      現在，請將手機螢幕朝下翻過去。聽著呼吸引導，你做得很好了。
-    </p>
-    <button class="btn-secondary" onclick="enterStillness()">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1V13M1 7H13" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" opacity="0.5"/><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="0.6"/></svg>
-      開啟星河靜置模式
+    <button class="nav-btn" id="search-btn">
+      <span class="nav-icon">🔍</span><span class="nav-label">搜尋</span>
+    </button>
+    <button class="nav-btn" id="cal-btn">
+      <span class="nav-icon">📅</span><span class="nav-label">日曆</span>
+    </button>
+    <button class="nav-btn" id="filter-btn">
+      <span id="filter-gear-icon" class="nav-icon">⚙️</span><span class="nav-label">過濾</span>
     </button>
   </div>
-
-  <!-- Threads 分享卡片（指令91-99）-->
-  <div class="card">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-      <!-- 指令28: Threads圖標SVG -->
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12.5 6.5 C11 5 9 4.5 7.5 5 C5.5 5.8 4.5 8 5 10 C5.5 12 7.5 13.5 9.5 13 C11 12.6 12 11 12 9.5 C12 8 11 7 9.5 7 C8.5 7 8 7.5 8 8.5 C8 9.5 9 10 9.5 9.5" stroke="rgba(160,165,181,0.5)" stroke-width="0.8" fill="none" stroke-linecap="round"/>
-        <path d="M12.5 6.5 Q14 8 13.5 10.5" stroke="rgba(160,165,181,0.4)" stroke-width="0.7" fill="none" stroke-linecap="round"/>
-      </svg>
-      <span style="font-size:var(--fs-sm);color:var(--text-secondary);font-weight:200;letter-spacing:0.1em;">優雅發出去</span>
+  <div id="skeleton">
+    <div style="display:flex;flex-direction:column;gap:9px;width:190px;">
+      <div class="sk-bar" style="width:68%;"></div>
+      <div class="sk-bar" style="width:88%;"></div>
+      <div class="sk-bar" style="width:52%;"></div>
     </div>
-    <div class="share-area">
-      <button class="btn-secondary" onclick="shareToThreads('calm')" style="margin-bottom:8px;">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="3" width="12" height="9" rx="1.5" stroke="currentColor" stroke-width="0.7" fill="none"/><path d="M4 3V2C4 1.45 4.45 1 5 1H9C9.55 1 10 1.45 10 2V3" stroke="currentColor" stroke-width="0.7" fill="none"/></svg>
-        複製「戰勝社群焦慮」文案
-      </button>
-      <button class="btn-secondary" onclick="shareToThreads('emo')">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 12 C7 12 1 8 1 4.5 C1 2.5 2.5 1 4 1 C5 1 6 1.8 7 3 C8 1.8 9 1 10 1 C11.5 1 13 2.5 13 4.5 C13 8 7 12 7 12Z" stroke="currentColor" stroke-width="0.7" fill="none"/></svg>
-        複製「深夜 emo 同溫層」文案
-      </button>
-    </div>
+    <div id="prog-wrap"><div id="prog-bar"></div></div>
+    <div id="progress-text">載入班表資料...</div>
   </div>
-
-  <!-- 今日全台看板（指令84）-->
-  <div style="text-align:center;padding:clamp(8px,2vw,12px) 0;">
-    <p style="font-size:var(--fs-xs);color:rgba(160,165,181,0.25);font-weight:200;letter-spacing:0.1em;line-height:1.9;">
-      今日全台已有 <span id="counter-num">14,245</span> 位初級大人在此優雅關燈、戰勝社群焦慮。
-    </p>
+  <div id="zoom-hint">請放大（Zoom ≥ 14）以查看站點</div>
+  <div id="nearby-panel">
+    <div class="nb-title">步行最近站點</div>
+    <div id="nearby-list"></div>
   </div>
-
-  <!-- 跑馬燈（指令96）-->
-  <div id="marquee-container">
-    <div class="marquee-inner" id="marquee-inner"></div>
+  <div id="toast"></div>
+  <div id="doverlay"></div>
+  <!-- SEARCH DRAWER -->
+  <div class="drawer" id="sdrawer">
+    <div class="drawer-handle"></div>
+    <div class="drawer-title">🔍 搜尋地點 · 里別 · 時間</div>
+    <input id="search-input" type="text" placeholder="輸入路名、里名、時間片段..." autocomplete="off" autocorrect="off" spellcheck="false">
+    <div id="search-results"></div>
   </div>
-
-  <!-- 頁尾（指令100）-->
-  <footer>
-    <p class="footer-disclaimer">
-      Disclaimer｜本工具純屬心理舒壓與數位睡眠之極簡輔助模型，<br>深夜 emo 屬於常規生理現象，嚴重社群焦慮建議尋求專業心理諮商。
-    </p>
-    <div class="footer-studio">
-      <!-- 指令40: 工作室標誌SVG -->
-      <svg width="6" height="6" viewBox="0 0 6 6"><circle cx="3" cy="3" r="3" fill="#6B7C5A"/></svg>
-      Designed by Mature Market Studio｜熟成市場工作室 © 2026
-    </div>
-  </footer>
-
-</div><!-- /#app -->
-
+  <!-- CALENDAR DRAWER -->
+  <div class="drawer" id="cdrawer">
+    <div class="drawer-handle"></div>
+    <div class="drawer-title">📅 本週收運日曆</div>
+    <div id="cal-district-lbl">— 請選擇行政區 —</div>
+    <div id="cal-recycle-lbl"></div>
+    <div id="week-grid"></div>
+  </div>
+  <!-- CNY MODAL -->
+  <div id="cny-modal">
+    <div style="font-size:44px;">🧨</div>
+    <div class="cny-txt">清潔隊員也想回家過年！<br>今日全市全面停收，<br>請把垃圾乖乖留在家中！</div>
+    <div style="font-size:12px;color:#94A3B8;margin-top:8px;">點擊任意位置關閉</div>
+  </div>
+</div>
 <script>
-/* =======================================================
-   深夜星河 — 主程式
-   指令 41-100 完整實作
-======================================================= */
+(function(){
+'use strict';
 
-// =============================================
-// 指令25: 動態生成30顆星星
-// =============================================
-(function generateStars() {
-  const svg = document.getElementById('star-canvas');
-  const W = window.innerWidth, H = window.innerHeight;
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-  svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+/* ═══════════════════════════════
+   CONSTANTS
+═══════════════════════════════ */
+const DATASET_ID = '57aaa860-bb03-43c2-a797-73971d6cc73d';
+const CACHE_KEY  = 'tn_garbage_v5';
+const CACHE_TTL  = 7 * 24 * 3600 * 1000;
+const GEO_FENCE  = { latMin:22.8, latMax:23.5, lngMin:120.0, lngMax:120.6 };
+const TAINAN_SW  = [22.85, 120.00];
+const TAINAN_NE  = [23.45, 120.65];
+const CHUNK_SIZE = 200;
+const CIRCLE_BUFFER_M = 1500;
+const DAY_ZH  = ['日','一','二','三','四','五','六'];
+const DISTRICTS = ['仁德','東區','永康','中西區','安南','北區','南區','安平','新營','麻豆','歸仁','善化','關廟','左鎮','玉井'];
+const DISTRICT_COORDS = {
+  '仁德':[22.945,120.242],'東區':[22.993,120.218],'永康':[23.032,120.255],
+  '中西區':[22.991,120.198],'安南':[23.043,120.170],'北區':[23.013,120.210],
+  '南區':[22.970,120.188],'安平':[22.992,120.157],'新營':[23.310,120.312],
+  '麻豆':[23.183,120.253],'歸仁':[22.952,120.289],'善化':[23.140,120.302],
+  '關廟':[22.915,120.316],'左鎮':[23.000,120.330],'玉井':[23.118,120.432],
+};
+const PROXY_BUILDERS = [
+  u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+  u => `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(u)}`,
+  u => `https://proxy.cors.sh/${encodeURIComponent(u)}`,
+  u => `https://cors-anywhere.herokuapp.com/${u}`,
+];
+const DATA_URLS = [
+  `https://data.gov.tw/api/v2/datasets/${DATASET_ID}`,
+  `https://opendata.tainan.gov.tw/api/v1/rest/datastore/${DATASET_ID}?limit=50000`,
+  `https://data.tainan.gov.tw/api/action/datastore_search?resource_id=${DATASET_ID}&limit=50000`,
+];
 
-  for (let i = 0; i < 30; i++) {
-    const x = Math.random() * W;
-    const y = Math.random() * H;
-    const r = 0.5 + Math.random() * 1;
-    const dur = 2 + Math.random() * 4;
-    const delay = Math.random() * 4;
-    const minOp = 0.05 + Math.random() * 0.1;
-    const maxOp = 0.3 + Math.random() * 0.4;
+/* ═══════════════════════════════
+   STATE
+═══════════════════════════════ */
+let allPoints    = [];
+let markerMap    = {};
+let markerLayer, routeLayer, walkPolyline;
+let isFilterActive = false;
+let isFlying     = false;
+let flyLock      = false;
+let userLat = null, userLng = null;
+let smoothHeading = 0, rawHeading = 0;
+let userMarker   = null;
+let serverDelta  = 0;
+let audioCtx     = null;
+let audioUnlocked = false;
+let isLowPower   = false;
+let isSleepMode  = false;
+let isDark       = true;
+let activeDistrict = null;
+let memoryFallback = null;
+let sleepTimer   = null;
 
-    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    circle.setAttribute('cx', x);
-    circle.setAttribute('cy', y);
-    circle.setAttribute('r', r);
-    circle.setAttribute('fill', '#FFF2CC');
-    circle.classList.add('star');
-    circle.style.setProperty('--dur', `${dur}s`);
-    circle.style.setProperty('--delay', `${delay}s`);
-    circle.style.setProperty('--min-op', minOp);
-    circle.style.setProperty('--max-op', maxOp);
-    svg.appendChild(circle);
+/* ═══════════════════════════════
+   MAP INIT
+═══════════════════════════════ */
+const map = L.map('map', {
+  center: [23.00, 120.24],
+  zoom: 14,
+  maxBounds: L.latLngBounds(TAINAN_SW, TAINAN_NE),
+  maxBoundsViscosity: 1.0,
+  zoomControl: false,
+  attributionControl: true,
+  preferCanvas: true,
+  bounceAtZoomLimits: true,
+});
+let tileLayer = makeTile(true);
+tileLayer.addTo(map);
+markerLayer = L.layerGroup().addTo(map);
+routeLayer  = L.layerGroup().addTo(map);
+
+function makeTile(dark) {
+  return dark
+    ? L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_matter/{z}/{x}/{y}{r}.png',
+        { attribution:'© CartoDB', subdomains:'abcd', maxZoom:19 })
+    : L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+        { attribution:'© CartoDB', subdomains:'abcd', maxZoom:19 });
+}
+
+/* ═══════════════════════════════
+   THEME
+═══════════════════════════════ */
+document.getElementById('theme-btn').addEventListener('click', () => {
+  isDark = !isDark;
+  document.body.classList.toggle('light-mode', !isDark);
+  document.getElementById('theme-btn').textContent = isDark ? '☀️' : '🌙';
+  tileLayer.remove();
+  tileLayer = makeTile(isDark);
+  tileLayer.addTo(map);
+  vibrate(12); playTink();
+});
+
+/* ═══════════════════════════════
+   AUDIO ENGINE
+═══════════════════════════════ */
+function ensureAudio() {
+  if (audioCtx) return;
+  try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+}
+function unlockAudio() {
+  if (audioUnlocked || isLowPower) return;
+  ensureAudio();
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+  audioUnlocked = true;
+}
+document.addEventListener('click', unlockAudio, { once: true });
+document.addEventListener('touchstart', unlockAudio, { once: true, passive: true });
+
+function playPluck() {
+  if (!audioUnlocked || !audioCtx || isLowPower) return;
+  try {
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(300, audioCtx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(85, audioCtx.currentTime + .13);
+    g.gain.setValueAtTime(.16, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + .14);
+    o.start(audioCtx.currentTime); o.stop(audioCtx.currentTime + .15);
+  } catch(e) {}
+}
+function playTink() {
+  if (!audioUnlocked || !audioCtx || isLowPower) return;
+  try {
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = 'sine';
+    o.frequency.setValueAtTime(1350, audioCtx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(680, audioCtx.currentTime + .2);
+    g.gain.setValueAtTime(.11, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + .22);
+    o.start(audioCtx.currentTime); o.stop(audioCtx.currentTime + .23);
+  } catch(e) {}
+}
+function playClick() {
+  if (!audioUnlocked || !audioCtx || isLowPower) return;
+  try {
+    const len = Math.floor(audioCtx.sampleRate * .035);
+    const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random()*2-1) * Math.exp(-i / (len * .14));
+    const src = audioCtx.createBufferSource(), g = audioCtx.createGain();
+    src.buffer = buf; src.connect(g); g.connect(audioCtx.destination);
+    g.gain.setValueAtTime(.075, audioCtx.currentTime);
+    src.start(audioCtx.currentTime);
+  } catch(e) {}
+}
+function playWhoosh() {
+  if (!audioUnlocked || !audioCtx || isLowPower) return;
+  try {
+    const dur = .65;
+    const len = Math.floor(audioCtx.sampleRate * dur);
+    const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      const t = i / len;
+      d[i] = (Math.random()*2-1) * Math.sin(t * Math.PI) * Math.exp(-t * 2.8) * .07;
+    }
+    const src = audioCtx.createBufferSource(), g = audioCtx.createGain();
+    src.buffer = buf; src.connect(g); g.connect(audioCtx.destination);
+    g.gain.setValueAtTime(.09, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + dur);
+    src.start(audioCtx.currentTime);
+  } catch(e) {}
+}
+
+function vibrate(ms) {
+  try { if (navigator.vibrate) navigator.vibrate(ms); } catch(e) {}
+}
+
+/* ═══════════════════════════════
+   LOW POWER DETECT
+═══════════════════════════════ */
+try {
+  if (navigator.getBattery) {
+    navigator.getBattery().then(bat => {
+      const check = () => { if (bat.level < 0.2 && !bat.charging) { isLowPower = true; document.getElementById('app').classList.add('low-power'); } };
+      check();
+      bat.addEventListener('levelchange', check);
+    }).catch(() => {});
+  }
+} catch(e) {}
+
+/* ═══════════════════════════════
+   PAGE VISIBILITY
+═══════════════════════════════ */
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    if (audioCtx) try { audioCtx.suspend(); } catch(e) {}
+  } else {
+    if (audioCtx && audioUnlocked && !isLowPower) try { audioCtx.resume(); } catch(e) {}
+    setTimeout(refreshVisible, 50);
+    checkSleepMode();
+  }
+});
+
+/* ═══════════════════════════════
+   NTP SYNC
+═══════════════════════════════ */
+(async function syncNTP() {
+  try {
+    const r = await fetch('https://worldtimeapi.org/api/timezone/Asia/Taipei',
+      { signal: AbortSignal.timeout ? AbortSignal.timeout(4500) : new AbortController().signal });
+    const j = await r.json();
+    serverDelta = new Date(j.datetime).getTime() - Date.now();
+  } catch(e) {
+    try {
+      const r2 = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://worldtimeapi.org/api/timezone/Asia/Taipei'),
+        { signal: AbortSignal.timeout ? AbortSignal.timeout(4000) : new AbortController().signal });
+      const j2 = await r2.json();
+      serverDelta = new Date(j2.datetime).getTime() - Date.now();
+    } catch(e2) {}
   }
 })();
 
-// =============================================
-// 指令41-60: Web Audio API 療癒音樂引擎
-// =============================================
-let audioCtx = null;
-let masterGain = null;
-let pinkNoiseNode = null;
-let singingBowlNodes = [];
-let pianoInterval = null;
-let musicActive = false;
-let limiter = null;
-
-// 指令43: 粉紅噪音生成器
-function createPinkNoise(ctx) {
-  const bufferSize = 4096;
-  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
-  const node = ctx.createScriptProcessor(bufferSize, 1, 1);
-  node.onaudioprocess = e => {
-    const output = e.outputBuffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      const w = Math.random() * 2 - 1;
-      b0 = 0.99886*b0 + w*0.0555179;
-      b1 = 0.99332*b1 + w*0.0750759;
-      b2 = 0.96900*b2 + w*0.1538520;
-      b3 = 0.86650*b3 + w*0.3104856;
-      b4 = 0.55000*b4 + w*0.5329522;
-      b5 = -0.7616*b5 - w*0.0168980;
-      output[i] = (b0+b1+b2+b3+b4+b5+b6+w*0.5362) * 0.11;
-      b6 = w * 0.115926;
-    }
-  };
-  return node;
-}
-
-// 指令42: 432Hz 頌缽環境音
-function createSingingBowl(ctx, gainNode) {
-  const freqs = [432, 528, 639];
-  const nodes = freqs.map(freq => {
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    const lfo = ctx.createOscillator();
-    const lfoGain = ctx.createGain();
-
-    osc.type = 'sine';
-    osc.frequency.value = freq;
-    lfo.type = 'sine';
-    lfo.frequency.value = 0.05;
-    lfoGain.gain.value = 0.002;
-
-    lfo.connect(lfoGain);
-    lfoGain.connect(osc.frequency);
-    osc.connect(g);
-    g.connect(gainNode);
-    g.gain.value = 0.03;
-
-    osc.start();
-    lfo.start();
-    return { osc, g, lfo, lfoGain };
-  });
-  return nodes;
-}
-
-// 指令51: 雙聲道拍頻 (Binaural Beats)
-function createBinauralBeats(ctx) {
-  const merger = ctx.createChannelMerger(2);
-  const leftOsc = ctx.createOscillator();
-  const rightOsc = ctx.createOscillator();
-  const leftGain = ctx.createGain();
-  const rightGain = ctx.createGain();
-
-  leftOsc.type = 'sine'; leftOsc.frequency.value = 100;
-  rightOsc.type = 'sine'; rightOsc.frequency.value = 106; // 6Hz Theta
-
-  leftGain.gain.value = 0.04;
-  rightGain.gain.value = 0.04;
-
-  leftOsc.connect(leftGain);
-  rightOsc.connect(rightGain);
-  leftGain.connect(merger, 0, 0);
-  rightGain.connect(merger, 0, 1);
-  merger.connect(ctx.destination);
-
-  leftOsc.start();
-  rightOsc.start();
-  return { leftOsc, rightOsc, leftGain, rightGain };
-}
-
-// 指令44: 睡前和弦自發性生成器
-const chords = {
-  'Cmaj7': [261.63, 329.63, 392.00, 493.88],
-  'Am7':   [220.00, 261.63, 329.63, 392.00],
-  'Fmaj7': [174.61, 220.00, 261.63, 349.23],
-  'G7':    [196.00, 246.94, 293.66, 349.23]
-};
-const chordNames = Object.keys(chords);
-let currentChordIdx = 0;
-let pianoGain = null;
-let pianoChannel = null;
-let chordSpeed = 4000; // 指令60: 動態變速
-
-function playChord(ctx, chordFreqs, masterG) {
-  if (!musicActive || !ctx) return;
-  try {
-    chordFreqs.forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const g = ctx.createGain();
-      const filter = ctx.createBiquadFilter();
-
-      osc.type = 'triangle';
-      osc.frequency.value = freq * 0.5; // 低音域
-
-      filter.type = 'lowpass';
-      filter.frequency.value = 600;
-
-      const now = ctx.currentTime;
-      g.gain.setValueAtTime(0, now);
-      g.gain.linearRampToValueAtTime(0.04, now + 0.3 + i * 0.1);
-      g.gain.exponentialRampToValueAtTime(0.001, now + 3.5);
-
-      osc.connect(filter);
-      filter.connect(g);
-      g.connect(masterG);
-      osc.start(now);
-      osc.stop(now + 4);
-    });
-  } catch(e) {}
-}
-
-// 指令49: 音訊解鎖機制
-function initAudio() {
-  if (audioCtx) return;
-  try {
-    // 指令58: 跨瀏覽器相容
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return;
-    audioCtx = new AC();
-
-    // 指令55: 防破音安全閥
-    limiter = audioCtx.createDynamicsCompressor();
-    limiter.threshold.value = -3;
-    limiter.knee.value = 3;
-    limiter.ratio.value = 20;
-    limiter.attack.value = 0.001;
-    limiter.release.value = 0.1;
-    limiter.connect(audioCtx.destination);
-
-    masterGain = audioCtx.createGain();
-    masterGain.gain.value = 0;
-    masterGain.connect(limiter);
-
-    // 粉紅噪音通道
-    const pinkGain = audioCtx.createGain();
-    pinkGain.gain.value = 0.4;
-    pinkNoiseNode = createPinkNoise(audioCtx);
-    const pinkFilter = audioCtx.createBiquadFilter();
-    pinkFilter.type = 'lowpass';
-    pinkFilter.frequency.value = 800;
-    pinkNoiseNode.connect(pinkFilter);
-    pinkFilter.connect(pinkGain);
-    pinkGain.connect(masterGain);
-
-    // 頌缽通道
-    const bowlGain = audioCtx.createGain();
-    bowlGain.gain.value = 1;
-    bowlGain.connect(masterGain);
-    singingBowlNodes = createSingingBowl(audioCtx, bowlGain);
-
-    // 鋼琴通道
-    pianoGain = audioCtx.createGain();
-    pianoGain.gain.value = 1;
-    pianoGain.connect(masterGain);
-
-    // 指令51: 拍頻
-    createBinauralBeats(audioCtx);
-
-  } catch(e) { console.warn('Audio init failed', e); }
-}
-
-// 指令45: 優雅淡入淡出
-function startMusic() {
-  if (!audioCtx) { initAudio(); }
-  try { audioCtx.resume(); } catch(e) {}
-  musicActive = true;
-  if (!audioCtx || !masterGain) return;
-  const now = audioCtx.currentTime;
-  masterGain.gain.cancelScheduledValues(now);
-  masterGain.gain.setValueAtTime(masterGain.gain.value, now);
-  masterGain.gain.linearRampToValueAtTime(0.15, now + 2);
-
-  // 指令44: 啟動鋼琴和弦循環
-  if (!pianoInterval) {
-    pianoInterval = setInterval(() => {
-      if (!musicActive || !breathHolding) {
-        playChord(audioCtx, chords[chordNames[currentChordIdx]], pianoGain);
-        currentChordIdx = (currentChordIdx + 1) % chordNames.length;
-      }
-    }, chordSpeed);
-  }
-}
-
-function stopMusic() {
-  musicActive = false;
-  if (!audioCtx || !masterGain) return;
-  const now = audioCtx.currentTime;
-  masterGain.gain.cancelScheduledValues(now);
-  masterGain.gain.setValueAtTime(masterGain.gain.value, now);
-  masterGain.gain.linearRampToValueAtTime(0, now + 2);
-
-  if (pianoInterval) {
-    clearInterval(pianoInterval);
-    pianoInterval = null;
-  }
-  // 指令59: 記憶體釋放
-  setTimeout(() => {
-    try { if (audioCtx && audioCtx.state !== 'closed') audioCtx.suspend(); } catch(e) {}
-  }, 3000);
-}
-
-// 指令48: 按鈕微音效
-function playTick() {
-  if (!audioCtx) return;
-  try {
-    audioCtx.resume();
-    const osc = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-    osc.type = 'sine';
-    osc.frequency.value = 1200;
-    g.gain.setValueAtTime(0.05, audioCtx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
-    osc.connect(g);
-    g.connect(limiter || audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.03);
-  } catch(e) {}
-}
-
-// 指令50: 成就解鎖風鈴音
-function playChime() {
-  if (!audioCtx) return;
-  try {
-    audioCtx.resume();
-    const freqs = [523, 659, 784, 1047, 1318];
-    freqs.forEach((f, i) => {
-      const osc = audioCtx.createOscillator();
-      const g = audioCtx.createGain();
-      const now = audioCtx.currentTime + i * 0.12;
-      osc.type = 'sine';
-      osc.frequency.value = f;
-      g.gain.setValueAtTime(0.08, now);
-      g.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
-      osc.connect(g);
-      g.connect(limiter || audioCtx.destination);
-      osc.start(now);
-      osc.stop(now + 1.5);
-    });
-  } catch(e) {}
-}
-
-// 音樂開關按鈕
-function toggleMusic() {
-  initAudio();
-  playTick();
-  if (musicActive) {
-    stopMusic();
-    document.getElementById('music-btn').classList.remove('active');
-  } else {
-    startMusic();
-    document.getElementById('music-btn').classList.add('active');
-  }
-}
-
-// =============================================
-// 指令47: 失眠指數滑桿 音調聯動
-// =============================================
-let sliderThrottle = null;
-const insomniaCopy = {
-  low:  [
-    '半夢半醒間，月光替你把窗簾拉上。慢慢來，不用急著睡著。',
-    '今晚的腦袋只是還沒找到停下來的理由。試著把注意力放在腳趾頭的溫度上。',
-    '你已經做得夠好了。偶爾睡不著，不是你的問題，是世界太吵了。',
-  ],
-  high: [
-    '想像你正漂浮在無重力的銀河中，所有的焦慮都縮小成了一粒塵埃，隨風漂向宇宙最遠的邊際...',
-    '宇宙在你出生之前已經存在了 138 億年。今天沒解決的事情，明天的你會有不同的宇宙陪著一起看。',
-    '此刻地球有 80 億人，此刻有 2 億人也正和你一樣睡不著。你並不孤單，你只是暫時借住在清醒裡。',
-  ]
-};
-
-function updateInsomnia(val) {
-  // 指令68: 節流
-  if (sliderThrottle) return;
-  sliderThrottle = setTimeout(() => { sliderThrottle = null; }, 60);
-
-  const v = parseInt(val);
-  document.getElementById('insomnia-value').textContent = v;
-
-  const textEl = document.getElementById('insomnia-text');
-  textEl.style.opacity = '0';
-
-  setTimeout(() => {
-    if (v <= 30) {
-      const arr = insomniaCopy.low;
-      textEl.textContent = arr[Math.floor(Math.random() * arr.length)];
-    } else if (v >= 70) {
-      const arr = insomniaCopy.high;
-      textEl.textContent = arr[Math.floor(Math.random() * arr.length)];
-    } else {
-      textEl.textContent = '沒關係，今天過得不完美也沒關係。今晚的月亮沒有在考核你，睡吧。';
-    }
-    textEl.style.opacity = '1';
-  }, 300);
-
-  // 指令47: 音調聯動
-  if (audioCtx && singingBowlNodes.length) {
-    const targetFreq = 432 - (v - 50) * 1.5;
-    singingBowlNodes.forEach((n, i) => {
-      try { n.osc.frequency.linearRampToValueAtTime(targetFreq + i * 50, audioCtx.currentTime + 1); } catch(e) {}
-    });
-  }
-
-  // 指令60: 鋼琴速度聯動
-  const newSpeed = 4000 + (100 - v) * 40;
-  if (newSpeed !== chordSpeed) {
-    chordSpeed = newSpeed;
-    if (pianoInterval && musicActive) {
-      clearInterval(pianoInterval);
-      pianoInterval = setInterval(() => {
-        if (!musicActive || breathHolding) return;
-        playChord(audioCtx, chords[chordNames[currentChordIdx]], pianoGain);
-        currentChordIdx = (currentChordIdx + 1) % chordNames.length;
-      }, chordSpeed);
-    }
-  }
-}
-
-// =============================================
-// 指令78: 主安撫按鈕 - 焦慮緩解
-// =============================================
-const anxietyCopies = [
-  {
-    headline: '優雅關燈',
-    body: '今晚 Threads 上的成功故事有 <strong>85% 經過了包裝</strong>。你現在需要的是優雅地關掉螢幕、把手機翻過去、深呼吸三次。<br><br>系統已為您鎖定今日焦慮額度。'
-  },
-  {
-    headline: '宇宙很安靜',
-    body: '年薪百萬、三十歲買房的故事，是這個時代最昂貴的廣告。<strong>你今晚不在比賽裡</strong>，你只是一個需要好好睡覺的人。'
-  },
-  {
-    headline: '放下焦慮',
-    body: '沒關係，今天過得不完美也沒關係。<strong>今晚的月亮沒有在考核你</strong>，睡吧。明天的問題，交給明天那個更睡飽的你。'
-  }
-];
-
-let anxietyCopIdx = 0;
-let anxietyInProgress = false;
-
-function triggerAnxietyRelief() {
-  // 指令62: 防重複點擊
-  if (anxietyInProgress) return;
-  anxietyInProgress = true;
-
-  // 指令49: 音訊解鎖
-  initAudio();
-  try { if (audioCtx) audioCtx.resume(); } catch(e) {}
-  playTick();
-
-  const btn = document.getElementById('main-anxiety-btn');
-  btn.classList.add('disabled');
-
-  const resultArea = document.getElementById('result-area');
-  const headline = document.getElementById('result-headline');
-  const body = document.getElementById('result-body');
-  const fill = document.getElementById('progress-fill');
-
-  resultArea.style.display = 'block';
-  const copy = anxietyCopies[anxietyCopIdx % anxietyCopies.length];
-  anxietyCopIdx++;
-
-  headline.style.opacity = '0';
-  body.style.opacity = '0';
-  fill.style.width = '0%';
-
-  // 指令64: 3秒超時保護
-  const timeout = setTimeout(() => {
-    headline.textContent = copy.headline;
-    body.innerHTML = copy.body;
-    headline.style.opacity = '1';
-    body.style.opacity = '1';
-    fill.style.width = '100%';
-    btn.classList.remove('disabled');
-    anxietyInProgress = false;
-  }, 3000);
-
-  let prog = 0;
-  const progInterval = setInterval(() => {
-    prog += 4;
-    fill.style.width = prog + '%';
-    if (prog >= 100) {
-      clearInterval(progInterval);
-      clearTimeout(timeout);
-      headline.textContent = copy.headline;
-      body.innerHTML = copy.body;
-      headline.style.opacity = '1';
-      body.style.opacity = '1';
-      btn.classList.remove('disabled');
-      anxietyInProgress = false;
-    }
-  }, 75);
-}
-
-// =============================================
-// 指令81: 4-7-8 呼吸法引導
-// =============================================
-let breathActive = false;
-let breathPhase = 0; // 0=吸氣 1=憋氣 2=吐氣
-let breathTimer = null;
-let breathCount = 0;
-let breathHolding = false;
-
-const breathPhases = [
-  { label: '吸氣 4 秒', duration: 4, phase: 'inhale' },
-  { label: '憋氣 7 秒', duration: 7, phase: 'hold' },
-  { label: '吐氣 8 秒', duration: 8, phase: 'exhale' }
-];
-
-function toggleBreath() {
-  playTick();
-  if (!breathActive) {
-    breathActive = true;
-    document.getElementById('breath-start-btn').textContent = '暫停呼吸引導';
-    breathPhase = 0;
-    runBreathPhase();
-  } else {
-    breathActive = false;
-    breathHolding = false;
-    clearTimeout(breathTimer);
-    document.getElementById('breath-start-btn').innerHTML = `
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="0.6"/><path d="M5 4L9 7L5 10" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      開始 4-7-8 呼吸引導`;
-    document.getElementById('breath-label').textContent = '吸氣 4 秒';
-    resetBreathRing();
-  }
-}
-
-function runBreathPhase() {
-  if (!breathActive) return;
-  const phase = breathPhases[breathPhase];
-  document.getElementById('breath-label').textContent = phase.label;
-  breathHolding = (phase.phase === 'hold');
-  animateBreathRing(phase);
-
-  let remaining = phase.duration;
-  document.getElementById('breath-counter').textContent = remaining;
-
-  const tick = () => {
-    remaining--;
-    if (remaining > 0) {
-      document.getElementById('breath-counter').textContent = remaining;
-      // 指令46: 呼吸同步音量聯動
-      syncBreathAudio(phase.phase, remaining, phase.duration);
-      breathTimer = setTimeout(tick, 1000);
-    } else {
-      breathPhase = (breathPhase + 1) % 3;
-      if (breathPhase === 0) breathCount++;
-      if (breathCount >= 3) {
-        // 3輪完成，觸發成就
-        breathActive = false;
-        breathCount = 0;
-        showAchievement('呼吸完成', '三輪 4-7-8，你的身體正在放鬆。');
-        playChime();
-        resetBreathRing();
-        document.getElementById('breath-start-btn').innerHTML = `
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="0.6"/><path d="M5 4L9 7L5 10" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          再次開始呼吸引導`;
-        return;
-      }
-      breathTimer = setTimeout(runBreathPhase, 500);
-    }
-  };
-  breathTimer = setTimeout(tick, 1000);
-}
-
-// 指令46: 音量 + 濾波器聯動
-function syncBreathAudio(phase, remaining, total) {
-  if (!audioCtx || !masterGain) return;
-  try {
-    const progress = 1 - remaining / total;
-    const now = audioCtx.currentTime;
-    if (phase === 'inhale') {
-      masterGain.gain.linearRampToValueAtTime(0.05 + progress * 0.1, now + 0.8);
-    } else if (phase === 'exhale') {
-      masterGain.gain.linearRampToValueAtTime(0.15 - progress * 0.08, now + 0.8);
-    }
-    // 指令57: 憋氣段靜音鋼琴
-    if (phase === 'hold' && pianoGain) {
-      pianoGain.gain.linearRampToValueAtTime(0.1, now + 0.5);
-    } else if (pianoGain) {
-      pianoGain.gain.linearRampToValueAtTime(1, now + 0.5);
-    }
-  } catch(e) {}
-}
-
-function animateBreathRing(phase) {
-  const ring = document.getElementById('breath-ring');
-  const outerRing = document.getElementById('breath-outer-ring');
-  if (!ring) return;
-
-  ring.style.transition = `r ${phase.duration}s ease-in-out, opacity ${phase.duration * 0.3}s ease`;
-  outerRing.style.transition = `stroke-dashoffset ${phase.duration}s ease-in-out`;
-
-  if (phase.phase === 'inhale') {
-    ring.setAttribute('r', '58');
-    ring.setAttribute('stroke', 'rgba(255,242,204,0.35)');
-    outerRing.setAttribute('stroke-dashoffset', '0');
-  } else if (phase.phase === 'hold') {
-    ring.setAttribute('r', '58');
-    ring.setAttribute('stroke', 'rgba(255,242,204,0.2)');
-  } else {
-    ring.setAttribute('r', '32');
-    ring.setAttribute('stroke', 'rgba(217,226,236,0.2)');
-    outerRing.setAttribute('stroke-dashoffset', '172');
-  }
-}
-
-function resetBreathRing() {
-  const ring = document.getElementById('breath-ring');
-  if (ring) {
-    ring.setAttribute('r', '40');
-    ring.setAttribute('stroke', 'rgba(255,242,204,0.2)');
-  }
-  document.getElementById('breath-counter').textContent = '4';
-  breathHolding = false;
-}
-
-// =============================================
-// 指令61: Wake Lock 防止螢幕休眠
-// =============================================
-let wakeLock = null;
-
-async function requestWakeLock() {
-  try {
-    if ('wakeLock' in navigator) {
-      wakeLock = await navigator.wakeLock.request('screen');
-      document.getElementById('wake-indicator').textContent = '螢幕常亮保持中 ✦';
-    }
-  } catch(e) {
-    document.getElementById('wake-indicator').textContent = '螢幕常亮不可用（已靜置）';
-  }
-}
-
-function releaseWakeLock() {
-  if (wakeLock) { wakeLock.release(); wakeLock = null; }
-}
-
-// 指令71: 頁面可見性修正計時器
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && wakeLock === null && stillnessActive) {
-    requestWakeLock();
-  }
-});
-
-// =============================================
-// 指令61: 星河靜置模式
-// =============================================
-let stillnessActive = false;
-let stillnessInterval = null;
-let stillnessRemaining = 20 * 60; // 20分鐘
-let stillnessStartTime = null;
-
-function enterStillness() {
-  playTick();
-  initAudio();
-  try { if (audioCtx) audioCtx.resume(); } catch(e) {}
-  if (!musicActive) {
-    startMusic();
-    document.getElementById('music-btn').classList.add('active');
-  }
-
-  stillnessActive = true;
-  stillnessRemaining = 20 * 60;
-  stillnessStartTime = Date.now();
-
-  requestWakeLock();
-
-  const overlay = document.getElementById('stillness-overlay');
-  overlay.classList.add('active');
-  updateStillnessTimer();
-
-  // 指令66: 計時器管理
-  stillnessInterval = setInterval(() => {
-    // 指令71: Delta Time 修正
-    const elapsed = Math.floor((Date.now() - stillnessStartTime) / 1000);
-    stillnessRemaining = Math.max(0, 20 * 60 - elapsed);
-    updateStillnessTimer();
-
-    if (stillnessRemaining <= 0) {
-      // 指令56: 音樂自動淡出
-      fadeOutMusicSlowly();
-      clearInterval(stillnessInterval);
-    }
-  }, 1000);
-}
-
-function exitStillness() {
-  playTick();
-  stillnessActive = false;
-  clearInterval(stillnessInterval);
-  releaseWakeLock();
-  document.getElementById('stillness-overlay').classList.remove('active');
-  showAchievement('星河靜置完成', '你給了自己一段珍貴的寧靜。');
-  playChime();
-}
-
-function updateStillnessTimer() {
-  const m = Math.floor(stillnessRemaining / 60).toString().padStart(2, '0');
-  const s = (stillnessRemaining % 60).toString().padStart(2, '0');
-  document.getElementById('stillness-timer').textContent = `${m}:${s}`;
-}
-
-// 指令56: 極緩音樂淡出
-function fadeOutMusicSlowly() {
-  if (!audioCtx || !masterGain) return;
-  const now = audioCtx.currentTime;
-  masterGain.gain.cancelScheduledValues(now);
-  masterGain.gain.setValueAtTime(masterGain.gain.value, now);
-  masterGain.gain.linearRampToValueAtTime(0, now + 10);
-  musicActive = false;
-  if (pianoInterval) { clearInterval(pianoInterval); pianoInterval = null; }
-}
-
-// =============================================
-// 成就解鎖彈窗（指令33）
-// =============================================
-function showAchievement(title, desc) {
-  const popup = document.getElementById('achievement-popup');
-  document.getElementById('ach-title').textContent = title;
-  document.getElementById('ach-desc').textContent = desc;
-  popup.classList.add('show');
-
-  // 觸發 SVG 勾選動畫
-  const anim = document.getElementById('check-anim');
-  if (anim) { try { anim.beginElement(); } catch(e) {} }
-  // 指令72: Ghost Click 防禦
-  setTimeout(() => {}, 300);
-}
-
-function closeAchievement() {
-  document.getElementById('achievement-popup').classList.remove('show');
-}
-
-// =============================================
-// 指令79: GPS 地域加權文案
-// =============================================
-function getLocationCopy(lat, lon) {
-  // 台灣粗略區域判斷
-  const hour = new Date().getHours();
-
-  // 指令80: 時間加權
-  let timeCopy = '';
-  if (hour >= 2 && hour <= 5) {
-    timeCopy = `已經凌晨${hour}點了，世界早就睡了。你不用在今晚證明自己的價值。`;
-  } else if (hour >= 23 || hour <= 1) {
-    const dayOfWeek = new Date().getDay();
-    if (dayOfWeek === 0) { // 週日深夜
-      timeCopy = '週一近了，但你不需要在今晚備戰整個世界。週一恐懼症是正常的，請先睡。';
-    } else {
-      timeCopy = '深夜了，今天的你已經盡力了。剩下的事，留給有充分睡眠的明天。';
-    }
-  }
-
-  let locationCopy = '';
-  if (lat && lon) {
-    // 新竹/竹科 (lat 24.7-24.9, lon 120.9-121.1)
-    if (lat > 24.65 && lat < 24.95 && lon > 120.8 && lon < 121.15) {
-      locationCopy = '辛苦了，竹科的燈火今晚與你無關，早點睡吧。';
-    }
-    // 雙北 (lat 24.9-25.2, lon 121.3-121.7)
-    else if (lat > 24.9 && lat < 25.25 && lon > 121.3 && lon < 121.7) {
-      locationCopy = '台北的夜很長，但你的睡眠比任何通知都重要。';
-    }
-    // 南部 (lat < 23.5)
-    else if (lat < 23.5) {
-      locationCopy = '南部的夜風很溫柔，聽聽窗外的聲音，今晚不跟世界賽跑。';
-    }
-    // 其他
-    else {
-      locationCopy = '不管你在台灣哪個角落，此刻都有星星陪著你。';
-    }
-  }
-
-  const copy = timeCopy || locationCopy;
-  if (copy) document.getElementById('location-text').textContent = copy;
-}
-
-// 指令65: 定位容錯
-function initLocation() {
-  try {
-    if ('geolocation' in navigator) {
-      // 指令64: 3秒超時
-      const locTimeout = setTimeout(() => {
-        document.getElementById('location-text').style.display = 'none';
-      }, 3000);
-
-      navigator.geolocation.getCurrentPosition(
-        pos => {
-          clearTimeout(locTimeout);
-          getLocationCopy(pos.coords.latitude, pos.coords.longitude);
-        },
-        () => {
-          clearTimeout(locTimeout);
-          // 指令65: 拒絕定位容錯
-          const h = new Date().getHours();
-          if (h >= 2 && h <= 5) {
-            document.getElementById('location-text').textContent = `已經凌晨了，世界早就睡了。`;
-          }
-        },
-        { timeout: 3000, maximumAge: 300000 }
-      );
-    }
-  } catch(e) {
-    document.getElementById('location-text').style.display = 'none';
-  }
-}
-
-// =============================================
-// 指令91-99: Threads 分享功能
-// =============================================
-function shareToThreads(type) {
-  playTick();
-  initAudio();
-  try { if (audioCtx) audioCtx.resume(); } catch(e) {}
-
-  let text = '';
-  if (type === 'calm') {
-    // 指令92
-    text = `今日成就：在凌晨優雅地關掉了 Threads，把世界還給宇宙。今晚我是精明的大人。 #深夜星河 #數位斷捨離`;
-  } else {
-    // 指令93
-    text = `今晚在 Threads 渡劫失敗，但這盞微光叫我早點睡。文青們，今日焦慮額度已滿，大家該關燈了。 #深夜星河`;
-  }
-
-  // 指令95: 優先使用剪貼簿
-  const copyText = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      showToast('文案已複製，若未自動跳轉，請手動打開 Threads 貼上');
-    } catch(e) {
-      // 指令69: 降級處理
-      try {
-        const el = document.createElement('textarea');
-        el.value = text;
-        el.style.position = 'fixed';
-        el.style.opacity = '0';
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand('copy');
-        document.body.removeChild(el);
-        showToast('文案已複製，請手動開啟 Threads 貼上');
-      } catch(e2) {
-        showToast('請手動複製文案');
-      }
-    }
-  };
-
-  copyText();
-
-  // 指令94: 跳轉 Threads（指令98: encodeURIComponent）
-  setTimeout(() => {
-    try {
-      window.open('https://www.threads.net/intent/post?text=' + encodeURIComponent(text), '_blank');
-    } catch(e) {}
-  }, 500);
-}
-
-// =============================================
-// Toast 通知
-// =============================================
+function nowMs() { return Date.now() + serverDelta; }
+
+/* ═══════════════════════════════
+   TOAST
+═══════════════════════════════ */
 let toastTimer = null;
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
+function showToast(msg, dur = 3200) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
   if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { t.classList.remove('show'); }, 3500);
+  toastTimer = setTimeout(() => el.classList.remove('show'), dur);
 }
 
-// =============================================
-// 指令96: 跑馬燈虛擬數據生成
-// =============================================
-const marqueeItems = [
-  '2分鐘前，一位來自新竹竹科的初級大人開啟了呼吸引導，今晚準備與自己和解',
-  '剛剛，一位來自台北信義區的初級大人關掉了 Threads，選擇了睡眠',
-  '5分鐘前，一位來自台中的初級大人完成了 3 輪 4-7-8 呼吸，已進入夢鄉',
-  '一位來自高雄的初級大人說：「今晚我不追蹤任何人了」',
-  '10分鐘前，一位來自桃園的初級大人把手機翻過去，螢幕朝下',
-  '剛剛，一位來自台南的初級大人寫下：「年薪不是我今晚的功課」',
-  '一位深夜仍在看 Threads 的初級大人，在這裡找到了關燈的勇氣',
-];
-
-function initMarquee() {
-  const inner = document.getElementById('marquee-inner');
-  // 複製兩份讓跑馬燈無縫循環
-  const fullText = [...marqueeItems, ...marqueeItems]
-    .map(t => `<span class="marquee-text">✦ ${t}&#x3000;</span>`)
-    .join('');
-  inner.innerHTML = fullText;
+/* ═══════════════════════════════
+   STATUS
+═══════════════════════════════ */
+function setStatus(txt, color) {
+  const el = document.getElementById('status-text');
+  el.textContent = txt;
+  el.style.color = color || '';
+}
+function setProgress(pct) {
+  document.getElementById('prog-bar').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = pct < 100 ? `載入班表 ${pct}%` : '✅ 資料載入完成！';
 }
 
-// =============================================
-// 指令63: 斷網降級機制
-// =============================================
-function checkNetworkStatus() {
-  if (!navigator.onLine) {
-    showToast('世界斷網了，但這裡依舊溫暖。閉上眼，我們今晚不看社群。');
+/* ═══════════════════════════════
+   SKELETON
+═══════════════════════════════ */
+function hideSkeleton() {
+  const sk = document.getElementById('skeleton');
+  sk.classList.add('hidden');
+  setTimeout(() => { sk.style.display = 'none'; }, 720);
+}
+
+/* ═══════════════════════════════
+   SLEEP MODE + COUNTDOWN
+═══════════════════════════════ */
+function checkSleepMode() {
+  const now   = new Date(nowMs());
+  const total = now.getHours() * 60 + now.getMinutes();
+  const sleep = total >= 22 * 60 || total < 14 * 60;
+  const app   = document.getElementById('app');
+  if (sleep !== isSleepMode) {
+    isSleepMode = sleep;
+    app.classList.toggle('sleep-mode', sleep);
+  }
+  if (sleep) {
+    const cd = sleepCountdown();
+    setStatus('🛌 系統沉睡中。' + cd, '#A78BFA');
+  } else {
+    if (document.getElementById('status-text').style.color === 'rgb(167, 139, 250)') {
+      setStatus('🟢 營運中');
+    }
   }
 }
-window.addEventListener('offline', () => {
-  showToast('世界斷網了，但這裡依舊溫暖。閉上眼，我們今晚不看社群。');
+function sleepCountdown() {
+  const now  = new Date(nowMs());
+  const cur  = now.getHours() * 60 + now.getMinutes();
+  let diff   = 14 * 60 - cur;
+  if (diff <= 0) diff += 24 * 60;
+  return ` 下期清運倒數：${Math.floor(diff/60)} 小時 ${diff%60} 分`;
+}
+setInterval(checkSleepMode, 60000);
+checkSleepMode();
+
+/* ═══════════════════════════════
+   CNY CHECK
+═══════════════════════════════ */
+function checkCNY() {
+  const now = new Date(nowMs());
+  const m = now.getMonth() + 1, d = now.getDate();
+  const cnyDays = [[1,29],[1,30],[1,31],[2,1],[2,2],[2,17],[2,18],[2,19],[2,20]];
+  if (cnyDays.some(([cm, cd]) => cm === m && cd === d)) {
+    document.getElementById('cny-modal').classList.add('show');
+  }
+}
+checkCNY();
+document.getElementById('cny-modal').addEventListener('click', () => {
+  document.getElementById('cny-modal').classList.remove('show');
 });
 
-// =============================================
-// 指令84: 動態計數器（模擬）
-// =============================================
-function initCounter() {
-  const base = 14245;
-  const rand = Math.floor(Math.random() * 200);
-  const count = base + rand;
-  document.getElementById('counter-num').textContent = count.toLocaleString('zh-TW');
-}
-
-// =============================================
-// 指令72: Ghost Click 防禦 (300ms 鎖定)
-// =============================================
-document.addEventListener('click', function(e) {
-  const btn = e.target.closest('button');
-  if (!btn) return;
-  if (btn.dataset.locked) return;
-  btn.dataset.locked = '1';
-  setTimeout(() => { delete btn.dataset.locked; }, 300);
-}, true);
-
-// =============================================
-// 指令69: LocalStorage 隱私模式相容
-// =============================================
-function safeStorage(key, value) {
+/* ═══════════════════════════════
+   PROXY FETCH WITH TIMEOUT + RETRY
+═══════════════════════════════ */
+async function fetchRaw(url, timeoutMs = 6000) {
+  const ctrl = new AbortController();
+  const tid  = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    if (value !== undefined) localStorage.setItem(key, value);
-    else return localStorage.getItem(key);
-  } catch(e) {
-    // 降級至 window.name
-    try {
-      const data = window.name ? JSON.parse(window.name) : {};
-      if (value !== undefined) { data[key] = value; window.name = JSON.stringify(data); }
-      else return data[key];
-    } catch(e2) { return null; }
+    const res  = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(tid);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    if (!text || text.trim().startsWith('<!')) throw new Error('Not JSON');
+    return text;
+  } finally {
+    clearTimeout(tid);
   }
 }
 
-// =============================================
-// 主程式初始化
-// =============================================
-document.addEventListener('DOMContentLoaded', () => {
-  // 指令63: 網路狀態
-  checkNetworkStatus();
-  // 指令79: 地理定位
-  initLocation();
-  // 指令96: 跑馬燈
-  initMarquee();
-  // 指令84: 計數器
-  initCounter();
-  // 指令82: 初始失眠文案
-  updateInsomnia(50);
+async function fetchViaProxies(targetUrl, maxRetry = 3) {
+  for (let pi = 0; pi < PROXY_BUILDERS.length; pi++) {
+    for (let attempt = 0; attempt < maxRetry; attempt++) {
+      try {
+        const proxyUrl = PROXY_BUILDERS[pi](targetUrl);
+        const text = await fetchRaw(proxyUrl, 6000);
+        return text;
+      } catch(e) {
+        if (attempt < maxRetry - 1) await sleep(2000);
+      }
+    }
+  }
+  throw new Error('All proxies exhausted');
+}
 
-  // 指令74: 軟鍵盤排版防禦
-  const inputs = document.querySelectorAll('input, textarea');
-  inputs.forEach(inp => {
-    inp.addEventListener('focus', () => {
-      document.getElementById('app').style.flexDirection = 'column';
-    });
-    inp.addEventListener('blur', () => {
-      document.getElementById('app').style.flexDirection = '';
-    });
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* ═══════════════════════════════
+   JSON SAFE PARSE (strip BOM)
+═══════════════════════════════ */
+function safeParse(str) {
+  try {
+    const clean = str.replace(/^\uFEFF/, '').replace(/^\u200B/, '').trim();
+    return JSON.parse(clean);
+  } catch(e) { return null; }
+}
+
+/* ═══════════════════════════════
+   FETCH DATA (TWO-STAGE)
+═══════════════════════════════ */
+async function fetchTainanData() {
+  // Stage 1 – resolve metadata to find download URL
+  let downloadUrl = null;
+  try {
+    const metaText = await fetchViaProxies(DATA_URLS[0], 2);
+    const meta = safeParse(metaText);
+    if (meta) {
+      const res = meta.result || meta;
+      const resources = res.resources || res.distribution || [];
+      for (const r of resources) {
+        const u = r.download_url || r.accessURL || r.url || '';
+        if (u && (u.toLowerCase().includes('.json') || u.toLowerCase().includes('json'))) {
+          downloadUrl = u; break;
+        }
+      }
+      // Sometimes data is inline
+      if (!downloadUrl && Array.isArray(res.records) && res.records.length > 0) return res.records;
+      if (!downloadUrl && Array.isArray(res) && res.length > 0) return res;
+    }
+  } catch(e) {}
+
+  // Stage 2 – try all candidate URLs
+  const candidates = [downloadUrl, ...DATA_URLS.slice(1)].filter(Boolean);
+  for (const cu of candidates) {
+    try {
+      const raw = await fetchViaProxies(cu, 3);
+      const obj = safeParse(raw);
+      if (!obj) continue;
+      const arr = obj.result?.records || obj.records || obj.data || obj.results || obj;
+      if (Array.isArray(arr) && arr.length > 0) return arr;
+    } catch(e) {}
+  }
+  throw new Error('Data unavailable');
+}
+
+/* ═══════════════════════════════
+   CACHE (Stale-While-Revalidate)
+═══════════════════════════════ */
+function loadCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (!obj || !obj.ts || !Array.isArray(obj.data)) return null;
+    const age = Math.abs(nowMs() - obj.ts);
+    return { data: obj.data, stale: age > CACHE_TTL };
+  } catch(e) { return null; }
+}
+function _compressForCache(arr) {
+  // 字串矩陣優化：只保留必要欄位，剔除渲染用內部屬性
+  return arr.map(p => {
+    const o = {};
+    for (const k of ['LATITUDE','LONGITUDE','TIME','AREA','VILLAGE','POINTNAME','WORDDAY','RECYCLEDAY','ROUTEID']) {
+      if (p[k] !== undefined) o[k] = p[k];
+    }
+    return o;
   });
+}
+function saveCache(data) {
+  try {
+    const compressed = _compressForCache(data);
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: nowMs(), data: compressed }));
+  } catch(e) {
+    if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+      memoryFallback = data;
+      showToast('⚠️ 手機空間已完全塞爆！目前改用記憶體臨時查詢，倒完垃圾請趕快清理手機空間！', 6000);
+    }
+  }
+}
+
+/* ═══════════════════════════════
+   NORMALISE FIELD NAMES (UPPERCASE)
+═══════════════════════════════ */
+const FIELD_MAP = {
+  latitude:'LATITUDE',longitude:'LONGITUDE',time:'TIME',area:'AREA',
+  village:'VILLAGE',pointname:'POINTNAME',wordday:'WORDDAY',
+  recycleday:'RECYCLEDAY',routeid:'ROUTEID',
+};
+function normalise(raw) {
+  const out = {};
+  for (const k of Object.keys(raw)) {
+    const up = FIELD_MAP[k.toLowerCase()];
+    if (up) out[up] = raw[k];
+    else out[k] = raw[k];
+  }
+  // Also keep existing uppercase keys
+  for (const k of Object.keys(FIELD_MAP).map(v => FIELD_MAP[v])) {
+    if (raw[k] !== undefined) out[k] = raw[k];
+  }
+  return out;
+}
+
+/* ═══════════════════════════════
+   GEO FENCE VALIDATION
+═══════════════════════════════ */
+function validGeo(p) {
+  const lat = parseFloat(p.LATITUDE), lng = parseFloat(p.LONGITUDE);
+  if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) return false;
+  return lat >= GEO_FENCE.latMin && lat <= GEO_FENCE.latMax &&
+         lng >= GEO_FENCE.lngMin && lng <= GEO_FENCE.lngMax;
+}
+
+/* ═══════════════════════════════
+   SEMANTIC SPLIT (GARBAGE + RECYCLE)
+═══════════════════════════════ */
+const RECYCLE_KW = ['回收','資源','紙類','鐵鋁','玻璃','舊衣','電池','廢棄'];
+function splitIntoRenderObjects(rawArr) {
+  const result = [];
+  for (const raw of rawArr) {
+    const p = normalise(raw);
+    if (!validGeo(p)) continue;
+    const pn  = String(p.POINTNAME || '');
+    const rd  = String(p.RECYCLEDAY || '').trim();
+    const wd  = String(p.WORDDAY || '').trim();
+    const hasRecycle = rd && rd !== '無' && rd !== '' && rd !== '—';
+    const hasMixed   = RECYCLE_KW.some(k => pn.includes(k) || rd.includes(k));
+    p._type = 'garbage';
+    p._id   = (p.POINTNAME || '') + '_' + (p.TIME || '');
+    result.push({ ...p });
+    if (hasRecycle || hasMixed) {
+      const lat = parseFloat(p.LATITUDE), lng = parseFloat(p.LONGITUDE);
+      result.push({
+        ...p, _type:'recycle', RECYCLEDAY: rd || wd,
+        _id: (p.POINTNAME || '') + '_' + (p.TIME || '') + '_R',
+        LATITUDE: String(lat), LONGITUDE: String(lng),
+      });
+    }
+  }
+  return result;
+}
+
+/* ═══════════════════════════════
+   SPIDER OFFSET (anti-overlap)
+═══════════════════════════════ */
+function spiderOffset(points, zoom) {
+  if (zoom < 16) return points;
+  const groups = {};
+  for (const p of points) {
+    const key = parseFloat(p.LATITUDE).toFixed(4) + '_' + parseFloat(p.LONGITUDE).toFixed(4);
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(p);
+  }
+  const out = [];
+  for (const key of Object.keys(groups)) {
+    const grp = groups[key];
+    if (grp.length <= 1) { out.push(...grp); continue; }
+    for (let i = 0; i < grp.length; i++) {
+      const cp = { ...grp[i] };
+      if (cp._type === 'recycle' && i > 0) {
+        cp.LATITUDE  = String(parseFloat(cp.LATITUDE)  + 0.0001);
+      }
+      out.push(cp);
+    }
+  }
+  return out;
+}
+
+/* ═══════════════════════════════
+   SVG ICONS
+═══════════════════════════════ */
+function garbageSVG(sz) {
+  return `<svg viewBox="0 0 32 28" width="${sz}" height="${sz}" xmlns="http://www.w3.org/2000/svg">
+    <rect x="2" y="10" width="28" height="12" rx="2" fill="#1a1a22" stroke="#FFE500" stroke-width="1.6"/>
+    <rect x="0" y="17" width="32" height="5" rx="2" fill="#252530" stroke="#FFE500" stroke-width="1"/>
+    <circle cx="8" cy="24.5" r="2.8" fill="#333" stroke="#FFE500" stroke-width="1.5"/>
+    <circle cx="24" cy="24.5" r="2.8" fill="#333" stroke="#FFE500" stroke-width="1.5"/>
+    <path d="M6 10 L6 4 Q6 2 8 2 L14 2 Q16 2 16 4 L16 10" fill="#111118" stroke="#FFE500" stroke-width="1"/>
+    <rect x="18" y="4" width="11" height="6.5" rx="1.5" fill="#1a1a22" stroke="#FFE500" stroke-width="1"/>
+    <rect x="7" y="12.5" width="18" height="2.5" rx="1" fill="#FFE500" opacity="0.35"/>
+    <rect x="7" y="16" width="18" height="1.5" rx="1" fill="#FFE500" opacity="0.18"/>
+  </svg>`;
+}
+function recycleSVG(sz) {
+  return `<svg viewBox="0 0 36 26" width="${sz}" height="${sz}" xmlns="http://www.w3.org/2000/svg">
+    <rect x="1" y="8" width="34" height="12" rx="2" fill="#0f1a14" stroke="#00FF9D" stroke-width="1.6"/>
+    <rect x="0" y="15.5" width="36" height="5" rx="2" fill="#142018" stroke="#00FF9D" stroke-width="1"/>
+    <circle cx="8.5" cy="23" r="2.8" fill="#1a2820" stroke="#00FF9D" stroke-width="1.5"/>
+    <circle cx="27.5" cy="23" r="2.8" fill="#1a2820" stroke="#00FF9D" stroke-width="1.5"/>
+    <rect x="3" y="2" width="30" height="7" rx="2" fill="none" stroke="#00FF9D" stroke-width="1.3"/>
+    <line x1="7"  y1="2" x2="7"  y2="9" stroke="#00FF9D" stroke-width=".9" opacity=".7"/>
+    <line x1="12" y1="2" x2="12" y2="9" stroke="#00FF9D" stroke-width=".9" opacity=".7"/>
+    <line x1="17" y1="2" x2="17" y2="9" stroke="#00FF9D" stroke-width=".9" opacity=".7"/>
+    <line x1="22" y1="2" x2="22" y2="9" stroke="#00FF9D" stroke-width=".9" opacity=".7"/>
+    <line x1="27" y1="2" x2="27" y2="9" stroke="#00FF9D" stroke-width=".9" opacity=".7"/>
+    <path d="M3 14 L33 14" stroke="#00FF9D" stroke-width=".8" opacity=".4" stroke-dasharray="3,3"/>
+  </svg>`;
+}
+
+function buildIcon(type, zoom) {
+  const sz = zoom >= 18 ? 36 : zoom >= 16 ? 30 : 24;
+  const wrap = sz + 44;
+  const lowP = isLowPower;
+  const pulse = lowP ? '' :
+    `<div class="pr ${type==='garbage'?'pr1y':'pr1g'}" style="position:absolute;"></div>
+     <div class="pr ${type==='garbage'?'pr2y':'pr2g'}" style="position:absolute;"></div>
+     <div class="pr ${type==='garbage'?'pr3y':'pr3g'}" style="position:absolute;"></div>`;
+  const svg = type === 'garbage' ? garbageSVG(sz) : recycleSVG(sz);
+  const breatheClass = zoom >= 16 ? "zoom-breathe" : "";
+  const html = `<div class="mk-wrap ${breatheClass}" style="width:${wrap}px;height:${wrap}px;">
+    ${pulse}
+    <div class="mk-core ${type==='garbage'?'g':'r'}" style="width:${sz+4}px;height:${sz+4}px;z-index:2;">${svg}</div>
+  </div>`;
+  return L.divIcon({ html, className:'', iconSize:[wrap,wrap], iconAnchor:[wrap/2,wrap/2], popupAnchor:[0,-wrap/2] });
+}
+
+/* ═══════════════════════════════
+   TODAY'S DAY STRING
+═══════════════════════════════ */
+function todayZH() { return DAY_ZH[new Date(nowMs()).getDay()]; }
+function dayOfWeek() { return new Date(nowMs()).getDay(); }
+
+function pointMatchesDay(p) {
+  const day = todayZH();
+  const wd = String(p.WORDDAY || '').replace(/\s/g,'');
+  const rd = String(p.RECYCLEDAY || '').replace(/\s/g,'');
+  if (p._type === 'recycle') return rd.includes(day) || wd.includes(day);
+  return wd.includes(day) || (!wd);
+}
+
+/* ═══════════════════════════════
+   HAVERSINE
+═══════════════════════════════ */
+function haversine(la1, lo1, la2, lo2) {
+  const R = 6371000, d = Math.PI/180;
+  const dla = (la2-la1)*d, dlo = (lo2-lo1)*d;
+  const a = Math.sin(dla/2)**2 + Math.cos(la1*d)*Math.cos(la2*d)*Math.sin(dlo/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+/* ═══════════════════════════════
+   CIRCLE BUFFER FILTER (spatial)
+═══════════════════════════════ */
+function inCircleBuffer(p, clat, clng, radiusM) {
+  const lat = parseFloat(p.LATITUDE), lng = parseFloat(p.LONGITUDE);
+  return haversine(clat, clng, lat, lng) <= radiusM;
+}
+
+/* ═══════════════════════════════
+   TIME UTILS
+═══════════════════════════════ */
+function timeToMin(t) {
+  if (!t) return -1;
+  const m = String(t).match(/(\d{1,2})[:\s：](\d{2})/);
+  return m ? parseInt(m[1]) * 60 + parseInt(m[2]) : -1;
+}
+function countdownStr(timeStr) {
+  const mins = timeToMin(timeStr);
+  if (mins < 0) return '';
+  const now = new Date(nowMs());
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  let diff = mins - nowMin;
+  if (diff < -60) diff += 24 * 60; // cross-midnight fix
+  if (diff < 0) return '⬛ 已過站';
+  if (diff === 0) return '🚛 進站中！';
+  const h = Math.floor(diff/60), m = diff % 60;
+  return h > 0 ? `⏱ 約 ${h} 時 ${m} 分後抵達` : `⏱ 約 ${m} 分後抵達`;
+}
+
+/* ═══════════════════════════════
+   POPUP CONTENT
+═══════════════════════════════ */
+function popupHTML(p) {
+  const isR   = p._type === 'recycle';
+  const cls   = isR ? 'r' : 'g';
+  const title = isR ? '♻️ 資源回收專車特定站' : '🎯 一般垃圾車進站預告';
+  const note  = isR
+    ? '紙箱要壓扁、玻璃瓶不要亂摔！今天把家裡堆積如山的回收物通通清空吧！'
+    : '這台只收一般垃圾跟廚餘！塑膠袋記得綁緊，太臭助理會抗議！';
+  const time  = String(p.TIME || '').replace(/\s/g,'');
+  const loc   = String(p.POINTNAME || '未知地點');
+  const vil   = String(p.VILLAGE || '');
+  const area  = String(p.AREA || '');
+  const cd    = countdownStr(time);
+  return `<div class="pu-type ${cls}">${title}</div>
+    <div class="pu-time ${cls}">${time || '—'}</div>
+    <div class="pu-loc">📍 ${area} ${loc}</div>
+    ${vil ? `<div class="pu-vil">${vil}</div>` : ''}
+    ${cd  ? `<div class="pu-cd">${cd}</div>` : ''}
+    <div class="pu-note ${cls}">${note}</div>`;
+}
+
+/* ═══════════════════════════════
+   ROUTE POLYLINES
+═══════════════════════════════ */
+function drawRoutes(pts, zoom) {
+  routeLayer.clearLayers();
+  if (zoom < 15 || isLowPower || isSleepMode) return;
+  const byRoute = {};
+  for (const p of pts) {
+    if (p._type !== 'garbage') continue;
+    const rid = (p.ROUTEID || '').trim() || `${p.AREA||'X'}_${p.VILLAGE||'Y'}`;
+    if (!byRoute[rid]) byRoute[rid] = [];
+    byRoute[rid].push(p);
+  }
+  for (const rid of Object.keys(byRoute)) {
+    const sorted = byRoute[rid].sort((a,b) => timeToMin(a.TIME) - timeToMin(b.TIME));
+    if (sorted.length < 2) continue;
+    const lls = sorted.map(p => [parseFloat(p.LATITUDE), parseFloat(p.LONGITUDE)]);
+    // Cross-area guard: skip if any segment > 3 km
+    let ok = true;
+    for (let i = 0; i < lls.length - 1; i++) {
+      if (haversine(lls[i][0], lls[i][1], lls[i+1][0], lls[i+1][1]) > 3000) { ok = false; break; }
+    }
+    if (!ok) continue;
+    L.polyline(lls, { color:'#00F2FE', weight:2, opacity:.42, dashArray:'5,7' }).addTo(routeLayer);
+  }
+}
+
+/* ═══════════════════════════════
+   WALK LINE (Manhattan L-shape)
+═══════════════════════════════ */
+function drawWalkLine(ulat, ulng, tlat, tlng) {
+  if (walkPolyline) { walkPolyline.remove(); walkPolyline = null; }
+  if (!ulat || !tlat) return;
+  walkPolyline = L.polyline(
+    [[ulat, ulng], [tlat, ulng], [tlat, tlng]],
+    { color:'#00FF9D', weight:2, opacity:.52, dashArray:'6,5' }
+  ).addTo(map);
+}
+
+/* ═══════════════════════════════
+   NEARBY PANEL
+═══════════════════════════════ */
+function updateNearby(lat, lng) {
+  if (!lat || !lng || !allPoints.length) return;
+  const day = todayZH();
+  const pool = allPoints.filter(p => p._type === 'garbage' && (String(p.WORDDAY || '')).includes(day));
+  const sorted = pool
+    .map(p => ({ ...p, _dist: haversine(lat, lng, parseFloat(p.LATITUDE), parseFloat(p.LONGITUDE)) }))
+    .filter(p => p._dist <= 500)
+    .sort((a,b) => a._dist - b._dist)
+    .slice(0, 3);
+  const panel = document.getElementById('nearby-panel');
+  const list  = document.getElementById('nearby-list');
+  const nb    = document.getElementById('nearby-panel');
+  const botH  = document.getElementById('bottom-nav').offsetHeight + 8;
+  nb.style.bottom = botH + 'px';
+  if (!sorted.length) { panel.classList.remove('visible'); return; }
+  panel.classList.add('visible');
+  list.innerHTML = sorted.map((p, i) => {
+    const mDist  = Math.round(p._dist * 1.42); // Manhattan correction
+    const walkMin = Math.ceil(mDist / 80);
+    return `<div class="nb-item" data-i="${i}">
+      <div class="nb-name">📍 ${p.AREA||''} ${p.POINTNAME||''}</div>
+      <div class="nb-dist">${mDist}m · ${walkMin}分</div>
+    </div>`;
+  }).join('');
+  if (sorted.length > 0) drawWalkLine(lat, lng, parseFloat(sorted[0].LATITUDE), parseFloat(sorted[0].LONGITUDE));
+}
+
+/* ═══════════════════════════════
+   USER MARKER (beam + compass)
+═══════════════════════════════ */
+function updateUserMarker(lat, lng, heading) {
+  smoothHeading = smoothHeading * 0.85 + heading * 0.15;
+  const rot = smoothHeading - 25;
+  const html = `<div style="position:relative;width:60px;height:60px;">
+    <div style="position:absolute;inset:0;border-radius:50%;
+      background:conic-gradient(rgba(59,130,246,.45) 0deg 55deg,transparent 55deg 360deg);
+      transform:rotate(${rot}deg);"></div>
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+      width:14px;height:14px;border-radius:50%;background:#3B82F6;border:2.5px solid #fff;
+      box-shadow:0 0 10px rgba(59,130,246,.85);"></div>
+  </div>`;
+  if (!userMarker) {
+    userMarker = L.marker([lat,lng], { icon: L.divIcon({ html, className:'', iconSize:[60,60], iconAnchor:[30,30] }) }).addTo(map);
+  } else {
+    userMarker.setLatLng([lat,lng]);
+    userMarker.setIcon(L.divIcon({ html, className:'', iconSize:[60,60], iconAnchor:[30,30] }));
+  }
+}
+
+/* ═══════════════════════════════
+   DEVICE ORIENTATION (Low-pass)
+═══════════════════════════════ */
+function attachOrientation() {
+  window.addEventListener('deviceorientation', e => {
+    let h = 0;
+    if (e.webkitCompassHeading !== undefined) h = e.webkitCompassHeading || 0;
+    else if (e.alpha !== null) h = 360 - (e.alpha || 0);
+    rawHeading = h;
+    if (userMarker && userLat) updateUserMarker(userLat, userLng, rawHeading);
+  }, true);
+}
+attachOrientation();
+
+/* ═══════════════════════════════
+   LOCATE BUTTON
+═══════════════════════════════ */
+document.getElementById('locate-btn').addEventListener('click', () => {
+  vibrate(12); playPluck();
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    DeviceOrientationEvent.requestPermission().then(s => {
+      if (s === 'granted') attachOrientation();
+    }).catch(() => {});
+  }
+  if (!navigator.geolocation) { showToast('裝置不支援定位功能'); return; }
+  setStatus('📡 定位中...');
+  navigator.geolocation.getCurrentPosition(pos => {
+    userLat = pos.coords.latitude;
+    userLng = pos.coords.longitude;
+    updateUserMarker(userLat, userLng, rawHeading);
+    if (!flyLock) {
+      flyLock = true; playWhoosh();
+      map.flyTo([userLat, userLng], 16, { duration: 1.5, easeLinearity: .22 });
+    }
+    updateNearby(userLat, userLng);
+    setStatus('🟢 已定位至您的位置');
+  }, () => {
+    setStatus('定位失敗', '#F87171');
+    showToast('定位失敗，請確認位置權限已開啟');
+  }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
 });
 
-// 指令70: 記憶體過載偵測（簡化實作）
-if ('performance' in window && 'memory' in window.performance) {
-  setInterval(() => {
-    try {
-      const mem = window.performance.memory;
-      if (mem.usedJSHeapSize > mem.jsHeapSizeLimit * 0.85) {
-        // 關閉毛玻璃特效
-        document.querySelectorAll('.card').forEach(c => {
-          c.style.backdropFilter = 'none';
-          c.style.webkitBackdropFilter = 'none';
-          c.style.background = 'rgba(15,17,21,0.95)';
+/* ═══════════════════════════════
+   MAP EVENTS
+═══════════════════════════════ */
+// Refresh countdown every time a popup opens
+map.on('popupopen', () => {
+  setTimeout(() => {
+    const cdEl = document.querySelector('.leaflet-popup-content .pu-cd');
+    const tEl  = document.querySelector('.leaflet-popup-content .pu-time');
+    if (cdEl && tEl) {
+      const fresh = countdownStr(tEl.textContent.trim());
+      if (fresh) cdEl.textContent = fresh;
+    }
+  }, 80);
+});
+map.on('moveend', () => {
+  flyLock = false; isFlying = false;
+  refreshVisible();
+  if (userLat) updateNearby(userLat, userLng);
+});
+map.on('zoomend', () => refreshVisible());
+map.on('move', () => {
+  if (userLat) updateNearby(userLat, userLng);
+});
+
+/* ═══════════════════════════════
+   MAIN RENDER (idempotent)
+═══════════════════════════════ */
+let renderScheduled = false;
+function refreshVisible() {
+  if (renderScheduled) return;
+  renderScheduled = true;
+  requestAnimationFrame(() => {
+    renderScheduled = false;
+    _doRender();
+  });
+}
+function _doRender() {
+  const zoom = map.getZoom();
+  const hint = document.getElementById('zoom-hint');
+  if (zoom < 14) {
+    hint.classList.add('vis');
+    markerLayer.clearLayers();
+    routeLayer.clearLayers();
+    markerMap = {};
+    return;
+  }
+  hint.classList.remove('vis');
+  if (isSleepMode) { markerLayer.clearLayers(); markerMap = {}; return; }
+  const bounds = map.getBounds();
+  // Circle buffer centre
+  const ctr = map.getCenter();
+  const filterRadius = isFilterActive ? CIRCLE_BUFFER_M : null;
+  const pts = allPoints.filter(p => {
+    const lat = parseFloat(p.LATITUDE), lng = parseFloat(p.LONGITUDE);
+    if (!bounds.contains([lat, lng])) return false;
+    if (isFilterActive) {
+      const today = pointMatchesDay(p);
+      if (!today) return false;
+      if (filterRadius && !inCircleBuffer(p, ctr.lat, ctr.lng, filterRadius)) return false;
+    }
+    return true;
+  });
+  const offset = spiderOffset(pts, zoom);
+  const newIds = new Set(offset.map(p => p._id));
+  // Remove stale markers
+  for (const id of Object.keys(markerMap)) {
+    if (!newIds.has(id)) { markerLayer.removeLayer(markerMap[id]); delete markerMap[id]; }
+  }
+  // Add new
+  for (const p of offset) {
+    if (markerMap[p._id]) continue;
+    const lat = parseFloat(p.LATITUDE), lng = parseFloat(p.LONGITUDE);
+    const icon = buildIcon(p._type, zoom);
+    const m = L.marker([lat, lng], { icon }).addTo(markerLayer);
+    m.bindPopup(popupHTML(p), { className:'custom-popup', maxWidth:290, closeButton:true });
+    m.on('click', () => {
+      if (flyLock) return;
+      vibrate(12);
+      p._type === 'recycle' ? playTink() : playPluck();
+      m.openPopup();
+    });
+    markerMap[p._id] = m;
+  }
+  drawRoutes(offset, zoom);
+}
+
+/* ═══════════════════════════════
+   DISTRICT BUTTONS
+═══════════════════════════════ */
+function buildDistricts() {
+  const sc = document.getElementById('district-scroll');
+  sc.innerHTML = '';
+  for (const d of DISTRICTS) {
+    const btn = document.createElement('button');
+    btn.className = 'district-btn';
+    btn.textContent = d;
+    btn.dataset.d = d;
+    btn.addEventListener('click', () => {
+      if (flyLock) return;
+      vibrate(12); playClick(); playWhoosh();
+      activeDistrict = d;
+      document.querySelectorAll('.district-btn').forEach(b => b.classList.toggle('active', b.dataset.d === d));
+      const c = DISTRICT_COORDS[d] || [23.0, 120.3];
+      flyLock = true;
+      map.flyTo(c, 15, { duration: 1.25, easeLinearity: .28 });
+      setStatus(`🗺 ${d}`, '#F59E0B');
+      updateCalDistrict(d);
+    });
+    sc.appendChild(btn);
+  }
+}
+buildDistricts();
+
+/* ═══════════════════════════════
+   CALENDAR
+═══════════════════════════════ */
+function updateCalDistrict(district) {
+  const lbl = document.getElementById('cal-district-lbl');
+  const rec = document.getElementById('cal-recycle-lbl');
+  lbl.textContent = district ? `${district}區 收運資訊` : '— 請選擇行政區 —';
+  const pts = allPoints.filter(p => (p.AREA||'').includes(district) && (p.RECYCLEDAY||'').trim() && (p.RECYCLEDAY||'').trim() !== '無');
+  const days = [...new Set(pts.map(p => p.RECYCLEDAY).filter(Boolean))].slice(0, 4).join('、');
+  rec.textContent = days ? `♻️ 回收日：週${days}` : '♻️ 回收資訊載入中...';
+}
+function buildWeekGrid() {
+  const grid = document.getElementById('week-grid');
+  grid.innerHTML = '';
+  const now = new Date(nowMs());
+  const dow = now.getDay();
+  for (let i = 0; i < 7; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'day-cell' + (i === dow ? ' today' : '');
+    const d = new Date(now);
+    d.setDate(d.getDate() + (i - dow));
+    cell.innerHTML = `<span class="dn">週${DAY_ZH[i]}</span><span class="dd">${d.getDate()}</span>`;
+    grid.appendChild(cell);
+  }
+}
+
+/* ═══════════════════════════════
+   DRAWERS
+═══════════════════════════════ */
+const overlay = document.getElementById('doverlay');
+function openDrawer(id) {
+  closeDrawers();
+  document.getElementById(id).classList.add('open');
+  overlay.classList.add('show');
+}
+function closeDrawers() {
+  document.querySelectorAll('.drawer').forEach(d => d.classList.remove('open'));
+  overlay.classList.remove('show');
+}
+overlay.addEventListener('click', closeDrawers);
+
+document.getElementById('search-btn').addEventListener('click', () => {
+  vibrate(12); playClick();
+  openDrawer('sdrawer');
+  setTimeout(() => document.getElementById('search-input').focus(), 340);
+});
+document.getElementById('cal-btn').addEventListener('click', () => {
+  vibrate(12); playClick();
+  buildWeekGrid();
+  if (activeDistrict) updateCalDistrict(activeDistrict);
+  openDrawer('cdrawer');
+});
+document.getElementById('filter-btn').addEventListener('click', () => {
+  vibrate(12); playClick();
+  isFilterActive = !isFilterActive;
+  document.getElementById('filter-btn').classList.toggle('active', isFilterActive);
+  showToast(isFilterActive
+    ? `✅ 已過濾：今天（週${todayZH()}）· 地圖中心 1.5km 範圍內`
+    : '🔓 已顯示全部站點');
+  refreshVisible();
+});
+
+/* ═══════════════════════════════
+   SEARCH
+═══════════════════════════════ */
+let searchTimer = null;
+document.getElementById('search-input').addEventListener('input', function() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => doSearch(this.value), 140);
+});
+function escapeRE(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function doSearch(q) {
+  const res = document.getElementById('search-results');
+  const safe = q.toLowerCase();
+  if (!safe || safe.length < 1) { res.innerHTML = ''; return; }
+  const found = allPoints.filter(p => p._type === 'garbage' && (
+    (p.POINTNAME||'').toLowerCase().includes(safe) ||
+    (p.AREA||'').toLowerCase().includes(safe) ||
+    (p.VILLAGE||'').toLowerCase().includes(safe) ||
+    (p.TIME||'').includes(safe)
+  )).slice(0, 50);
+  if (!found.length) {
+    res.innerHTML = '<div style="padding:12px 12px;color:var(--muted);font-size:12px;">找不到符合站點，換個關鍵字試試</div>';
+    return;
+  }
+  res.innerHTML = found.map((p, i) =>
+    `<div class="result-item" data-i="${i}">
+      <div class="r1">📍 ${p.AREA||''} · ${p.POINTNAME||''}</div>
+      <div class="r2">🕒 ${p.TIME||''} | ${p.VILLAGE||''}</div>
+    </div>`
+  ).join('');
+  res.querySelectorAll('.result-item').forEach((el, i) => {
+    el.addEventListener('click', () => {
+      vibrate(12); playTink();
+      closeDrawers();
+      document.getElementById('search-input').value = '';
+      res.innerHTML = '';
+      const p = found[i];
+      const lat = parseFloat(p.LATITUDE), lng = parseFloat(p.LONGITUDE);
+      if (!flyLock) {
+        flyLock = true; playWhoosh();
+        map.flyTo([lat, lng], 17, { duration: 1.2, easeLinearity: .25 });
+        map.once('moveend', () => {
+          flyLock = false;
+          setTimeout(() => { if (markerMap[p._id]) markerMap[p._id].openPopup(); }, 250);
         });
       }
-    } catch(e) {}
-  }, 30000);
+    });
+  });
 }
 
+/* ═══════════════════════════════
+   CHUNKED DATA PROCESSING
+═══════════════════════════════ */
+async function processChunked(rawArr) {
+  return new Promise(resolve => {
+    const total   = rawArr.length;
+    let idx       = 0;
+    let validated = [];
+    function tick() {
+      const end = Math.min(idx + CHUNK_SIZE, total);
+      for (; idx < end; idx++) validated.push(rawArr[idx]);
+      const pct = Math.min(92, Math.round((idx / total) * 82) + 8);
+      setProgress(pct);
+      if (idx < total) { setTimeout(tick, 0); return; }
+      const split = splitIntoRenderObjects(validated);
+      setProgress(100);
+      resolve(split);
+    }
+    tick();
+  });
+}
+
+/* ═══════════════════════════════
+   INIT FLOW
+═══════════════════════════════ */
+async function init() {
+  setProgress(5);
+  // Stale-while-revalidate: immediate cache render
+  const cached = loadCache();
+  if (cached && Array.isArray(cached.data) && cached.data.length > 0) {
+    setStatus('⚡ 讀取快取班表...', '#F59E0B');
+    const pts = await processChunked(cached.data);
+    allPoints = pts;
+    hideSkeleton();
+    refreshVisible();
+    if (cached.stale) {
+      setStatus('🔄 快取已過期，背景更新中...', '#F59E0B');
+      fetchAndUpdate(false);
+    } else {
+      setStatus('🟢 營運中');
+      checkSleepMode();
+    }
+  } else {
+    setStatus('📡 連線抓取最新班表...');
+    await fetchAndUpdate(true);
+  }
+}
+
+async function fetchAndUpdate(showProgress) {
+  try {
+    const raw = await fetchTainanData();
+    if (!Array.isArray(raw) || raw.length === 0) throw new Error('Empty');
+    saveCache(raw);
+    const pts = await processChunked(raw);
+    allPoints = pts;
+    if (showProgress) hideSkeleton();
+    refreshVisible();
+    if (userLat) updateNearby(userLat, userLng);
+    setStatus('🟢 班表已更新');
+    checkSleepMode();
+  } catch(e) {
+    const fallback = loadCache();
+    const fd = fallback?.data || memoryFallback;
+    if (fd && fd.length > 0) {
+      const pts = await processChunked(fd);
+      allPoints = pts;
+      if (showProgress) hideSkeleton();
+      refreshVisible();
+      setStatus('💡 政府系統維護中，本助理已強制調度最穩固之歷史班表，請安心查詢！', '#F59E0B');
+    } else {
+      if (showProgress) hideSkeleton();
+      setStatus('❌ 資料暫時無法取得，請稍後重整頁面', '#F87171');
+      showToast('政府API暫時維護中，請稍後重新整理頁面');
+    }
+  }
+}
+
+/* ═══════════════════════════════
+   BOTTOM NAV NEARBY POSITION
+═══════════════════════════════ */
+function fixNearbyBottom() {
+  const nb  = document.getElementById('nearby-panel');
+  const bh  = document.getElementById('bottom-nav').offsetHeight;
+  nb.style.bottom = (bh + 10) + 'px';
+}
+window.addEventListener('resize', fixNearbyBottom);
+fixNearbyBottom();
+
+/* ═══════════════════════════════
+   LIVE COUNTDOWN REFRESH
+═══════════════════════════════ */
+setInterval(() => {
+  // Refresh open popup countdown
+  const openPopup = document.querySelector('.leaflet-popup-content');
+  if (openPopup) {
+    const cdEl = openPopup.querySelector('.pu-cd');
+    if (cdEl) {
+      const timeEl = openPopup.querySelector('.pu-time');
+      if (timeEl) {
+        const t = timeEl.textContent.trim();
+        cdEl.textContent = countdownStr(t) || cdEl.textContent;
+      }
+    }
+  }
+  // Also update sleep countdown in status
+  if (isSleepMode) checkSleepMode();
+}, 30000);
+
+/* ═══════════════════════════════
+   LAUNCH
+═══════════════════════════════ */
+init();
+
+})();
 </script>
 </body>
 </html>
