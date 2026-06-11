@@ -2,1831 +2,930 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#000000">
 <title>垃圾車：台南追蹤指標</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <style>
-/* ═══════════════════════════════════════════
-   GLOBAL RESET & OLED TRUE BLACK FOUNDATION
-═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   RESET & BASE — OLED True Black
+═══════════════════════════════════════════════════════ */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0; padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
-  -webkit-touch-callout: none;
-  -webkit-tap-highlight-color: transparent;
+}
+:root {
+  --bg: #000000;
+  --surface: rgba(17,24,39,0.45);
+  --surface-solid: #0f1523;
+  --border: rgba(255,255,255,0.08);
+  --border-active: rgba(255,255,255,0.15);
+  --red: #fb7185;
+  --red-bg: rgba(251,113,133,0.1);
+  --blue: #38bdf8;
+  --blue-bg: rgba(56,189,248,0.1);
+  --green: #34d399;
+  --green-bg: rgba(52,211,153,0.1);
+  --laser: #4ade80;
+  --laser-glow: rgba(74,222,128,0.3);
+  --orange: #fb923c;
+  --gray: rgba(156,163,175,0.6);
+  --radius: 20px;
+  --font-mono: 'Roboto Mono', monospace;
+  --font: 'Inter', system-ui, sans-serif;
 }
 html, body {
   width: 100%; height: 100%;
-  background: #000000;
+  background: var(--bg);
   color: #e2e8f0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font);
   overflow: hidden;
+  overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
 }
-::-webkit-scrollbar { display: none; }
 
-/* ═══════════════════════════════════════════
-   CSS VARIABLES — DESIGN TOKENS
-═══════════════════════════════════════════ */
-:root {
-  --bg:          #000000;
-  --surface:     rgba(17, 24, 39, 0.45);
-  --surface-hi:  rgba(17, 24, 39, 0.75);
-  --border:      rgba(255, 255, 255, 0.08);
-  --border-hi:   rgba(255, 255, 255, 0.15);
-  --glass-blur:  blur(20px);
-
-  --coral:       #fb7185;
-  --coral-bg:    rgba(251, 113, 133, 0.10);
-  --cyan:        #38bdf8;
-  --cyan-bg:     rgba(56, 189, 248, 0.10);
-  --emerald:     #34d399;
-  --emerald-bg:  rgba(52, 211, 153, 0.10);
-  --laser:       #4ade80;
-  --laser-glow:  0 0 8px rgba(74, 222, 128, 0.30);
-  --orange:      #fb923c;
-
-  --text-primary:   #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted:     #475569;
-
-  --radius-card:  20px;
-  --radius-pill:  999px;
-  --shadow-card:  0 8px 32px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.4);
-
-  --spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
-  --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
-
-  --safe-top:    env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-/* ═══════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    SPLASH SCREEN
-═══════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 #splash {
-  position: fixed;
-  inset: 0;
-  background: #000000;
+  position: fixed; inset: 0;
+  background: #000;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 32px;
   z-index: 9999;
-  gap: 28px;
-  transition: opacity 0.4s var(--ease-out);
-  padding-top: var(--safe-top);
-  padding-bottom: var(--safe-bottom);
+  transition: opacity 0.4s ease;
 }
-#splash.fade-out {
-  opacity: 0;
-  pointer-events: none;
-}
-.splash-icon {
+#splash.fade-out { opacity: 0; pointer-events: none; }
+.splash-truck {
   width: 80px; height: 80px;
-  animation: splashPulse 2s ease-in-out infinite;
+  animation: splashPulse 1.5s ease-in-out infinite;
 }
 @keyframes splashPulse {
-  0%,100%{ transform: scale(1); filter: drop-shadow(0 0 12px rgba(74,222,128,0.4)); }
-  50%    { transform: scale(1.08); filter: drop-shadow(0 0 24px rgba(74,222,128,0.7)); }
+  0%,100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.08); opacity: 0.85; }
 }
-.splash-text {
-  font-family: 'Roboto Mono', monospace;
+.splash-title {
+  font-family: var(--font-mono);
   font-size: 13px;
-  color: var(--text-secondary);
+  letter-spacing: 0.15em;
+  color: rgba(74,222,128,0.8);
   text-align: center;
-  line-height: 1.8;
-  overflow: hidden;
   position: relative;
+  overflow: hidden;
 }
-.splash-text::after {
+.splash-title::after {
   content: '';
   position: absolute;
   top: 0; left: -100%;
   width: 60%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
-  animation: shimmer 2s linear infinite;
+  background: linear-gradient(90deg, transparent, rgba(74,222,128,0.4), transparent);
+  animation: shimmer 1.8s ease-in-out infinite;
 }
-@keyframes shimmer {
-  0%  { left: -100%; }
-  100%{ left: 200%; }
-}
-.splash-brand {
-  font-family: 'Roboto Mono', monospace;
+@keyframes shimmer { to { left: 200%; } }
+.splash-sub {
+  font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  color: var(--laser);
-  text-shadow: var(--laser-glow);
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 0.08em;
 }
 
-/* ═══════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
+   DEEP NIGHT MODE
+═══════════════════════════════════════════════════════ */
+#night-mode {
+  position: fixed; inset: 0;
+  background: #000;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  z-index: 500;
+  padding: 40px;
+}
+#night-mode.active { display: flex; }
+.night-stars { font-size: 48px; animation: float 3s ease-in-out infinite; }
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.night-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.7);
+  text-align: center;
+}
+.night-countdown {
+  font-family: var(--font-mono);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--laser);
+  text-shadow: 0 0 20px var(--laser-glow);
+  letter-spacing: 0.05em;
+}
+.night-sub {
+  font-size: 12px;
+  color: rgba(255,255,255,0.3);
+  text-align: center;
+  line-height: 1.8;
+}
+
+/* ═══════════════════════════════════════════════════════
    APP SHELL
-═══════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 #app {
-  position: fixed;
-  inset: 0;
+  position: fixed; inset: 0;
   display: flex;
   flex-direction: column;
-  background: #000000;
-  padding-top: var(--safe-top);
-  padding-bottom: var(--safe-bottom);
-  overflow: hidden;
+  background: var(--bg);
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* ═══════════════════════════════════════════
-   TOP BAR
-═══════════════════════════════════════════ */
-#topbar {
+/* ═══════════════════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════════════════ */
+#header {
   flex-shrink: 0;
-  padding: 12px 16px 8px;
+  padding: 12px 16px 0;
+  background: var(--bg);
+}
+.header-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--surface);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-bottom: 0.5px solid var(--border);
-}
-.title-block {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  margin-bottom: 10px;
 }
 .app-title {
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
-.app-title svg { flex-shrink: 0; }
+.title-icon { width: 28px; height: 28px; flex-shrink: 0; }
+.title-text {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fff;
+  line-height: 1.2;
+}
+.title-sub {
+  font-size: 9px;
+  color: var(--gray);
+  letter-spacing: 0.1em;
+  font-weight: 400;
+}
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
 .gps-indicator {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 11px;
-  color: var(--text-secondary);
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
 }
 .gps-dot {
   width: 6px; height: 6px;
   border-radius: 50%;
   background: var(--laser);
-  box-shadow: 0 0 6px rgba(74,222,128,0.6);
-  animation: breathe 2s ease-in-out infinite;
-}
-@keyframes breathe {
-  0%,100%{ opacity:1; transform:scale(1); }
-  50%    { opacity:0.5; transform:scale(0.85); }
-}
-.gps-dot.offline { background: var(--coral); box-shadow: 0 0 6px rgba(251,113,133,0.6); animation: none; }
-
-.topbar-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-}
-#clock {
-  font-family: 'Roboto Mono', monospace;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--laser);
-  text-shadow: var(--laser-glow);
-}
-#weekday {
-  font-family: 'Roboto Mono', monospace;
-  font-size: 10px;
-  color: var(--text-muted);
-}
-
-/* ═══════════════════════════════════════════
-   MODE SWITCHER — iOS SEGMENTED CONTROL
-═══════════════════════════════════════════ */
-#mode-switcher {
+  box-shadow: 0 0 6px var(--laser-glow);
+  animation: pulse-dot 2s ease-in-out infinite;
   flex-shrink: 0;
-  padding: 10px 16px;
-  background: var(--surface);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
+}
+.gps-dot.inactive { background: var(--red); box-shadow: 0 0 6px rgba(251,113,133,0.4); animation: none; }
+@keyframes pulse-dot {
+  0%,100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.7; }
+}
+.clock-display {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: rgba(255,255,255,0.6);
+  letter-spacing: 0.05em;
+}
+
+/* Context Banner */
+.context-banner {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  padding: 6px 0 8px;
   border-bottom: 0.5px solid var(--border);
+  margin-bottom: 10px;
+  line-height: 1.4;
 }
-.seg-ctrl {
-  position: relative;
+
+/* Mode Toggle — iOS Segmented Control */
+.mode-toggle {
   display: flex;
-  background: rgba(255,255,255,0.04);
+  background: rgba(17,24,39,0.7);
   border: 0.5px solid var(--border);
-  border-radius: var(--radius-pill);
+  border-radius: 12px;
   padding: 3px;
-  height: 36px;
+  position: relative;
+  margin-bottom: 10px;
 }
-.seg-slider {
+.mode-toggle-slider {
   position: absolute;
   top: 3px; left: 3px;
   width: calc(50% - 3px);
   height: calc(100% - 6px);
-  background: rgba(56, 189, 248, 0.18);
-  border: 0.5px solid rgba(56, 189, 248, 0.35);
-  border-radius: var(--radius-pill);
-  transition: transform 0.3s var(--spring);
-  pointer-events: none;
+  background: linear-gradient(135deg, rgba(56,189,248,0.25), rgba(74,222,128,0.15));
+  border-radius: 9px;
+  border: 0.5px solid rgba(56,189,248,0.3);
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  will-change: transform;
+  transform: translate3d(0,0,0);
 }
-.seg-slider.right { transform: translateX(calc(100% + 0px)); }
-.seg-btn {
+.mode-toggle-slider.map-active {
+  transform: translate3d(100%,0,0);
+}
+.mode-btn {
   flex: 1;
+  text-align: center;
+  padding: 7px 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.5);
   position: relative;
   z-index: 1;
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-pill);
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-secondary);
   cursor: pointer;
-  transition: color 0.3s var(--ease-out);
+  border-radius: 9px;
+  transition: color 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 5px;
 }
-.seg-btn.active { color: var(--cyan); font-weight: 600; }
-.seg-btn:active { transform: scale(0.96); filter: brightness(1.2); transition: all 0.25s var(--spring); }
+.mode-btn.active { color: #fff; font-weight: 600; }
+.mode-btn:active {
+  transform: scale(0.95);
+  filter: brightness(1.2);
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
 
-/* ═══════════════════════════════════════════
-   DISTRICT PILL STRIP
-═══════════════════════════════════════════ */
-#district-strip {
-  flex-shrink: 0;
-  padding: 8px 12px;
+/* District Pills */
+.district-scroll {
   display: flex;
   gap: 6px;
   overflow-x: auto;
-  background: rgba(0,0,0,0.5);
-  border-bottom: 0.5px solid var(--border);
+  padding-bottom: 10px;
   scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
+.district-scroll::-webkit-scrollbar { display: none; }
 .district-pill {
   flex-shrink: 0;
   padding: 5px 12px;
-  border-radius: var(--radius-pill);
+  border-radius: 20px;
   font-size: 12px;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  white-space: nowrap;
   background: transparent;
   border: none;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.25s var(--spring);
-}
-.district-pill:active {
-  transform: scale(0.95);
-  filter: brightness(1.2);
+  transform: translate3d(0,0,0);
 }
 .district-pill.active {
-  background: rgba(56, 189, 248, 0.15);
-  color: var(--cyan);
+  background: rgba(56,189,248,0.15);
+  color: var(--blue);
   font-weight: 600;
 }
+.district-pill:active {
+  transform: scale(0.95) translate3d(0,0,0);
+  filter: brightness(1.2);
+}
 
-/* ═══════════════════════════════════════════
-   SEARCH BAR
-═══════════════════════════════════════════ */
-#search-wrap {
-  flex-shrink: 0;
-  padding: 8px 16px;
-  background: rgba(0,0,0,0.6);
-  border-bottom: 0.5px solid var(--border);
-}
-.search-inner {
+/* Search Box */
+.search-wrap {
   position: relative;
-  display: flex;
-  align-items: center;
+  margin-bottom: 10px;
 }
-#search-input {
+.search-input {
   width: 100%;
-  background: rgba(17,24,39,0.7);
+  background: rgba(17,24,39,0.6);
   border: 0.5px solid var(--border);
-  border-radius: var(--radius-pill);
-  padding: 8px 36px 8px 36px;
-  font-family: 'Inter', sans-serif;
+  border-radius: 12px;
+  padding: 9px 36px 9px 14px;
   font-size: 13px;
-  color: var(--text-primary);
+  color: #e2e8f0;
+  font-family: var(--font);
   outline: none;
-  transition: box-shadow 0.3s var(--ease-out), border-color 0.3s;
+  transition: box-shadow 0.2s, border-color 0.2s;
   -webkit-user-select: text;
   user-select: text;
 }
-#search-input::placeholder { color: var(--text-muted); }
-#search-input:focus {
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+.search-input::placeholder { color: rgba(255,255,255,0.25); }
+.search-input:focus {
   border-color: rgba(56,189,248,0.3);
+  box-shadow: 0 0 12px rgba(56,189,248,0.2);
 }
-.search-icon {
+.search-clear {
   position: absolute;
-  left: 10px;
-  color: var(--text-muted);
-  pointer-events: none;
-}
-#search-clear {
-  position: absolute;
-  right: 8px;
-  background: none;
-  border: none;
+  right: 10px; top: 50%;
+  transform: translateY(-50%);
   cursor: pointer;
-  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.2s;
+  color: rgba(255,255,255,0.4);
+  display: flex;
+  align-items: center;
   padding: 4px;
-  display: none;
-  border-radius: 50%;
-  transition: color 0.2s;
 }
-#search-clear.visible { display: flex; }
-#search-clear:active { color: var(--text-primary); }
+.search-clear.visible { opacity: 1; }
+mark.highlight {
+  background: transparent;
+  color: var(--laser);
+  text-shadow: 0 0 6px rgba(74,222,128,0.5);
+  font-weight: 600;
+}
 
-/* ═══════════════════════════════════════════
-   MAIN CONTENT PANELS
-═══════════════════════════════════════════ */
-#panels {
+/* ═══════════════════════════════════════════════════════
+   LIST VIEW — Virtual Scroll
+═══════════════════════════════════════════════════════ */
+#list-view {
   flex: 1;
   overflow: hidden;
   position: relative;
+  display: none;
 }
-#list-panel, #map-panel {
-  position: absolute;
-  inset: 0;
-  transition: opacity 0.3s var(--ease-out), transform 0.3s var(--ease-out);
-}
-#list-panel.hidden { opacity: 0; pointer-events: none; transform: translateX(-20px); }
-#map-panel.hidden  { opacity: 0; pointer-events: none; transform: translateX(20px); }
-/* Map container must always occupy full space so Leaflet can measure it */
-#map-panel { will-change: opacity, transform; }
+#list-view.active { display: block; }
 
-/* ═══════════════════════════════════════════
-   VIRTUAL SCROLL LIST
-═══════════════════════════════════════════ */
-#list-scroll {
-  height: 100%;
+.list-scroll-container {
+  position: absolute; inset: 0;
   overflow-y: auto;
-  padding: 10px 12px 20px;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  padding: 0 12px 80px;
 }
-.group-header {
+.list-scroll-container::-webkit-scrollbar { display: none; }
+
+/* Virtual scroll sentinel areas */
+.virtual-top-pad, .virtual-bottom-pad { width: 100%; }
+
+/* Sticky Group Header */
+.time-group-header {
   position: sticky;
   top: 0;
-  background: rgba(0,0,0,0.85);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  padding: 6px 4px;
-  margin-bottom: 6px;
+  z-index: 10;
+  padding: 8px 0 6px;
+  background: var(--bg);
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-muted);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  z-index: 10;
+  color: rgba(255,255,255,0.4);
+  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
   display: flex;
   align-items: center;
   gap: 6px;
-  border-bottom: 0.5px solid var(--border);
 }
-.group-dot {
-  width: 6px; height: 6px;
+.time-group-dot {
+  width: 5px; height: 5px;
   border-radius: 50%;
   background: var(--laser);
-}
-.radar-dot {
-  position: relative;
-  width: 10px; height: 10px;
-  border-radius: 50%;
-  background: var(--laser);
-  box-shadow: 0 0 6px rgba(74,222,128,0.7);
-}
-.radar-dot::after {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  border: 1px solid var(--laser);
-  animation: radar 1.5s ease-out infinite;
-}
-@keyframes radar {
-  0%  { transform: scale(0.5); opacity: 0.8; }
-  100%{ transform: scale(2.5); opacity: 0; }
+  box-shadow: 0 0 6px var(--laser-glow);
+  flex-shrink: 0;
 }
 
-/* ═══════════════════════════════════════════
-   SCHEDULE CARDS
-═══════════════════════════════════════════ */
-.sched-card {
+/* Stop Card */
+.stop-card {
   background: var(--surface);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 0.5px solid var(--border);
-  border-radius: var(--radius-card);
+  border-radius: var(--radius);
   margin-bottom: 8px;
   overflow: hidden;
-  box-shadow: var(--shadow-card);
-  transition: border-color 0.3s, box-shadow 0.3s, opacity 0.3s, transform 0.25s var(--spring);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  transform: translate3d(0,0,0);
+  backface-visibility: hidden;
+  perspective: 1000px;
   cursor: pointer;
+  position: relative;
 }
-.sched-card:active {
-  transform: scale(0.98);
-  filter: brightness(1.05);
-  transition: all 0.25s var(--spring);
+.stop-card.upcoming {
+  border-color: rgba(74,222,128,0.2);
+  box-shadow: 0 0 12px rgba(74,222,128,0.08), 0 4px 24px rgba(0,0,0,0.4);
 }
-.sched-card.past {
+.stop-card.past {
   opacity: 0.35;
-  filter: grayscale(0.5);
 }
-.sched-card.imminent {
-  border-color: rgba(74, 222, 128, 0.35);
-  box-shadow: var(--shadow-card), 0 0 16px rgba(74,222,128,0.10);
+.stop-card:active {
+  transform: scale(0.98) translate3d(0,0,0);
+  filter: brightness(1.05);
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
 }
 
 .card-main {
   display: flex;
-  align-items: center;
   padding: 12px 14px;
-  gap: 12px;
+  gap: 10px;
+  align-items: flex-start;
 }
-.card-left {
+
+/* Left: 25% */
+.card-time-col {
   width: 25%;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   gap: 3px;
 }
 .card-time {
-  font-family: 'Roboto Mono', monospace;
-  font-size: 17px;
+  font-family: var(--font-mono);
+  font-size: 16px;
   font-weight: 700;
   color: var(--laser);
-  text-shadow: var(--laser-glow);
+  text-shadow: 0 0 8px rgba(74,222,128,0.3);
   line-height: 1;
 }
 .card-countdown {
-  font-family: 'Roboto Mono', monospace;
   font-size: 10px;
   color: var(--orange);
-  font-weight: 600;
+  font-weight: 500;
+  font-family: var(--font-mono);
 }
-.card-right {
+.card-countdown.soon { color: var(--laser); animation: countPulse 1s ease-in-out infinite; }
+@keyframes countPulse {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Radar dot on timeline */
+.card-radar {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--laser);
+  position: relative;
+  margin-top: 4px;
+  display: none;
+}
+.stop-card.upcoming .card-radar { display: block; }
+.card-radar::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid rgba(74,222,128,0.5);
+  animation: radarPulse 1.5s ease-out infinite;
+}
+@keyframes radarPulse {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* Right: 75% */
+.card-info-col {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  min-width: 0;
+  gap: 3px;
 }
 .card-name-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
   flex-wrap: wrap;
 }
 .card-name {
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-primary);
+  color: rgba(255,255,255,0.9);
   line-height: 1.3;
   flex: 1;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  word-break: break-all;
 }
-.tag {
+.type-tag {
   flex-shrink: 0;
-  font-size: 10px;
-  font-weight: 600;
   padding: 2px 7px;
-  border-radius: var(--radius-pill);
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
 }
-.tag-general  { color: var(--coral);   background: var(--coral-bg); }
-.tag-recycle  { color: var(--cyan);    background: var(--cyan-bg); }
-.tag-kitchen  { color: var(--emerald); background: var(--emerald-bg); }
+.type-tag.garbage { background: var(--red-bg); color: var(--red); }
+.type-tag.recycle { background: var(--blue-bg); color: var(--blue); }
+.type-tag.food    { background: var(--green-bg); color: var(--green); }
 
-.card-meta {
+.card-dist-row {
   display: flex;
   align-items: center;
   gap: 5px;
-}
-.card-dist {
   font-size: 11px;
-  color: var(--text-muted);
+  color: var(--gray);
 }
-.arrow-svg {
+.dist-arrow {
   width: 14px; height: 14px;
   flex-shrink: 0;
-  transition: transform 0.2s;
+  transition: transform 0.3s;
+  color: var(--blue);
+  opacity: 0.7;
 }
-.card-mapbtn {
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  background: rgba(56,189,248,0.1);
-  border: 0.5px solid rgba(56,189,248,0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: all 0.25s var(--spring);
-}
-.card-mapbtn:active { transform: scale(0.9); filter: brightness(1.3); }
 
-/* Accordion detail panel */
+/* Accordion Panel */
 .card-detail {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.35s var(--ease-out);
-  border-top: 0.5px solid transparent;
+  transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1);
 }
-.card-detail.open {
-  max-height: 200px;
-  border-top-color: var(--border);
-}
-.detail-inner {
-  padding: 12px 14px;
+.card-detail.open { max-height: 200px; }
+.card-detail-inner {
+  padding: 0 14px 14px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  border-top: 0.5px solid var(--border);
+  padding-top: 10px;
 }
-.detail-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 11px;
-  color: var(--text-secondary);
+.detail-coords {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 0.04em;
 }
-.detail-label { color: var(--text-muted); }
-.detail-countdown {
-  font-family: 'Roboto Mono', monospace;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--laser);
-  text-shadow: var(--laser-glow);
-}
-.nav-btns {
+.detail-actions {
   display: flex;
   gap: 8px;
 }
 .nav-btn {
   flex: 1;
+  padding: 8px 6px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 5px;
-  padding: 8px;
-  border-radius: 10px;
-  font-size: 11px;
-  font-weight: 600;
+  cursor: pointer;
   text-decoration: none;
-  border: 0.5px solid var(--border);
-  transition: all 0.25s var(--spring);
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  border: none;
 }
-.nav-btn:active { transform: scale(0.95); filter: brightness(1.2); }
-.nav-btn-apple { background: rgba(255,255,255,0.06); color: #e2e8f0; }
-.nav-btn-google { background: rgba(56,189,248,0.08); color: var(--cyan); }
-
-/* Confetti container */
-.confetti-wrap {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  pointer-events: none;
-  overflow: hidden;
+.nav-btn:active {
+  transform: scale(0.95);
+  filter: brightness(1.2);
 }
-
-/* ═══════════════════════════════════════════
-   MAP PANEL
-═══════════════════════════════════════════ */
-#map {
-  position: absolute;
-  inset: 0;
+.nav-btn.apple {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.8);
+  border: 0.5px solid var(--border-active);
+}
+.nav-btn.google {
+  background: rgba(56,189,248,0.1);
+  color: var(--blue);
+  border: 0.5px solid rgba(56,189,248,0.2);
+}
+.map-link-btn {
+  background: rgba(74,222,128,0.08);
+  color: var(--laser);
+  border: 0.5px solid rgba(74,222,128,0.2);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
   width: 100%;
-  height: 100%;
-  z-index: 1;
 }
-.leaflet-container { background: #0a0a0a !important; }
-/* Override Leaflet popup */
+.map-link-btn:active { transform: scale(0.95); filter: brightness(1.2); }
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+  opacity: 0;
+  animation: fadeIn 0.3s ease forwards;
+}
+@keyframes fadeIn { to { opacity: 1; } }
+.empty-icon { width: 64px; height: 64px; opacity: 0.4; }
+.empty-text {
+  font-size: 14px;
+  color: rgba(255,255,255,0.4);
+  text-align: center;
+  line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════════════════════
+   MAP VIEW
+═══════════════════════════════════════════════════════ */
+#map-view {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  display: none;
+}
+#map-view.active { display: block; }
+#map {
+  width: 100%; height: 100%;
+  background: #0a0f1a;
+}
+
+/* Leaflet overrides */
 .leaflet-popup-content-wrapper {
-  background: rgba(15, 23, 42, 0.88) !important;
+  background: rgba(15,23,42,0.92) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
   border: 1px solid rgba(255,255,255,0.15) !important;
   border-radius: 16px !important;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.7) !important;
-  color: var(--text-primary) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
+  color: #e2e8f0 !important;
+  padding: 0 !important;
+}
+.leaflet-popup-content {
+  margin: 0 !important;
+  color: #e2e8f0 !important;
+  width: 240px !important;
 }
 .leaflet-popup-tip-container { display: none !important; }
-.leaflet-popup-content { margin: 0 !important; padding: 0 !important; }
-.popup-inner { padding: 14px; min-width: 200px; }
-.popup-name { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
-.popup-time { font-family: 'Roboto Mono', monospace; font-size: 16px; font-weight: 700; color: var(--laser); text-shadow: var(--laser-glow); margin-bottom: 4px; }
-.popup-dist { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
-.popup-nav { display: flex; gap: 8px; }
-.popup-nav a {
-  flex: 1; text-align: center; padding: 7px 5px;
-  border-radius: 8px; font-size: 11px; font-weight: 600;
-  text-decoration: none; border: 0.5px solid var(--border);
+.leaflet-popup-close-button {
+  color: rgba(255,255,255,0.4) !important;
+  font-size: 18px !important;
+  top: 8px !important; right: 10px !important;
 }
-.popup-nav .apple { background: rgba(255,255,255,0.06); color: #e2e8f0; }
-.popup-nav .gmap  { background: rgba(56,189,248,0.1); color: var(--cyan); }
-.leaflet-control-attribution { display: none !important; }
-.leaflet-control-zoom a {
-  background: rgba(17,24,39,0.85) !important;
-  color: #94a3b8 !important;
-  border-color: rgba(255,255,255,0.1) !important;
-}
+.leaflet-container { background: #0a0f1a; }
+.leaflet-tile { filter: brightness(0.85) saturate(0.7); }
 
-/* ═══════════════════════════════════════════
-   NIGHT MODE OVERLAY
-═══════════════════════════════════════════ */
-#night-overlay {
-  position: fixed;
-  inset: 0;
-  background: #000000;
-  z-index: 800;
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  padding: 40px 24px;
-  text-align: center;
-  padding-top: calc(var(--safe-top) + 40px);
-  padding-bottom: calc(var(--safe-bottom) + 40px);
+/* Custom Popup HTML */
+.popup-inner {
+  padding: 14px;
 }
-#night-overlay.visible { display: flex; }
-.night-title {
+.popup-time {
+  font-family: var(--font-mono);
   font-size: 18px;
   font-weight: 700;
-  color: var(--text-primary);
-}
-.night-sub { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
-#night-countdown {
-  font-family: 'Roboto Mono', monospace;
-  font-size: 28px;
-  font-weight: 700;
   color: var(--laser);
-  text-shadow: var(--laser-glow);
+  text-shadow: 0 0 8px rgba(74,222,128,0.4);
+  margin-bottom: 4px;
 }
-
-/* ═══════════════════════════════════════════
-   ALERT TOAST
-═══════════════════════════════════════════ */
-#toast {
-  position: fixed;
-  top: calc(var(--safe-top) + 70px);
-  left: 16px; right: 16px;
-  background: rgba(15,23,42,0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 0.5px solid var(--border-hi);
-  border-radius: 14px;
-  padding: 14px 16px;
+.popup-name {
   font-size: 13px;
-  color: var(--text-primary);
-  z-index: 5000;
-  transform: translateY(-20px);
-  opacity: 0;
-  transition: all 0.35s var(--spring);
-  pointer-events: none;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+  color: rgba(255,255,255,0.85);
+  font-weight: 500;
+  line-height: 1.3;
+  margin-bottom: 8px;
 }
-#toast.show {
-  transform: translateY(0);
-  opacity: 1;
-}
-
-/* ═══════════════════════════════════════════
-   WEATHER BANNER
-═══════════════════════════════════════════ */
-#weather-banner {
-  flex-shrink: 0;
-  padding: 6px 16px;
+.popup-countdown {
   font-size: 11px;
-  color: var(--text-muted);
-  background: rgba(0,0,0,0.4);
-  border-bottom: 0.5px solid var(--border);
+  color: var(--orange);
+  margin-bottom: 10px;
+  font-family: var(--font-mono);
+}
+.popup-actions {
   display: flex;
-  align-items: center;
   gap: 6px;
 }
+.popup-actions a {
+  flex: 1;
+  padding: 7px 4px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.popup-actions .apple-link {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.8);
+  border: 0.5px solid rgba(255,255,255,0.12);
+}
+.popup-actions .google-link {
+  background: rgba(56,189,248,0.12);
+  color: var(--blue);
+  border: 0.5px solid rgba(56,189,248,0.2);
+}
+
+/* ═══════════════════════════════════════════════════════
+   NOTIFICATION TOAST
+═══════════════════════════════════════════════════════ */
+#toast-container {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 8px);
+  left: 12px; right: 12px;
+  z-index: 8000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  background: rgba(15,23,42,0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 14px;
+  border: 0.5px solid rgba(74,222,128,0.3);
+  padding: 12px 14px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.5;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  transform: translateY(-20px);
+  opacity: 0;
+  animation: toastIn 0.3s ease forwards;
+  pointer-events: auto;
+}
+.toast.urgent { border-color: rgba(251,113,133,0.4); }
+@keyframes toastIn {
+  to { transform: translateY(0); opacity: 1; }
+}
+.toast-out {
+  animation: toastOut 0.3s ease forwards !important;
+}
+@keyframes toastOut {
+  to { transform: translateY(-20px); opacity: 0; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   CONFETTI
+═══════════════════════════════════════════════════════ */
+#confetti-container {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 7000;
+  overflow: hidden;
+}
+.confetti-piece {
+  position: absolute;
+  border-radius: 50%;
+  animation: confettiFall linear forwards;
+}
+@keyframes confettiFall {
+  0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+  100% { opacity: 0; transform: translateY(100vh) rotate(720deg); }
+}
+
+/* ═══════════════════════════════════════════════════════
+   SVG DEFS (hidden templates for map markers)
+═══════════════════════════════════════════════════════ */
+#svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* ═══════════════════════════════════════════════════════
+   UTILITY
+═══════════════════════════════════════════════════════ */
+.hidden { display: none !important; }
 </style>
 </head>
 <body>
 
-<!-- ═══════════════════════ SPLASH SCREEN ═══════════════════════ -->
+<!-- Hidden SVG Defs -->
+<svg id="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="pin-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="pin-glow-urgent">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+</svg>
+
+<!-- Toast -->
+<div id="toast-container"></div>
+
+<!-- Confetti -->
+<div id="confetti-container"></div>
+
+<!-- Splash -->
 <div id="splash">
-  <svg class="splash-icon" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <filter id="glow">
-        <feGaussianBlur stdDeviation="3" result="blur"/>
-        <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-      </filter>
-    </defs>
-    <g filter="url(#glow)">
-      <rect x="8" y="30" width="54" height="30" rx="8" fill="rgba(74,222,128,0.15)" stroke="#4ade80" stroke-width="1.2"/>
-      <rect x="60" y="38" width="12" height="18" rx="3" fill="rgba(74,222,128,0.1)" stroke="#4ade80" stroke-width="1"/>
-      <circle cx="22" cy="64" r="6" fill="rgba(74,222,128,0.2)" stroke="#4ade80" stroke-width="1.5"/>
-      <circle cx="44" cy="64" r="6" fill="rgba(74,222,128,0.2)" stroke="#4ade80" stroke-width="1.5"/>
-      <rect x="16" y="20" width="28" height="14" rx="4" fill="rgba(56,189,248,0.1)" stroke="#38bdf8" stroke-width="1"/>
-      <rect x="20" y="24" width="6" height="6" rx="1" fill="rgba(56,189,248,0.3)"/>
-      <rect x="30" y="24" width="6" height="6" rx="1" fill="rgba(56,189,248,0.3)"/>
-      <line x1="8" y1="46" x2="62" y2="46" stroke="rgba(74,222,128,0.25)" stroke-width="0.8"/>
-    </g>
+  <svg class="splash-truck" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="5" y="28" width="52" height="30" rx="4" fill="rgba(74,222,128,0.15)" stroke="rgba(74,222,128,0.6)" stroke-width="1.5"/>
+    <rect x="35" y="20" width="22" height="22" rx="3" fill="rgba(56,189,248,0.15)" stroke="rgba(56,189,248,0.5)" stroke-width="1.5"/>
+    <line x1="57" y1="28" x2="57" y2="42" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+    <circle cx="20" cy="60" r="7" fill="none" stroke="rgba(74,222,128,0.7)" stroke-width="2"/>
+    <circle cx="20" cy="60" r="3" fill="rgba(74,222,128,0.5)"/>
+    <circle cx="47" cy="60" r="7" fill="none" stroke="rgba(74,222,128,0.7)" stroke-width="2"/>
+    <circle cx="47" cy="60" r="3" fill="rgba(74,222,128,0.5)"/>
+    <rect x="57" y="42" width="14" height="16" rx="2" fill="rgba(251,113,133,0.15)" stroke="rgba(251,113,133,0.4)" stroke-width="1"/>
+    <line x1="58" y1="46" x2="70" y2="46" stroke="rgba(251,113,133,0.4)" stroke-width="1"/>
+    <line x1="58" y1="50" x2="70" y2="50" stroke="rgba(251,113,133,0.3)" stroke-width="0.8"/>
+    <circle cx="40" cy="14" r="3" fill="rgba(74,222,128,0.6)" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;0.2;0.8" dur="1.5s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="3;5;3" dur="1.5s" repeatCount="indefinite"/>
+    </circle>
   </svg>
-  <div>
-    <div class="splash-brand">垃圾車：台南追蹤指標</div>
-  </div>
-  <div class="splash-text">
-    正在初始化清運指標系統…<br>
-    <span style="color:var(--laser)">載入台南市 6 批次清運數據</span>
-  </div>
+  <div class="splash-title">垃圾車：台南追蹤指標</div>
+  <div class="splash-sub">正在初始化感知模組…</div>
 </div>
 
-<!-- ═══════════════════════ NIGHT OVERLAY ═══════════════════════ -->
-<div id="night-overlay">
-  <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
-    <circle cx="30" cy="30" r="18" fill="rgba(148,163,184,0.08)" stroke="rgba(148,163,184,0.25)" stroke-width="1"/>
-    <path d="M38 22 Q32 20 26 24 Q20 28 22 36 Q26 44 34 42 Q42 40 42 32 Q42 26 38 22Z" fill="rgba(148,163,184,0.15)" stroke="#94a3b8" stroke-width="1"/>
-    <circle cx="20" cy="12" r="2" fill="rgba(74,222,128,0.6)"/>
-    <circle cx="44" cy="8" r="1.5" fill="rgba(74,222,128,0.4)"/>
-    <circle cx="50" cy="20" r="1" fill="rgba(74,222,128,0.5)"/>
-    <circle cx="10" cy="22" r="1.5" fill="rgba(74,222,128,0.3)"/>
-  </svg>
-  <div class="night-title">🌙 深夜太空休眠模式</div>
-  <div class="night-sub">今日所有清運班次已結束<br>系統進入低耗電指標模式</div>
-  <div id="night-countdown">--:--:--</div>
-  <div class="night-sub" style="font-size:12px">距明日首班清運抵達倒數</div>
+<!-- Night Mode -->
+<div id="night-mode">
+  <div class="night-stars">🌙 ✨</div>
+  <div class="night-title">深夜太空休眠模式</div>
+  <div class="night-countdown" id="night-countdown">00:00:00</div>
+  <div class="night-sub">距離明日首班清運車抵達的賸餘時分秒<br>所有光纖流動已暫停，感謝今日的守護</div>
+  <button onclick="document.getElementById('night-mode').classList.remove('active')" style="margin-top:16px;padding:10px 28px;border-radius:20px;background:rgba(74,222,128,0.1);border:0.5px solid rgba(74,222,128,0.3);color:var(--laser);font-size:13px;cursor:pointer;">手動解除休眠</button>
 </div>
 
-<!-- ═══════════════════════ ALERT TOAST ═══════════════════════ -->
-<div id="toast"></div>
-
-<!-- ═══════════════════════ MAIN APP ═══════════════════════ -->
+<!-- App -->
 <div id="app">
-  <!-- Top Bar -->
-  <div id="topbar">
-    <div class="title-block">
+  <div id="header">
+    <div class="header-top">
       <div class="app-title">
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-          <rect x="1" y="7" width="12" height="8" rx="2" fill="rgba(74,222,128,0.15)" stroke="#4ade80" stroke-width="1"/>
-          <rect x="13" y="9" width="4" height="4" rx="1" fill="rgba(74,222,128,0.1)" stroke="#4ade80" stroke-width="0.8"/>
-          <circle cx="4.5" cy="16" r="1.8" fill="none" stroke="#4ade80" stroke-width="1"/>
-          <circle cx="9.5" cy="16" r="1.8" fill="none" stroke="#4ade80" stroke-width="1"/>
-          <rect x="3.5" y="4" width="6" height="4" rx="1" fill="rgba(56,189,248,0.1)" stroke="#38bdf8" stroke-width="0.8"/>
+        <svg class="title-icon" viewBox="0 0 28 28" fill="none">
+          <rect x="2" y="9" width="18" height="12" rx="2.5" fill="rgba(74,222,128,0.15)" stroke="rgba(74,222,128,0.7)" stroke-width="1.2"/>
+          <rect x="12" y="5" width="9" height="9" rx="1.5" fill="rgba(56,189,248,0.15)" stroke="rgba(56,189,248,0.6)" stroke-width="1.2"/>
+          <circle cx="7" cy="22" r="2.5" fill="none" stroke="rgba(74,222,128,0.8)" stroke-width="1.2"/>
+          <circle cx="16" cy="22" r="2.5" fill="none" stroke="rgba(74,222,128,0.8)" stroke-width="1.2"/>
+          <circle cx="24" cy="16" r="3.5" fill="rgba(251,113,133,0.1)" stroke="rgba(251,113,133,0.5)" stroke-width="1"/>
+          <line x1="24" y1="13" x2="24" y2="19" stroke="rgba(251,113,133,0.5)" stroke-width="1"/>
         </svg>
-        垃圾車：台南追蹤指標
+        <div>
+          <div class="title-text">垃圾車追蹤指標</div>
+          <div class="title-sub">TAINAN GARBAGE TRACKER</div>
+        </div>
       </div>
-      <div class="gps-indicator">
-        <div class="gps-dot" id="gps-dot"></div>
-        <span id="gps-label">GPS 指標定位中…</span>
+      <div class="header-right">
+        <div class="gps-indicator">
+          <div class="gps-dot" id="gps-dot"></div>
+          <span id="gps-label">GPS 定位中</span>
+        </div>
+        <div class="clock-display" id="clock-display">--:-- ---</div>
       </div>
     </div>
-    <div class="topbar-right">
-      <div id="clock">--:--:--</div>
-      <div id="weekday">---</div>
-    </div>
-  </div>
 
-  <!-- Mode Switcher -->
-  <div id="mode-switcher">
-    <div class="seg-ctrl">
-      <div class="seg-slider" id="seg-slider"></div>
-      <button class="seg-btn active" id="btn-list" onclick="switchMode('list')">
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="1" width="13" height="2" rx="1"/><rect x="0" y="5.5" width="10" height="2" rx="1"/><rect x="0" y="10" width="8" height="2" rx="1"/></svg>
+    <div class="context-banner" id="context-banner">⏱️ 正在載入排班資訊…</div>
+
+    <div class="mode-toggle">
+      <div class="mode-toggle-slider" id="mode-slider"></div>
+      <div class="mode-btn active" id="btn-list" onclick="setMode('list')">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect y="1" width="13" height="2" rx="1"/><rect y="5.5" width="9" height="2" rx="1"/><rect y="10" width="11" height="2" rx="1"/></svg>
         時刻表
-      </button>
-      <button class="seg-btn" id="btn-map" onclick="switchMode('map')">
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6.5" cy="5.5" r="3"/><path d="M6.5 12 C6.5 12 2 8 2 5.5 a4.5 4.5 0 0 1 9 0 C11 8 6.5 12 6.5 12Z"/></svg>
+      </div>
+      <div class="mode-btn" id="btn-map" onclick="setMode('map')">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="5.5" r="2.5"/><path d="M6.5 12C6.5 12 1.5 8.5 1.5 5.5a5 5 0 1110 0C11.5 8.5 6.5 12 6.5 12z"/></svg>
         地圖
-      </button>
+      </div>
+    </div>
+
+    <div class="district-scroll" id="district-scroll"></div>
+
+    <div class="search-wrap">
+      <input type="search" class="search-input" id="search-input" placeholder="搜尋站點名稱…" autocomplete="off" autocorrect="off" spellcheck="false">
+      <div class="search-clear" id="search-clear" onclick="clearSearch()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M7 5.59L11.95.64 13.36 2.05 8.41 7l4.95 4.95-1.41 1.41L7 8.41l-4.95 4.95L.64 11.95 5.59 7 .64 2.05 2.05.64 7 5.59z"/></svg>
+      </div>
     </div>
   </div>
 
-  <!-- District Strip -->
-  <div id="district-strip"></div>
-
-  <!-- Weather Banner -->
-  <div id="weather-banner" id="weather-banner">
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" style="color:var(--orange)"><circle cx="6" cy="6" r="2.5"/><line x1="6" y1="0.5" x2="6" y2="2.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><line x1="6" y1="9.5" x2="6" y2="11.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><line x1="0.5" y1="6" x2="2.5" y2="6" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><line x1="9.5" y1="6" x2="11.5" y2="6" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>
-    <span id="weather-text">正在感知環境…</span>
-  </div>
-
-  <!-- Search -->
-  <div id="search-wrap">
-    <div class="search-inner">
-      <svg class="search-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><line x1="9.5" y1="9.5" x2="13" y2="13"/></svg>
-      <input id="search-input" type="text" placeholder="搜尋清運站點…" autocomplete="off" autocorrect="off" spellcheck="false">
-      <button id="search-clear" onclick="clearSearch()">
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg>
-      </button>
+  <!-- List View -->
+  <div id="list-view" class="active">
+    <div class="list-scroll-container" id="list-scroll">
+      <div class="virtual-top-pad" id="v-top-pad"></div>
+      <div id="card-container"></div>
+      <div class="virtual-bottom-pad" id="v-bot-pad"></div>
     </div>
   </div>
 
-  <!-- Panels -->
-  <div id="panels">
-    <!-- List Panel -->
-    <div id="list-panel">
-      <div id="list-scroll"></div>
-    </div>
-    <!-- Map Panel -->
-    <div id="map-panel" class="hidden">
-      <div id="map"></div>
-    </div>
+  <!-- Map View -->
+  <div id="map-view">
+    <div id="map"></div>
   </div>
 </div>
 
-<script>
-// ═══════════════════════════════════════════════════════════════
-//  STATE
-// ═══════════════════════════════════════════════════════════════
-const STATE = {
-  mode: 'list',
-  district: null,
-  userLat: null,
-  userLng: null,
-  userHeading: 0,
-  gpsLocked: false,
-  userDistrictAutoSet: false,
-  userManualDistrict: false,
-  allStops: [],
-  filteredStops: [],
-  expandedCard: null,
-  searchQuery: '',
-  notifiedFlags: {},
-  mapInited: false,
-  map: null,
-  mapMarkers: {},
-  today: new Date(),
-};
-
-const WEEKDAY_MAP = ['日','一','二','三','四','五','六'];
-const DAYS_ZH = ['週日','週一','週二','週三','週四','週五','週六'];
-
-// ═══════════════════════════════════════════════════════════════
-//  CLOCK
-// ═══════════════════════════════════════════════════════════════
-function updateClock() {
-  const now = new Date();
-  const h = String(now.getHours()).padStart(2,'0');
-  const m = String(now.getMinutes()).padStart(2,'0');
-  const s = String(now.getSeconds()).padStart(2,'0');
-  document.getElementById('clock').textContent = `${h}:${m}:${s}`;
-  document.getElementById('weekday').textContent = DAYS_ZH[now.getDay()];
-  updateWeatherBanner(now);
-}
-setInterval(updateClock, 1000);
-updateClock();
-
-// ═══════════════════════════════════════════════════════════════
-//  WEATHER BANNER COPY
-// ═══════════════════════════════════════════════════════════════
-function updateWeatherBanner(now) {
-  const h = now.getHours();
-  let msg = '';
-  if      (h >= 5  && h < 9)  msg = '🌅 清晨微涼，早安！今日首班清運即將出發。';
-  else if (h >= 9  && h < 12) msg = '☀️ 陽光正美，記得留意今日清運時刻。';
-  else if (h >= 12 && h < 14) msg = '🌤 午後時分，出門散步曬太陽，順道確認班次。';
-  else if (h >= 14 && h < 17) msg = '🌇 下午陽光充足，注意下班前最後班次。';
-  else if (h >= 17 && h < 19) msg = '🌆 下班辛苦了，一起去巷口捕捉最後一班車。';
-  else if (h >= 19 && h < 21) msg = '🌙 傍晚涼爽，剩下幾班要把握喔！';
-  else                         msg = '🌌 深夜靜好，明日清運班次已預載完畢。';
-  document.getElementById('weather-text').textContent = msg;
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  DATA LOADING — UNIVERSAL SANDBOX
-// ═══════════════════════════════════════════════════════════════
-function loadAllData() {
-  const raw = [];
-  const sources = [
-    () => { try { return window.rawData1 || stops1 || []; } catch(e){ return []; } },
-    () => { try { return window.rawData2 || stops2 || []; } catch(e){ return []; } },
-    () => { try { return window.rawData3 || stops3 || []; } catch(e){ return []; } },
-    () => { try { return window.rawData4 || stops4 || []; } catch(e){ return []; } },
-    () => { try { return window.rawData5 || stops5 || []; } catch(e){ return []; } },
-    () => { try { return window.rawData6 || stops6 || []; } catch(e){ return []; } },
-  ];
-  for (const src of sources) {
-    try {
-      const arr = src();
-      if (Array.isArray(arr)) {
-        for (const item of arr) {
-          try {
-            const stop = parseStop(item);
-            if (stop) raw.push(stop);
-          } catch(e) { /* skip bad record */ }
-        }
-      }
-    } catch(e) { /* skip bad source */ }
-  }
-  if (raw.length === 0) {
-    return getDefaultMockStops();
-  }
-  return raw;
-}
-
-// Smart field detection
-function parseStop(item) {
-  if (!item || typeof item !== 'object') return null;
-  // latitude
-  const lt = parseFloat(item.lt ?? item.lat ?? item.latitude ?? item.y ?? item.Y ?? 0);
-  // longitude
-  const lg = parseFloat(item.lg ?? item.lng ?? item.lon ?? item.longitude ?? item.x ?? item.X ?? 0);
-  // time
-  const t = String(item.t ?? item.time ?? item.arrivalTime ?? item.arrival ?? '');
-  // name
-  const n = String(item.n ?? item.name ?? item.stopName ?? item.stop ?? '');
-  // district
-  const a = String(item.a ?? item.area ?? item.district ?? item.region ?? '');
-  // day filter
-  const d = String(item.d ?? item.days ?? item.schedule ?? '1234567');
-
-  if (!lt || !lg || !t || !n) return null;
-  if (isNaN(lt) || isNaN(lg)) return null;
-  // Validate Taiwan coords
-  if (lt < 21 || lt > 26 || lg < 118 || lg > 123) return null;
-
-  return { lt, lg, t, n, a, d };
-}
-
-function getDefaultMockStops() {
-  return [
-    { lt: 22.9999, lg: 120.2272, t: '08:00', n: '台南市政府前（示範站）', a: '安平區', d: '1234567' },
-    { lt: 22.9950, lg: 120.2040, t: '09:00', n: '安平港旁（示範站）', a: '安平區', d: '1234567' },
-  ];
-}
-
-// Day-of-week filter: d field contains which days service runs (1=Mon … 7=Sun, or 0=Sun)
-// Field format observed: "1356" means Mon/Wed/Fri/Sat
-// We check if today's day index (0=Sun,1=Mon…6=Sat) is in the schedule
-function isTodayScheduled(d) {
-  try {
-    if (!d || d === '') return true;
-    const dow = new Date().getDay(); // 0=Sun
-    // Map JS day (0=Sun) to common schedule format (0=Sun or 7=Sun)
-    const dayNum = dow; // 0=Sun,1=Mon…6=Sat
-    const alt = dow === 0 ? 7 : dow; // 7=Sun alternative
-    const dStr = String(d);
-    // If string contains '0' it means Sunday in some formats
-    return dStr.includes(String(dayNum)) || dStr.includes(String(alt));
-  } catch(e) { return true; }
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  DISTRICT STRIP
-// ═══════════════════════════════════════════════════════════════
-function buildDistrictStrip(districts) {
-  const strip = document.getElementById('district-strip');
-  strip.innerHTML = '';
-  for (const d of districts) {
-    const btn = document.createElement('button');
-    btn.className = 'district-pill' + (d === STATE.district ? ' active' : '');
-    btn.textContent = d;
-    btn.onclick = () => selectDistrict(d, true);
-    strip.appendChild(btn);
-  }
-}
-
-function selectDistrict(d, manual = false) {
-  STATE.district = d;
-  if (manual) STATE.userManualDistrict = true;
-  document.querySelectorAll('.district-pill').forEach(p => {
-    p.classList.toggle('active', p.textContent === d);
-  });
-  // Scroll pill into view
-  const activePill = [...document.querySelectorAll('.district-pill')].find(p => p.textContent === d);
-  if (activePill) activePill.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-  renderList();
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  LIST RENDERING
-// ═══════════════════════════════════════════════════════════════
-function getScheduledStops() {
-  return STATE.allStops.filter(s => isTodayScheduled(s.d));
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  SMART TIME-FOCUS AUTO-SCROLL — 時序焦點智慧定位演算法
-// ═══════════════════════════════════════════════════════════════
-/**
- * Binary-search the rendered card list for the first upcoming stop,
- * then smoothly snap the scroll container so that card sits at the top.
- * Works regardless of data volume — O(log n) time search, O(1) DOM query.
- *
- * @param {HTMLElement} scrollEl  - the #list-scroll container
- * @param {number}      nowMin    - current time in minutes since midnight
- * @param {boolean}     instant   - skip animation (e.g. for periodic refresh)
- */
-function scrollToNextStop(scrollEl, nowMin, instant = false) {
-  // Collect all rendered cards that carry a data-time stamp
-  const cards = Array.from(scrollEl.querySelectorAll('.sched-card[data-time]'));
-  if (!cards.length) return;
-
-  // Binary search: find first card whose time >= nowMin
-  let lo = 0, hi = cards.length - 1, target = null;
-  while (lo <= hi) {
-    const mid = (lo + hi) >>> 1;
-    const midMin = timeToMinutes(cards[mid].dataset.time);
-    if (midMin >= nowMin) {
-      target = cards[mid];
-      hi = mid - 1;           // keep searching left for an even earlier match
-    } else {
-      lo = mid + 1;
-    }
-  }
-
-  // If every stop has passed, jump to the very last card so the user
-  // sees the most recent activity rather than staring at the top.
-  if (!target) {
-    target = cards[cards.length - 1];
-  }
-
-  // Walk up one sibling: if the card is preceded by a sticky group-header,
-  // scroll to the header instead so it isn't hidden under the sticky bar.
-  const prev = target.previousElementSibling;
-  const anchorEl = (prev && prev.classList.contains('group-header')) ? prev : target;
-
-  // Calculate scrollTop manually so we can respect the sticky header height
-  // (approx 36px) and add a small 8px breathing margin above the card.
-  const STICKY_OFFSET = 36;
-  const MARGIN        = 8;
-  const containerTop  = scrollEl.getBoundingClientRect().top;
-  const anchorTop     = anchorEl.getBoundingClientRect().top;
-  const delta         = anchorTop - containerTop - STICKY_OFFSET - MARGIN;
-  const targetScrollTop = scrollEl.scrollTop + delta;
-
-  if (instant) {
-    scrollEl.scrollTop = Math.max(0, targetScrollTop);
-  } else {
-    scrollEl.scrollTo({
-      top:      Math.max(0, targetScrollTop),
-      behavior: 'smooth',
-    });
-  }
-}
-
-function renderList() {
-  const query = STATE.searchQuery.toLowerCase();
-  let stops = getScheduledStops().filter(s => s.a === STATE.district);
-  if (query) stops = stops.filter(s => s.n.toLowerCase().includes(query) || s.a.toLowerCase().includes(query));
-
-  // Sort by time
-  stops.sort((a, b) => timeToMinutes(a.t) - timeToMinutes(b.t));
-
-  STATE.filteredStops = stops;
-  const now = new Date();
-  const nowMin = now.getHours() * 60 + now.getMinutes();
-
-  // Group by hour
-  const groups = {};
-  for (const s of stops) {
-    const h = s.t.split(':')[0];
-    if (!groups[h]) groups[h] = [];
-    groups[h].push(s);
-  }
-
-  const scroll = document.getElementById('list-scroll');
-  scroll.innerHTML = '';
-
-  if (stops.length === 0) {
-    scroll.innerHTML = `<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-size:13px;">
-      <div style="font-size:28px;margin-bottom:12px">🔍</div>
-      <div>${query ? '找不到符合的站點' : '今日此區域無清運班次'}</div>
-    </div>`;
-    return;
-  }
-
-  for (const [h, groupStops] of Object.entries(groups)) {
-    const allPast = groupStops.every(s => timeToMinutes(s.t) < nowMin);
-    const hdr = document.createElement('div');
-    hdr.className = 'group-header';
-    const hasImminent = groupStops.some(s => {
-      const diff = timeToMinutes(s.t) - nowMin;
-      return diff >= 0 && diff <= 15;
-    });
-    if (hasImminent) {
-      hdr.innerHTML = `<div class="radar-dot"></div><span>${h}:00 班次 · ${groupStops.length} 個停靠點</span>`;
-    } else {
-      hdr.innerHTML = `<div class="group-dot"></div><span>${h}:00 班次 · ${groupStops.length} 個停靠點</span>`;
-    }
-    if (allPast) hdr.style.opacity = '0.35';
-    scroll.appendChild(hdr);
-
-    for (const stop of groupStops) {
-      scroll.appendChild(buildCard(stop, nowMin));
-    }
-  }
-
-  // Smart Time-Focus Auto-Scroll: after DOM settles, jump to next upcoming stop
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      scrollToNextStop(scroll, nowMin, STATE._skipScrollAnimation === true);
-      STATE._skipScrollAnimation = false;
-    });
-  });
-}
-
-function buildCard(stop, nowMin) {
-  const stopMin = timeToMinutes(stop.t);
-  const diffMin = stopMin - nowMin;
-  const isPast = diffMin < 0;
-  const isImminent = diffMin >= 0 && diffMin <= 15;
-  const dist = calcDist(STATE.userLat, STATE.userLng, stop.lt, stop.lg);
-  const bearing = calcBearing(STATE.userLat, STATE.userLng, stop.lt, stop.lg);
-  const arrowRot = bearing - STATE.userHeading;
-
-  const card = document.createElement('div');
-  card.className = 'sched-card' + (isPast ? ' past' : '') + (isImminent ? ' imminent' : '');
-  card.dataset.id = `${stop.a}_${stop.t}_${stop.n}`;
-  card.dataset.time = stop.t;
-
-  let cdText = '';
-  if (!isPast && diffMin <= 60) {
-    cdText = `剩 ${diffMin} 分鐘`;
-  } else if (isPast) {
-    cdText = '已過站';
-  }
-
-  let tagHTML = '';
-  // Determine type from stop name keywords
-  const nm = stop.n;
-  if (nm.includes('廚餘') || nm.includes('廚')) {
-    tagHTML = `<span class="tag tag-kitchen">廚餘</span>`;
-  } else if (nm.includes('回收') || nm.includes('資源')) {
-    tagHTML = `<span class="tag tag-recycle">回收</span>`;
-  } else {
-    tagHTML = `<span class="tag tag-general">一般</span>`;
-  }
-
-  const distText = dist !== null ? `距您 ${Math.round(dist)} 公尺` : '距離未知';
-
-  card.innerHTML = `
-    <div class="card-main">
-      <div class="card-left">
-        <div class="card-time">${stop.t}</div>
-        <div class="card-countdown">${cdText}</div>
-      </div>
-      <div class="card-right">
-        <div class="card-name-row">
-          <div class="card-name">${stop.n}</div>
-          ${tagHTML}
-        </div>
-        <div class="card-meta">
-          <span class="card-dist">${distText}</span>
-          <svg class="arrow-svg" viewBox="0 0 14 14" fill="none" stroke="#38bdf8" stroke-width="1.5" style="transform:rotate(${arrowRot}deg)">
-            <path d="M7 2 L7 12 M3 6 L7 2 L11 6"/>
-          </svg>
-        </div>
-      </div>
-      <button class="card-mapbtn" onclick="flyToStop(event, ${stop.lt}, ${stop.lg}, '${escStr(stop.n)}', '${stop.t}')">
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="#38bdf8" stroke-width="1.5"><circle cx="6.5" cy="5.5" r="3"/><path d="M6.5 11.5 C6.5 11.5 2 8 2 5.5 a4.5 4.5 0 0 1 9 0 C11 8 6.5 11.5 6.5 11.5Z"/></svg>
-      </button>
-    </div>
-    <div class="card-detail" id="detail_${card.dataset.id.replace(/[^a-zA-Z0-9]/g,'_')}">
-      <div class="detail-inner">
-        <div class="detail-row">
-          <span class="detail-label">行政區</span>
-          <span>${stop.a}</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">站點</span>
-          <span>${stop.n}</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">即時倒數</span>
-          <span class="detail-countdown" data-target="${stop.t}">--:--</span>
-        </div>
-        <div class="nav-btns">
-          <a class="nav-btn nav-btn-apple" href="maps://?q=${stop.lt},${stop.lg}">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M6 1 A5 5 0 1 1 5.99 1Z"/><path d="M6 6 L8 4"/></svg>
-            Apple Maps
-          </a>
-          <a class="nav-btn nav-btn-google" href="https://google.com/maps?q=${stop.lt},${stop.lg}" target="_blank" rel="noopener">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="5" r="3.5"/><path d="M6 10 C6 10 2 7 2 5 a4 4 0 0 1 8 0 C10 7 6 10 6 10Z"/></svg>
-            Google Maps
-          </a>
-        </div>
-      </div>
-    </div>
-  `;
-
-  card.querySelector('.card-main').addEventListener('click', (e) => {
-    if (e.target.closest('.card-mapbtn')) return;
-    toggleAccordion(card);
-  });
-
-  return card;
-}
-
-function escStr(s) { return s.replace(/'/g, "\\'").replace(/"/g,'&quot;'); }
-
-function toggleAccordion(card) {
-  const detailId = 'detail_' + card.dataset.id.replace(/[^a-zA-Z0-9]/g,'_');
-  const detail = document.getElementById(detailId);
-  if (!detail) return;
-  const isOpen = detail.classList.contains('open');
-  // Close all
-  document.querySelectorAll('.card-detail.open').forEach(d => d.classList.remove('open'));
-  if (!isOpen) {
-    detail.classList.add('open');
-    STATE.expandedCard = card.dataset.id;
-  } else {
-    STATE.expandedCard = null;
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  COUNTDOWN TICKER
-// ═══════════════════════════════════════════════════════════════
-function tickCountdowns() {
-  const now = new Date();
-  const nowMin = now.getHours() * 60 + now.getMinutes();
-  const nowSec = nowMin * 60 + now.getSeconds();
-
-  document.querySelectorAll('.detail-countdown[data-target]').forEach(el => {
-    const t = el.dataset.target;
-    const tMin = timeToMinutes(t);
-    const tSec = tMin * 60;
-    const diff = tSec - nowSec;
-    if (diff < 0) {
-      el.textContent = '已過站';
-    } else {
-      const mm = Math.floor(diff / 60);
-      const ss = diff % 60;
-      el.textContent = `${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
-    }
-  });
-
-  // Update card countdowns
-  document.querySelectorAll('.card-countdown').forEach(el => {
-    const card = el.closest('.sched-card');
-    if (!card) return;
-    const timeEl = card.querySelector('.card-time');
-    if (!timeEl) return;
-    const t = timeEl.textContent;
-    const diff = timeToMinutes(t) - nowMin;
-    if (diff < 0) { el.textContent = '已過站'; }
-    else if (diff <= 60) { el.textContent = `剩 ${diff} 分鐘`; }
-    else { el.textContent = ''; }
-  });
-
-  checkNightMode();
-}
-setInterval(tickCountdowns, 1000);
-
-// ═══════════════════════════════════════════════════════════════
-//  NIGHT MODE
-// ═══════════════════════════════════════════════════════════════
-function checkNightMode() {
-  const scheduled = getScheduledStops();
-  if (scheduled.length === 0) return;
-  const now = new Date();
-  const nowMin = now.getHours() * 60 + now.getMinutes();
-  const future = scheduled.filter(s => timeToMinutes(s.t) > nowMin);
-  const overlay = document.getElementById('night-overlay');
-  if (future.length === 0) {
-    overlay.classList.add('visible');
-    // Find tomorrow's first stop time
-    const firstTomorrow = scheduled.reduce((a,b) => timeToMinutes(a.t) < timeToMinutes(b.t) ? a : b);
-    const firstMin = timeToMinutes(firstTomorrow.t);
-    const minutesTilMidnight = 24*60 - nowMin;
-    const totalMins = minutesTilMidnight + firstMin;
-    const h = Math.floor(totalMins / 60) % 24;
-    const m = totalMins % 60;
-    const s = 59 - now.getSeconds();
-    document.getElementById('night-countdown').textContent =
-      `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  } else {
-    overlay.classList.remove('visible');
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  MODE SWITCH
-// ═══════════════════════════════════════════════════════════════
-function switchMode(mode) {
-  STATE.mode = mode;
-  document.getElementById('list-panel').classList.toggle('hidden', mode !== 'list');
-  document.getElementById('map-panel').classList.toggle('hidden', mode !== 'map');
-  document.getElementById('btn-list').classList.toggle('active', mode === 'list');
-  document.getElementById('btn-map').classList.toggle('active', mode === 'map');
-  document.getElementById('seg-slider').classList.toggle('right', mode === 'map');
-
-  if (mode === 'map') {
-    if (!STATE.mapInited) {
-      // Remove .hidden FIRST so the container has real dimensions before Leaflet init
-      document.getElementById('map-panel').classList.remove('hidden');
-      // Wait one frame for layout, then init Leaflet
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          initMap();
-        });
-      });
-    } else {
-      // Already inited — just tell Leaflet the container size may have changed
-      requestAnimationFrame(() => {
-        if (STATE.map) {
-          STATE.map.invalidateSize({ animate: false });
-          refreshMapMarkers();
-        }
-      });
-    }
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  MAP
-// ═══════════════════════════════════════════════════════════════
-function initMap() {
-  STATE.mapInited = true;
-
-  // Ensure map div is visible and has real pixel dimensions before Leaflet init
-  const mapDiv = document.getElementById('map');
-  const panel  = document.getElementById('map-panel');
-  panel.classList.remove('hidden');   // must be visible for Leaflet to measure
-
-  const map = L.map('map', {
-    preferCanvas: true,
-    zoomControl: true,
-    maxBounds: [[22.85, 120.00], [23.45, 120.65]],
-    maxBoundsViscosity: 1.0,
-    minZoom: 11,
-    maxZoom: 18,
-    tap: false,   // prevent iOS ghost-tap issues
-  });
-  STATE.map = map;
-
-  // Primary: CartoDB DarkMatter
-  const cartoLayer = L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    { subdomains: 'abcd', maxZoom: 19, attribution: '&copy; CartoDB' }
-  );
-
-  // Fallback: OpenStreetMap (always available, no API key needed)
-  const osmLayer = L.tileLayer(
-    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    { subdomains: 'abc', maxZoom: 19, attribution: '&copy; OpenStreetMap' }
-  );
-
-  // Try CartoDB first; if tiles fail within 8s, swap to OSM
-  cartoLayer.addTo(map);
-  let cartoOK = false;
-  cartoLayer.once('tileload', () => { cartoOK = true; });
-  setTimeout(() => {
-    if (!cartoOK) {
-      map.removeLayer(cartoLayer);
-      osmLayer.addTo(map);
-      console.warn('[Map] CartoDB unreachable, switched to OpenStreetMap');
-    }
-  }, 8000);
-
-  const center = STATE.userLat ? [STATE.userLat, STATE.userLng] : [23.0, 120.21];
-  map.setView(center, 13);
-
-  // Critical: after setView, force Leaflet to re-measure container
-  // (handles edge case where panel was still animating when setView was called)
-  setTimeout(() => {
-    map.invalidateSize({ animate: false });
-    refreshMapMarkers();
-  }, 350);
-}
-
-function makePinSVG(color, glow) {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
-    <defs>
-      <filter id="f1" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
-        <feColorMatrix in="blur" type="saturate" values="3" result="sat"/>
-        <feComposite in="SourceGraphic" in2="sat" operator="over"/>
-      </filter>
-    </defs>
-    <path d="M14 2 A10 10 0 0 1 24 12 C24 20 14 34 14 34 C14 34 4 20 4 12 A10 10 0 0 1 14 2Z" 
-      fill="${color}" fill-opacity="0.18" stroke="${color}" stroke-width="1.5" filter="url(#f1)"/>
-    <circle cx="14" cy="12" r="4" fill="${color}" fill-opacity="0.85"/>
-    <circle cx="14" cy="12" r="2" fill="white" fill-opacity="0.9"/>
-  </svg>`;
-}
-
-function makePinIcon(color) {
-  return L.divIcon({
-    html: makePinSVG(color, true),
-    className: '',
-    iconSize: [28, 36],
-    iconAnchor: [14, 34],
-    popupAnchor: [0, -30],
-  });
-}
-
-function refreshMapMarkers() {
-  if (!STATE.map) return;
-  // Clear existing
-  Object.values(STATE.mapMarkers).forEach(m => STATE.map.removeLayer(m));
-  STATE.mapMarkers = {};
-
-  const now = new Date();
-  const nowMin = now.getHours() * 60 + now.getMinutes();
-  const stops = getScheduledStops().filter(s => s.a === STATE.district);
-
-  for (const stop of stops) {
-    const diff = timeToMinutes(stop.t) - nowMin;
-    let color = '#38bdf8';
-    if (diff < 0) color = '#475569';
-    else if (diff <= 15) color = '#4ade80';
-    else if (diff <= 60) color = '#fb923c';
-
-    const marker = L.marker([stop.lt, stop.lg], { icon: makePinIcon(color) });
-    const dist = calcDist(STATE.userLat, STATE.userLng, stop.lt, stop.lg);
-    const distStr = dist !== null ? `距您 ${Math.round(dist)} 公尺` : '';
-    marker.bindPopup(`
-      <div class="popup-inner">
-        <div class="popup-name">${stop.n}</div>
-        <div class="popup-time">${stop.t}</div>
-        <div class="popup-dist">${distStr}</div>
-        <div class="popup-nav">
-          <a class="apple" href="maps://?q=${stop.lt},${stop.lg}">🍏 Apple Maps</a>
-          <a class="gmap" href="https://google.com/maps?q=${stop.lt},${stop.lg}" target="_blank" rel="noopener">🌐 Google Maps</a>
-        </div>
-      </div>
-    `);
-    marker.addTo(STATE.map);
-    const key = `${stop.a}_${stop.t}_${stop.n}`;
-    STATE.mapMarkers[key] = marker;
-  }
-
-  // User location marker
-  if (STATE.userLat) {
-    const userIcon = L.divIcon({
-      html: `<div style="width:16px;height:16px;border-radius:50%;background:rgba(56,189,248,0.9);border:2px solid white;box-shadow:0 0 12px rgba(56,189,248,0.7);"></div>`,
-      className: '',
-      iconSize: [16,16],
-      iconAnchor: [8,8],
-    });
-    L.marker([STATE.userLat, STATE.userLng], { icon: userIcon }).addTo(STATE.map);
-  }
-}
-
-function flyToStop(e, lat, lng, name, time) {
-  e.stopPropagation();
-  switchMode('map');
-  setTimeout(() => {
-    if (STATE.map) {
-      STATE.map.flyTo([lat, lng], 17, { animate: true, duration: 0.5 });
-      const key = Object.keys(STATE.mapMarkers).find(k => k.includes(name.substring(0,5)));
-      if (key && STATE.mapMarkers[key]) {
-        setTimeout(() => STATE.mapMarkers[key].openPopup(), 600);
-      }
-    }
-  }, 350);
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  GPS
-// ═══════════════════════════════════════════════════════════════
-function initGPS() {
-  if (!navigator.geolocation) {
-    document.getElementById('gps-label').textContent = 'GPS 不支援';
-    document.getElementById('gps-dot').classList.add('offline');
-    return;
-  }
-  const opts = { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 };
-  navigator.geolocation.watchPosition(onGPS, onGPSError, opts);
-}
-
-function onGPS(pos) {
-  const { latitude, longitude } = pos.coords;
-  const wasLocked = STATE.gpsLocked;
-  STATE.userLat = latitude;
-  STATE.userLng = longitude;
-  STATE.gpsLocked = true;
-  document.getElementById('gps-label').textContent = 'GPS 指標已連線';
-  document.getElementById('gps-dot').classList.remove('offline');
-
-  if (!wasLocked && !STATE.userManualDistrict) {
-    // Auto-select nearest district
-    const nearest = findNearestDistrict(latitude, longitude);
-    if (nearest) selectDistrict(nearest, false);
-    STATE.userDistrictAutoSet = true;
-  } else if (!STATE.userManualDistrict) {
-    // Only update distances
-    renderList();
-  }
-
-  if (STATE.mapInited && STATE.map) refreshMapMarkers();
-}
-
-function onGPSError(err) {
-  document.getElementById('gps-label').textContent = 'GPS 離線';
-  document.getElementById('gps-dot').classList.add('offline');
-}
-
-function findNearestDistrict(lat, lng) {
-  const districts = [...new Set(STATE.allStops.map(s => s.a))];
-  let best = null, bestDist = Infinity;
-  for (const d of districts) {
-    const stops = STATE.allStops.filter(s => s.a === d);
-    if (!stops.length) continue;
-    const avgLat = stops.reduce((s,x) => s + x.lt, 0) / stops.length;
-    const avgLng = stops.reduce((s,x) => s + x.lg, 0) / stops.length;
-    const dist = Math.hypot(lat - avgLat, lng - avgLng);
-    if (dist < bestDist) { bestDist = dist; best = d; }
-  }
-  return best;
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  ORIENTATION / COMPASS
-// ═══════════════════════════════════════════════════════════════
-function initOrientation() {
-  if (window.DeviceOrientationEvent) {
-    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-      // iOS 13+ requires permission
-      document.addEventListener('click', async () => {
-        try {
-          const perm = await DeviceOrientationEvent.requestPermission();
-          if (perm === 'granted') {
-            window.addEventListener('deviceorientation', onOrientation, true);
-          }
-        } catch(e){}
-      }, { once: true });
-    } else {
-      window.addEventListener('deviceorientation', onOrientation, true);
-    }
-  }
-}
-
-function onOrientation(e) {
-  if (e.alpha !== null) {
-    STATE.userHeading = e.alpha;
-    // Update arrow rotations
-    document.querySelectorAll('.arrow-svg').forEach(svg => {
-      const card = svg.closest('.sched-card');
-      if (!card) return;
-      const timeEl = card.querySelector('.card-time');
-      const distEl = card.querySelector('.card-dist');
-      if (!timeEl) return;
-      // Find matching stop
-      const t = timeEl.textContent;
-      const stop = STATE.filteredStops.find(s => s.t === t);
-      if (!stop) return;
-      const bearing = calcBearing(STATE.userLat, STATE.userLng, stop.lt, stop.lg);
-      svg.style.transform = `rotate(${bearing - STATE.userHeading}deg)`;
-    });
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  GEOFENCING ALERT (WEB WORKER SIMULATION)
-// ═══════════════════════════════════════════════════════════════
-let audioCtx = null;
-function getAudioCtx() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  return audioCtx;
-}
-
-function playBeep(type) {
-  try {
-    const ctx = getAudioCtx();
-    if (type === 'short') {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(880, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.15);
-      gain.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-      osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.3);
-    } else {
-      // 8-bit chord
-      [523, 659, 784].forEach((f, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.type = 'square';
-        osc.frequency.value = f;
-        gain.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.12);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.12 + 0.4);
-        osc.start(ctx.currentTime + i * 0.12);
-        osc.stop(ctx.currentTime + i * 0.12 + 0.5);
-      });
-    }
-  } catch(e) {}
-}
-
-function showToast(msg, duration = 5000) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), duration);
-}
-
-function checkGeofence() {
-  if (!STATE.userLat) return;
-  const now = new Date();
-  const nowMin = now.getHours() * 60 + now.getMinutes();
-  const stops = getScheduledStops();
-
-  for (const stop of stops) {
-    const diff = timeToMinutes(stop.t) - nowMin;
-    const dist = calcDist(STATE.userLat, STATE.userLng, stop.lt, stop.lg);
-    if (dist === null) continue;
-    const key = `${stop.a}_${stop.t}_${stop.n}`;
-
-    if (diff > 0 && diff <= 3 && dist <= 200 && !STATE.notifiedFlags[key + '_3']) {
-      STATE.notifiedFlags[key + '_3'] = true;
-      playBeep('chord');
-      showToast(`🚨 警告：清運指標已進入最終攔截窗口（200米內）！請立即前往巷口！`, 8000);
-    } else if (diff > 0 && diff <= 10 && dist <= 500 && !STATE.notifiedFlags[key + '_10']) {
-      STATE.notifiedFlags[key + '_10'] = true;
-      playBeep('short');
-      showToast(`🛰️ 清運指標已進入防禦半徑（500米內），請準備下樓。`, 6000);
-    }
-  }
-}
-setInterval(checkGeofence, 30000);
-
-// ═══════════════════════════════════════════════════════════════
-//  SEARCH
-// ═══════════════════════════════════════════════════════════════
-document.getElementById('search-input').addEventListener('input', (e) => {
-  STATE.searchQuery = e.target.value;
-  const clearBtn = document.getElementById('search-clear');
-  clearBtn.classList.toggle('visible', STATE.searchQuery.length > 0);
-  renderList();
-});
-function clearSearch() {
-  const inp = document.getElementById('search-input');
-  inp.value = '';
-  STATE.searchQuery = '';
-  document.getElementById('search-clear').classList.remove('visible');
-  inp.focus();
-  renderList();
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  GESTURE PREVENTION
-// ═══════════════════════════════════════════════════════════════
-document.addEventListener('gesturestart', e => e.preventDefault());
-let lastTouch = 0;
-document.addEventListener('touchend', e => {
-  const now = Date.now();
-  if (now - lastTouch < 300) e.preventDefault();
-  lastTouch = now;
-}, { passive: false });
-
-// ═══════════════════════════════════════════════════════════════
-//  CONFETTI
-// ═══════════════════════════════════════════════════════════════
-function launchConfetti(container) {
-  const wrap = document.createElement('div');
-  wrap.className = 'confetti-wrap';
-  container.style.position = 'relative';
-  container.appendChild(wrap);
-  const colors = ['#fb7185','#38bdf8','#34d399','#4ade80','#fb923c','#a78bfa'];
-  for (let i = 0; i < 30; i++) {
-    const dot = document.createElementNS('http://www.w3.org/2000/svg','svg');
-    dot.setAttribute('width','8'); dot.setAttribute('height','8');
-    dot.style.cssText = `position:absolute;left:${Math.random()*100}%;top:50%;`;
-    const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
-    c.setAttribute('cx','4'); c.setAttribute('cy','4'); c.setAttribute('r','4');
-    c.setAttribute('fill', colors[Math.floor(Math.random()*colors.length)]);
-    dot.appendChild(c);
-    wrap.appendChild(dot);
-    const tx = (Math.random()-0.5)*200;
-    const ty = -(Math.random()*150+50);
-    dot.animate([
-      { transform: `translate(0,0) scale(1)`, opacity: 1 },
-      { transform: `translate(${tx}px,${ty}px) scale(0)`, opacity: 0 }
-    ], { duration: 1000 + Math.random()*500, easing: 'cubic-bezier(0.4,0,0.2,1)', fill: 'forwards' });
-  }
-  setTimeout(() => wrap.remove(), 1600);
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  HAVERSINE & BEARING
-// ═══════════════════════════════════════════════════════════════
-function calcDist(lat1, lng1, lat2, lng2) {
-  if (lat1 == null || lng1 == null) return null;
-  const R = 6371000;
-  const φ1 = lat1 * Math.PI/180, φ2 = lat2 * Math.PI/180;
-  const Δφ = (lat2-lat1) * Math.PI/180;
-  const Δλ = (lng2-lng1) * Math.PI/180;
-  const a = Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-
-function calcBearing(lat1, lng1, lat2, lng2) {
-  if (lat1 == null) return 0;
-  const φ1 = lat1 * Math.PI/180, φ2 = lat2 * Math.PI/180;
-  const Δλ = (lng2-lng1) * Math.PI/180;
-  const y = Math.sin(Δλ)*Math.cos(φ2);
-  const x = Math.cos(φ1)*Math.sin(φ2) - Math.sin(φ1)*Math.cos(φ2)*Math.cos(Δλ);
-  return ((Math.atan2(y,x)*180/Math.PI)+360) % 360;
-}
-
-function timeToMinutes(t) {
-  try {
-    const [h, m] = t.split(':').map(Number);
-    return h*60 + m;
-  } catch(e) { return 0; }
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════════════════════════
-function init() {
-  // Load data with 1.5s timeout fallback
-  const loadTimeout = setTimeout(() => {
-    if (STATE.allStops.length === 0) {
-      STATE.allStops = getDefaultMockStops();
-      finishInit();
-    }
-  }, 1500);
-
-  try {
-    STATE.allStops = loadAllData();
-  } catch(e) {
-    STATE.allStops = getDefaultMockStops();
-  }
-  clearTimeout(loadTimeout);
-  finishInit();
-}
-
-function finishInit() {
-  // Build district list
-  const districts = [...new Set(STATE.allStops.map(s => s.a))].sort((a,b) => a.localeCompare(b,'zh-TW'));
-  buildDistrictStrip(districts);
-
-  // Default district
-  if (districts.length > 0) {
-    STATE.district = districts[0];
-    document.querySelectorAll('.district-pill').forEach((p,i) => {
-      if (i === 0) p.classList.add('active');
-    });
-  }
-
-  renderList();
-  tickCountdowns();
-
-  // Hide splash, then trigger smart scroll 100ms after fade completes
-  setTimeout(() => {
-    const splash = document.getElementById('splash');
-    splash.classList.add('fade-out');
-    setTimeout(() => {
-      splash.style.display = 'none';
-      // 100ms after splash gone → smart scroll to next upcoming stop
-      setTimeout(() => {
-        const scrollEl = document.getElementById('list-scroll');
-        const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
-        scrollToNextStop(scrollEl, nowMin, false);
-      }, 100);
-    }, 420);
-  }, 1200);
-
-  initGPS();
-  initOrientation();
-
-  // Periodic list refresh
-  setInterval(() => {
-    if (STATE.mode === 'list') {
-      STATE._skipScrollAnimation = true;  // periodic refresh = no scroll jump
-      renderList();
-    }
-    if (STATE.mapInited) refreshMapMarkers();
-  }, 60000);
-}
-
-// Boot
-window.addEventListener('DOMContentLoaded', () => {
-  // Small delay to let script tags below finish executing
-  setTimeout(init, 100);
-});
-</script>
-
-<!-- ╔══════════════════════════════════════════════════════╗ -->
-<!-- ║          RAW DATA BLOCKS — 請將原始資料貼入以下區塊          ║ -->
-<!-- ║  每個 script 區塊對應一份 tainan_stops_N.js 文字檔           ║ -->
-<!-- ╚══════════════════════════════════════════════════════╝ -->
-
-<!-- ════════════════════════════════════════
-     【批次 1/6】請將 tainan_stops_1.js 的完整內容貼入此處
-     (七股區、下營區、中西區、仁德區、佳里區、六甲區)
-════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════
+  DATA BLOCKS — paste your JS data files below each block
+════════════════════════════════════════════════════ -->
+
+<!-- ██████████████████████████████████████████████████
+  DATA BLOCK 1 — 七股區、下營區、中西區、仁德區、佳里區、六甲區
+  貼上 tainan_stops_1.js 的全部內容至此
+██████████████████████████████████████████████████ -->
 <script id="raw-data-1">
 // 批次 1/6：七股區、下營區、中西區、仁德區、佳里區、六甲區
 const stops1 = [
@@ -4271,13 +3370,14 @@ const stops1 = [
 {a:"六甲區",n:"中正路485巷41弄29號",t:"19:25",lg:120.350118,lt:23.230431,d:"1356"},
 {a:"六甲區",n:"中正路485巷3號",t:"19:34",lg:120.351010,lt:23.229718,d:"1356"}
 ];
-
+// Also export as rawData alias
+window.rawData1 = typeof stops1 !== "undefined" ? stops1 : [];
 </script>
 
-<!-- ════════════════════════════════════════
-     【批次 2/6】請將 tainan_stops_2.js 的完整內容貼入此處
-     (北區、北門區、南化區、南區、善化區、大內區)
-════════════════════════════════════════ -->
+<!-- ██████████████████████████████████████████████████
+  DATA BLOCK 2 — 北區、北門區、南化區、南區、善化區、大內區
+  貼上 tainan_stops_2.js 的全部內容至此
+██████████████████████████████████████████████████ -->
 <script id="raw-data-2">
 // 批次 2/6：北區、北門區、南化區、南區、善化區、大內區
 const stops2 = [
@@ -6499,13 +5599,14 @@ const stops2 = [
 {a:"南區",n:"利南街237號對面",t:"10:33",lg:120.187775,lt:22.974310,d:"123456"},
 {a:"南區",n:"健康路一段391巷3號",t:"13:30",lg:120.199532,lt:22.981016,d:"123456"}
 ];
-
+// Also export as rawData alias
+window.rawData2 = typeof stops2 !== "undefined" ? stops2 : [];
 </script>
 
-<!-- ════════════════════════════════════════
-     【批次 3/6】請將 tainan_stops_3.js 的完整內容貼入此處
-     (學甲區、安南區、安定區、安平區、官田區、將軍區)
-════════════════════════════════════════ -->
+<!-- ██████████████████████████████████████████████████
+  DATA BLOCK 3 — 學甲區、安南區、安定區、安平區、官田區、將軍區
+  貼上 tainan_stops_3.js 的全部內容至此
+██████████████████████████████████████████████████ -->
 <script id="raw-data-3">
 // 批次 3/6：學甲區、安南區、安定區、安平區、官田區、將軍區
 const stops3 = [
@@ -9807,13 +8908,14 @@ const stops3 = [
 {a:"官田區",n:"三塊厝65-11號",t:"19:08",lg:120.340857,lt:23.162591,d:"1246"},
 {a:"官田區",n:"三塊厝67-13號",t:"19:10",lg:120.340891,lt:23.160772,d:"1246"}
 ];
-
+// Also export as rawData alias
+window.rawData3 = typeof stops3 !== "undefined" ? stops3 : [];
 </script>
 
-<!-- ════════════════════════════════════════
-     【批次 4/6】請將 tainan_stops_4.js 的完整內容貼入此處
-     (山上區、左鎮區、後壁區、新化區、新市區、新營區)
-════════════════════════════════════════ -->
+<!-- ██████████████████████████████████████████████████
+  DATA BLOCK 4 — 山上區、左鎮區、後壁區、新化區、新市區、新營區
+  貼上 tainan_stops_4.js 的全部內容至此
+██████████████████████████████████████████████████ -->
 <script id="raw-data-4">
 // 批次 4/6：山上區、左鎮區、後壁區、新化區、新市區、新營區
 const stops4 = [
@@ -11197,13 +10299,14 @@ const stops4 = [
 {a:"新營區",n:"建國路302號",t:"11:25",lg:120.305931,lt:23.330440,d:"12345"},
 {a:"新營區",n:"建國路350-1號(每一.五收運)",t:"11:29",lg:120.274907,lt:23.319948,d:"12345"}
 ];
-
+// Also export as rawData alias
+window.rawData4 = typeof stops4 !== "undefined" ? stops4 : [];
 </script>
 
-<!-- ════════════════════════════════════════
-     【批次 5/6】請將 tainan_stops_5.js 的完整內容貼入此處
-     (東區、東山區、柳營區、楠西區、歸仁區、永康區)
-════════════════════════════════════════ -->
+<!-- ██████████████████████████████████████████████████
+  DATA BLOCK 5 — 東區、東山區、柳營區、楠西區、歸仁區、永康區
+  貼上 tainan_stops_5.js 的全部內容至此
+██████████████████████████████████████████████████ -->
 <script id="raw-data-5">
 // 批次 5/6：東區、東山區、柳營區、楠西區、歸仁區、永康區
 const stops5 = [
@@ -15034,13 +14137,14 @@ const stops5 = [
 {a:"楠西區",n:"中興南路81號",t:"19:05",lg:120.483893,lt:23.177219,d:"1246"},
 {a:"楠西區",n:"區公所停車場",t:"19:07",lg:120.486371,lt:23.174177,d:"1246"}
 ];
-
+// Also export as rawData alias
+window.rawData5 = typeof stops5 !== "undefined" ? stops5 : [];
 </script>
 
-<!-- ════════════════════════════════════════
-     【批次 6/6】請將 tainan_stops_6.js 的完整內容貼入此處
-     (玉井區、白河區、西港區、關廟區、鹽水區、麻豆區)
-════════════════════════════════════════ -->
+<!-- ██████████████████████████████████████████████████
+  DATA BLOCK 6 — 玉井區、白河區、西港區、關廟區、鹽水區、麻豆區
+  貼上 tainan_stops_6.js 的全部內容至此
+██████████████████████████████████████████████████ -->
 <script id="raw-data-6">
 // 批次 6/6：玉井區、白河區、西港區、關廟區、鹽水區、麻豆區
 const stops6 = [
@@ -16093,12 +15197,992 @@ const stops6 = [
 {a:"鹽水區",n:"忠孝路158號",t:"19:30",lg:120.255708,lt:23.320640,d:"1246"},
 {a:"鹽水區",n:"後宅71-1號",t:"19:35",lg:120.242540,lt:23.301454,d:"1246"}
 ];
-
+// Also export as rawData alias
+window.rawData6 = typeof stops6 !== "undefined" ? stops6 : [];
 </script>
 
-<!-- ╔══════════════════════════════════════════════════════╗ -->
-<!-- ║              資料區塊結束 END OF DATA BLOCKS              ║ -->
-<!-- ╚══════════════════════════════════════════════════════╝ -->
+<script>
+/* ═══════════════════════════════════════════════════════
+   CORE APP ENGINE
+═══════════════════════════════════════════════════════ */
+'use strict';
+
+// ── State ─────────────────────────────────────────────
+const STATE = {
+  allStops: [],
+  districts: [],
+  selectedDistrict: null,
+  userLat: null,
+  userLng: null,
+  userHeading: null,
+  gpsLocked: false,
+  userManualDistrict: false,
+  firstGpsDone: false,
+  currentMode: 'list',
+  expandedCardId: null,
+  searchQuery: '',
+  notifiedFlags: {},
+  mapInitialized: false,
+  // Virtual scroll
+  vsItems: [],
+  vsStart: 0,
+  vsEnd: 0,
+  VS_ROW_H: 86,
+  VS_BUFFER: 4,
+  VS_VISIBLE: 14,
+  // Geofencing
+  alertQueue: [],
+};
+
+window.garbageMarkerGroup = null;
+let leafletMap = null;
+let markerCluster = null;
+
+// ── Day-of-Week filter ─────────────────────────────────
+function getTodayDayCode() {
+  const d = new Date().getDay(); // 0=Sun,1=Mon,...,6=Sat
+  return d; // 0-6
+}
+
+function dayAllowed(dayStr) {
+  if (!dayStr) return true;
+  const today = getTodayDayCode();
+  // d field like "1356" means Mon,Wed,Thu,Sat (1-indexed Sun=0? No: 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat, 7=Sun in some systems)
+  // Looking at data: d:"1356" likely means days 1,3,5,6 (Mon,Wed,Fri,Sat) or similar
+  // Most common patterns in data: "1356", "1246", "15", "246", "1234567"
+  // Interpret as digits where 1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat,7=Sun
+  const dayMap = { 0:7, 1:1, 2:2, 3:3, 4:4, 5:5, 6:6 }; // JS day -> numeric code
+  const todayCode = String(dayMap[today]);
+  return dayStr.includes(todayCode);
+}
+
+// ── Universal Data Loader ──────────────────────────────
+function loadAllData() {
+  const sources = [];
+  for (let i = 1; i <= 6; i++) {
+    try {
+      const v = window[`rawData${i}`] || window[`stops${i}`];
+      if (Array.isArray(v) && v.length > 0) {
+        sources.push(...v);
+      }
+    } catch(e) {}
+  }
+
+  // Normalize each stop with loose field matching
+  const normalized = [];
+  for (const raw of sources) {
+    try {
+      const stop = {
+        id: Math.random().toString(36).slice(2),
+        district: raw.a || raw.district || raw.area || '未知',
+        name: raw.n || raw.name || raw.stop || '未知站點',
+        time: raw.t || raw.time || raw.arrivalTime || '00:00',
+        lat: parseFloat(raw.lt || raw.lat || raw.latitude || raw.y || 0),
+        lng: parseFloat(raw.lg || raw.lng || raw.longitude || raw.x || 0),
+        days: raw.d || raw.days || '1234567',
+        type: 'garbage', // default; extend if data has type field
+      };
+      if (raw.r || raw.recycle) stop.type = 'recycle';
+      if (raw.f || raw.food) stop.type = 'food';
+      if (!stop.lat || !stop.lng || isNaN(stop.lat) || isNaN(stop.lng)) {
+        stop.lat = 23.0; stop.lng = 120.2; // fallback center
+      }
+      if (!/^\d{2}:\d{2}$/.test(stop.time)) {
+        const m = String(stop.time).match(/(\d{1,2})[:\s](\d{2})/);
+        if (m) stop.time = m[1].padStart(2,'0') + ':' + m[2];
+        else stop.time = '00:00';
+      }
+      normalized.push(stop);
+    } catch(e) {}
+  }
+
+  // Filter by today's schedule
+  STATE.allStops = normalized.filter(s => dayAllowed(s.days));
+
+  // If no data (holiday/no schedule), show all for demo
+  if (STATE.allStops.length === 0 && normalized.length > 0) {
+    STATE.allStops = normalized;
+  }
+
+  // Collect districts
+  const distSet = new Set();
+  for (const s of STATE.allStops) distSet.add(s.district);
+  STATE.districts = Array.from(distSet).sort((a, b) => a.localeCompare(b, 'zh-TW'));
+
+  if (STATE.districts.length === 0) {
+    // Fallback demo
+    injectDemoData();
+  }
+}
+
+function injectDemoData() {
+  STATE.allStops = [
+    {id:'d1',district:'中西區',name:'赤崁樓前',time:'16:30',lat:23.0119,lng:120.2058,days:'1234567',type:'garbage'},
+    {id:'d2',district:'中西區',name:'孔廟廣場',time:'16:45',lat:23.0098,lng:120.2069,days:'1234567',type:'recycle'},
+  ];
+  STATE.districts = ['中西區'];
+  showToast('⚠️ 資料尚未載入，已啟用示範模式。請在底部 DATA BLOCK 貼入真實資料。');
+}
+
+// ── Time Utilities ─────────────────────────────────────
+function getNowMinutes() {
+  const n = new Date();
+  return n.getHours() * 60 + n.getMinutes();
+}
+
+function timeToMinutes(t) {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function minutesToDisplay(m) {
+  const h = Math.floor(m / 60), min = m % 60;
+  return `${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}`;
+}
+
+function countdownText(stopMinutes, nowMinutes) {
+  const diff = stopMinutes - nowMinutes;
+  if (diff < 0) return `已過 ${Math.abs(diff)} 分`;
+  if (diff === 0) return '🚛 抵達中！';
+  if (diff < 60) return `剩 ${diff} 分鐘`;
+  const h = Math.floor(diff/60), m = diff%60;
+  return `剩 ${h}h${m}m`;
+}
+
+function isUpcoming(stopMinutes, nowMinutes) {
+  const diff = stopMinutes - nowMinutes;
+  return diff >= 0 && diff <= 120;
+}
+
+function isPast(stopMinutes, nowMinutes) {
+  return stopMinutes < nowMinutes;
+}
+
+// ── Clock ──────────────────────────────────────────────
+const DAYS_ZH = ['日','一','二','三','四','五','六'];
+function updateClock() {
+  const n = new Date();
+  const h = String(n.getHours()).padStart(2,'0');
+  const m = String(n.getMinutes()).padStart(2,'0');
+  const s = String(n.getSeconds()).padStart(2,'0');
+  const wd = DAYS_ZH[n.getDay()];
+  document.getElementById('clock-display').textContent = `${h}:${m}:${s} 週${wd}`;
+  updateContextBanner(n);
+}
+
+function updateContextBanner(n) {
+  const h = n.getHours();
+  let msg = '';
+  if (h >= 6 && h < 12) msg = '🌅 上午好！今日清運排班已載入，祝出行順利。';
+  else if (h >= 12 && h < 17) msg = '⏱️ 指標提示：午後時分，環境光線充足，適宜安排出門清運物資。';
+  else if (h >= 17 && h < 19) msg = '🛰️ 雷達提示：傍晚黃金清運窗口已開啟，請校對手頭物資，準備前往巷口攔截目標。';
+  else if (h >= 19 && h < 22) msg = '🌆 晚間清運高峰，請注意班次時間，勿錯失最後窗口。';
+  else msg = '🌙 深夜模式：當前班次稀少，請確認明日排班。';
+  document.getElementById('context-banner').textContent = msg;
+}
+
+// ── GPS ───────────────────────────────────────────────
+function initGPS() {
+  if (!navigator.geolocation) {
+    document.getElementById('gps-dot').classList.add('inactive');
+    document.getElementById('gps-label').textContent = 'GPS 不支援';
+    return;
+  }
+  const opts = { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 };
+  navigator.geolocation.watchPosition(onGPS, onGPSErr, opts);
+  if (window.DeviceOrientationEvent) {
+    window.addEventListener('deviceorientation', e => {
+      STATE.userHeading = e.webkitCompassHeading || e.alpha || 0;
+    }, true);
+  }
+}
+
+function onGPS(pos) {
+  STATE.userLat = pos.coords.latitude;
+  STATE.userLng = pos.coords.longitude;
+  STATE.gpsLocked = true;
+  document.getElementById('gps-dot').classList.remove('inactive');
+  document.getElementById('gps-label').textContent = 'GPS 指標已連線';
+
+  if (!STATE.firstGpsDone && !STATE.userManualDistrict) {
+    STATE.firstGpsDone = true;
+    autoSelectNearestDistrict();
+  }
+
+  if (STATE.currentMode === 'list') refreshList();
+  checkGeofence();
+}
+
+function onGPSErr(e) {
+  document.getElementById('gps-dot').classList.add('inactive');
+  document.getElementById('gps-label').textContent = 'GPS 離線';
+}
+
+function autoSelectNearestDistrict() {
+  if (!STATE.userLat || STATE.districts.length === 0) return;
+  let best = STATE.districts[0], bestDist = Infinity;
+  for (const d of STATE.districts) {
+    const stops = STATE.allStops.filter(s => s.district === d);
+    if (stops.length === 0) continue;
+    const avgLat = stops.reduce((a,b) => a + b.lat, 0) / stops.length;
+    const avgLng = stops.reduce((a,b) => a + b.lng, 0) / stops.length;
+    const dist = haversine(STATE.userLat, STATE.userLng, avgLat, avgLng);
+    if (dist < bestDist) { bestDist = dist; best = d; }
+  }
+  selectDistrict(best, false);
+}
+
+// ── Haversine ─────────────────────────────────────────
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = (lat2-lat1) * Math.PI/180;
+  const dLng = (lng2-lng1) * Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function bearing(lat1, lng1, lat2, lng2) {
+  const dLng = (lng2-lng1) * Math.PI/180;
+  const y = Math.sin(dLng) * Math.cos(lat2*Math.PI/180);
+  const x = Math.cos(lat1*Math.PI/180)*Math.sin(lat2*Math.PI/180) - Math.sin(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.cos(dLng);
+  return (Math.atan2(y,x)*180/Math.PI + 360) % 360;
+}
+
+// ── District UI ───────────────────────────────────────
+function buildDistrictPills() {
+  const wrap = document.getElementById('district-scroll');
+  wrap.innerHTML = '';
+  for (const d of STATE.districts) {
+    const btn = document.createElement('button');
+    btn.className = 'district-pill' + (d === STATE.selectedDistrict ? ' active' : '');
+    btn.textContent = d;
+    btn.dataset.district = d;
+    btn.addEventListener('click', () => {
+      STATE.userManualDistrict = true;
+      selectDistrict(d, true);
+    });
+    wrap.appendChild(btn);
+  }
+}
+
+function selectDistrict(d, scroll = true) {
+  STATE.selectedDistrict = d;
+  STATE.searchQuery = '';
+  document.getElementById('search-input').value = '';
+  document.getElementById('search-clear').classList.remove('visible');
+  buildDistrictPills();
+  if (scroll) {
+    const pill = document.querySelector(`.district-pill[data-district="${d}"]`);
+    if (pill) pill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }
+  refreshList();
+  if (STATE.currentMode === 'map') refreshMap();
+}
+
+// ── Filter & Sort Stops ────────────────────────────────
+function getFilteredStops() {
+  if (!STATE.selectedDistrict) return [];
+  const now = getNowMinutes();
+  let stops = STATE.allStops.filter(s => s.district === STATE.selectedDistrict);
+
+  if (STATE.searchQuery) {
+    const q = STATE.searchQuery;
+    stops = stops.filter(s => s.name.includes(q) || s.time.includes(q));
+  }
+
+  stops.sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
+  return stops;
+}
+
+// ── Virtual Scroll List ────────────────────────────────
+function refreshList() {
+  const stops = getFilteredStops();
+
+  if (stops.length === 0) {
+    renderEmpty();
+    return;
+  }
+
+  STATE.vsItems = buildVirtualItems(stops);
+  STATE.vsStart = 0;
+  STATE.vsEnd = Math.min(STATE.VS_VISIBLE + STATE.VS_BUFFER * 2, STATE.vsItems.length);
+
+  renderVirtualWindow();
+  autoScrollToNext(stops);
+}
+
+function buildVirtualItems(stops) {
+  // Group by time-hour bucket, add sticky headers
+  const now = getNowMinutes();
+  const items = [];
+  let lastHour = -1;
+
+  for (const stop of stops) {
+    const sm = timeToMinutes(stop.time);
+    const h = Math.floor(sm / 60);
+    if (h !== lastHour) {
+      // Count stops in this hour
+      const count = stops.filter(s => Math.floor(timeToMinutes(s.time)/60) === h).length;
+      items.push({ type: 'header', hour: h, count, text: `${String(h).padStart(2,'0')}:00 班次 · ${count} 個停靠點` });
+      lastHour = h;
+    }
+    items.push({ type: 'stop', stop });
+  }
+  return items;
+}
+
+function renderVirtualWindow() {
+  const container = document.getElementById('card-container');
+  const items = STATE.vsItems;
+  const start = Math.max(0, STATE.vsStart);
+  const end = Math.min(STATE.vsEnd, items.length);
+
+  // Calculate pad heights
+  const topPad = start * STATE.VS_ROW_H;
+  const botPad = (items.length - end) * STATE.VS_ROW_H;
+  document.getElementById('v-top-pad').style.height = topPad + 'px';
+  document.getElementById('v-bot-pad').style.height = botPad + 'px';
+
+  const frag = document.createDocumentFragment();
+  const now = getNowMinutes();
+
+  for (let i = start; i < end; i++) {
+    const item = items[i];
+    if (item.type === 'header') {
+      const hdr = document.createElement('div');
+      hdr.className = 'time-group-header';
+      hdr.innerHTML = `<div class="time-group-dot"></div><span>${item.text}</span>`;
+      frag.appendChild(hdr);
+    } else {
+      frag.appendChild(buildCard(item.stop, now));
+    }
+  }
+
+  container.innerHTML = '';
+  container.appendChild(frag);
+
+  // Restore expanded card
+  if (STATE.expandedCardId) {
+    const det = document.querySelector(`[data-card-id="${STATE.expandedCardId}"] .card-detail`);
+    if (det) det.classList.add('open');
+  }
+}
+
+function buildCard(stop, now) {
+  const sm = timeToMinutes(stop.time);
+  const past = isPast(sm, now);
+  const upcoming = isUpcoming(sm, now);
+  const diff = sm - now;
+
+  const card = document.createElement('div');
+  card.className = 'stop-card' + (past ? ' past' : upcoming ? ' upcoming' : '');
+  card.dataset.cardId = stop.id;
+  card.dataset.lat = stop.lat;
+  card.dataset.lng = stop.lng;
+
+  // Distance & bearing
+  let distText = '';
+  let arrowDeg = 0;
+  if (STATE.userLat) {
+    const d = haversine(STATE.userLat, STATE.userLng, stop.lat, stop.lng);
+    distText = d < 1000 ? `距您 ${Math.round(d)} 公尺` : `距您 ${(d/1000).toFixed(1)} 公里`;
+    arrowDeg = bearing(STATE.userLat, STATE.userLng, stop.lat, stop.lng) - (STATE.userHeading || 0);
+  }
+
+  // Search highlight
+  let nameHTML = escapeHTML(stop.name);
+  if (STATE.searchQuery) {
+    const re = new RegExp(escapeRegex(STATE.searchQuery), 'g');
+    nameHTML = nameHTML.replace(re, m => `<mark class="highlight">${m}</mark>`);
+  }
+
+  const typeLabels = { garbage: '一般', recycle: '回收', food: '廚餘' };
+  const typeClasses = { garbage: 'garbage', recycle: 'recycle', food: 'food' };
+  const cdText = past ? `已過 ${Math.abs(diff)} 分` : countdownText(sm, now);
+  const cdClass = diff >= 0 && diff <= 10 ? 'card-countdown soon' : 'card-countdown';
+
+  card.innerHTML = `
+    <div class="card-main">
+      <div class="card-time-col">
+        <div class="card-time">${stop.time}</div>
+        <div class="${cdClass}">${cdText}</div>
+        <div class="card-radar"></div>
+      </div>
+      <div class="card-info-col">
+        <div class="card-name-row">
+          <div class="card-name">${nameHTML}</div>
+          <span class="type-tag ${typeClasses[stop.type]}">${typeLabels[stop.type]}</span>
+        </div>
+        <div class="card-dist-row">
+          ${distText ? `
+          <svg class="dist-arrow" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"
+            style="transform:rotate(${arrowDeg}deg)">
+            <path d="M7 12V2M7 2L3.5 6M7 2l3.5 4"/>
+          </svg>
+          <span>${distText}</span>` : '<span style="color:rgba(255,255,255,0.2)">—</span>'}
+        </div>
+      </div>
+    </div>
+    <div class="card-detail">
+      <div class="card-detail-inner">
+        <div class="detail-coords">
+          <span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.2)">
+            ${stop.lat.toFixed(6)}, ${stop.lng.toFixed(6)}
+          </span>
+        </div>
+        <button class="map-link-btn" onclick="flyToStop(${stop.lat},${stop.lng},'${escapeAttr(stop.name)}','${stop.time}')">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="6" cy="5" r="2"/><path d="M6 11C6 11 1.5 7.5 1.5 5a4.5 4.5 0 019 0C10.5 7.5 6 11 6 11z"/>
+          </svg>
+          在地圖上查看
+        </button>
+        <div class="detail-actions">
+          <a class="nav-btn apple" href="maps://?q=${stop.lat},${stop.lng}&ll=${stop.lat},${stop.lng}&t=m">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M6 1C3.24 1 1 3.24 1 6s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm.5 7.5L4 6h1.5V4h1v2H8L6.5 8.5z"/></svg>
+            Apple Maps
+          </a>
+          <a class="nav-btn google" href="https://www.google.com/maps/search/?api=1&query=${stop.lat},${stop.lng}" target="_blank">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="6" cy="5" r="2"/><path d="M6 11C6 11 1.5 7.5 1.5 5a4.5 4.5 0 019 0C10.5 7.5 6 11 6 11z"/>
+            </svg>
+            Google Maps
+          </a>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Toggle accordion
+  card.addEventListener('click', e => {
+    if (e.target.closest('a') || e.target.closest('.map-link-btn')) return;
+    toggleCard(stop.id, card);
+  });
+
+  return card;
+}
+
+function toggleCard(id, card) {
+  const detail = card.querySelector('.card-detail');
+  const isOpen = detail.classList.contains('open');
+
+  // Close all open
+  document.querySelectorAll('.card-detail.open').forEach(d => d.classList.remove('open'));
+
+  if (!isOpen) {
+    detail.classList.add('open');
+    STATE.expandedCardId = id;
+  } else {
+    STATE.expandedCardId = null;
+  }
+}
+
+function autoScrollToNext(stops) {
+  const now = getNowMinutes();
+  const next = stops.find(s => timeToMinutes(s.time) >= now);
+  if (!next) return;
+
+  // Find its index in vsItems
+  const idx = STATE.vsItems.findIndex(item => item.type === 'stop' && item.stop.id === next.id);
+  if (idx < 0) return;
+
+  const scrollEl = document.getElementById('list-scroll');
+  const targetScroll = idx * STATE.VS_ROW_H;
+  setTimeout(() => {
+    scrollEl.scrollTo({ top: Math.max(0, targetScroll - 80), behavior: 'smooth' });
+  }, 400);
+}
+
+function renderEmpty() {
+  const container = document.getElementById('card-container');
+  document.getElementById('v-top-pad').style.height = '0';
+  document.getElementById('v-bot-pad').style.height = '0';
+  container.innerHTML = `
+    <div class="empty-state">
+      <svg class="empty-icon" viewBox="0 0 64 64" fill="none">
+        <circle cx="32" cy="32" r="24" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
+        <circle cx="32" cy="32" r="16" stroke="rgba(56,189,248,0.2)" stroke-width="1" stroke-dasharray="4 4">
+          <animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="4s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="32" cy="32" r="4" fill="rgba(56,189,248,0.4)"/>
+        <line x1="32" y1="8" x2="32" y2="20" stroke="rgba(56,189,248,0.4)" stroke-width="1.5"/>
+        <line x1="32" y1="44" x2="32" y2="56" stroke="rgba(56,189,248,0.4)" stroke-width="1.5"/>
+        <line x1="8" y1="32" x2="20" y2="32" stroke="rgba(56,189,248,0.4)" stroke-width="1.5"/>
+        <line x1="44" y1="32" x2="56" y2="32" stroke="rgba(56,189,248,0.4)" stroke-width="1.5"/>
+      </svg>
+      <div class="empty-text">
+        ${STATE.searchQuery ? `🔍 搜尋「${STATE.searchQuery}」無吻合結果<br><span style="font-size:10px;opacity:0.6">嘗試其他關鍵字，或清除搜尋</span>` : '⚠️ 今日此區無清運班次<br><span style="font-size:10px;opacity:0.6">或資料尚未載入，請確認 DATA BLOCK</span>'}
+      </div>
+    </div>
+  `;
+}
+
+// Virtual scroll handler
+function initVirtualScroll() {
+  const scrollEl = document.getElementById('list-scroll');
+  let ticking = false;
+  scrollEl.addEventListener('scroll', () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      handleVirtualScroll(scrollEl.scrollTop);
+      ticking = false;
+    });
+  }, { passive: true });
+}
+
+function handleVirtualScroll(scrollTop) {
+  const rowH = STATE.VS_ROW_H;
+  const buf = STATE.VS_BUFFER;
+  const vis = STATE.VS_VISIBLE;
+  const total = STATE.vsItems.length;
+  if (total === 0) return;
+
+  const start = Math.max(0, Math.floor(scrollTop / rowH) - buf);
+  const end = Math.min(total, start + vis + buf * 2);
+
+  if (start !== STATE.vsStart || end !== STATE.vsEnd) {
+    STATE.vsStart = start;
+    STATE.vsEnd = end;
+    renderVirtualWindow();
+  }
+}
+
+// ── Map View ──────────────────────────────────────────
+function initMap() {
+  if (STATE.mapInitialized) return;
+  STATE.mapInitialized = true;
+
+  leafletMap = L.map('map', {
+    center: [23.15, 120.30],
+    zoom: 12,
+    preferCanvas: true,
+    maxBounds: [[22.85, 120.00], [23.45, 120.65]],
+    maxBoundsViscosity: 1.0,
+    minZoom: 11,
+    maxZoom: 18,
+    zoomControl: false,
+    attributionControl: false,
+  });
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    maxZoom: 19,
+    subdomains: 'abcd',
+  }).addTo(leafletMap);
+
+  window.garbageMarkerGroup = L.layerGroup().addTo(leafletMap);
+
+  if (STATE.selectedDistrict) refreshMap();
+}
+
+function refreshMap() {
+  if (!leafletMap) return;
+  if (!window.garbageMarkerGroup) return;
+
+  window.garbageMarkerGroup.clearLayers();
+
+  const stops = getFilteredStops();
+  const now = getNowMinutes();
+  const bounds = leafletMap.getBounds();
+
+  // Only render visible + slight margin
+  const margin = 0.03;
+  const visible = stops.filter(s =>
+    s.lat >= bounds.getSouth() - margin &&
+    s.lat <= bounds.getNorth() + margin &&
+    s.lng >= bounds.getWest() - margin &&
+    s.lng <= bounds.getEast() + margin
+  );
+
+  // If zoomed out far, cluster
+  const zoom = leafletMap.getZoom();
+
+  for (const stop of visible.slice(0, 300)) { // cap at 300 visible
+    const sm = timeToMinutes(stop.time);
+    const upcoming = isUpcoming(sm, now);
+    const past = isPast(sm, now);
+    const diff = sm - now;
+
+    const color = upcoming && diff <= 15 ? '#4ade80' : past ? '#6b7280' : '#38bdf8';
+    const opacity = past ? 0.4 : 1;
+    const size = upcoming && diff <= 15 ? 14 : 10;
+
+    const svgHtml = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${size*2}" height="${size*2+6}" viewBox="0 0 ${size*2} ${size*2+6}" style="overflow:visible">
+        ${upcoming && diff <= 15 ? `
+          <circle cx="${size}" cy="${size}" r="${size*1.8}" fill="${color}" opacity="0.08">
+            <animate attributeName="r" values="${size*1.2};${size*2.2};${size*1.2}" dur="2s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.12;0;0.12" dur="2s" repeatCount="indefinite"/>
+          </circle>` : ''}
+        <circle cx="${size}" cy="${size}" r="${size*0.8}" fill="${color}" opacity="${opacity}" filter="url(#pin-glow)"/>
+        <circle cx="${size}" cy="${size}" r="${size*0.4}" fill="white" opacity="${opacity*0.9}"/>
+        <line x1="${size}" y1="${size*1.8}" x2="${size}" y2="${size*2+5}" stroke="${color}" stroke-width="1.5" opacity="${opacity}"/>
+      </svg>`;
+
+    const icon = L.divIcon({
+      html: svgHtml,
+      className: '',
+      iconSize: [size*2, size*2+6],
+      iconAnchor: [size, size*2+6],
+    });
+
+    const marker = L.marker([stop.lat, stop.lng], { icon });
+
+    marker.on('click', () => {
+      const popupContent = buildPopupHTML(stop, now);
+      marker.bindPopup(popupContent, { maxWidth: 260, className: 'dark-popup' }).openPopup();
+    });
+
+    window.garbageMarkerGroup.addLayer(marker);
+  }
+
+  // Re-render on map move
+  leafletMap.off('moveend', refreshMap);
+  leafletMap.on('moveend', refreshMap);
+}
+
+function buildPopupHTML(stop, now) {
+  const sm = timeToMinutes(stop.time);
+  const cdText = countdownText(sm, now);
+  return `<div class="popup-inner">
+    <div class="popup-time">${stop.time}</div>
+    <div class="popup-name">${escapeHTML(stop.name)}</div>
+    <div class="popup-countdown">${cdText}</div>
+    <div class="popup-actions">
+      <a class="apple-link" href="maps://?q=${stop.lat},${stop.lng}&ll=${stop.lat},${stop.lng}">
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><path d="M6 1C3.24 1 1 3.24 1 6s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm.5 7.5L4 6h1.5V4h1v2H8L6.5 8.5z"/></svg>
+        Apple Maps
+      </a>
+      <a class="google-link" href="https://www.google.com/maps/search/?api=1&query=${stop.lat},${stop.lng}" target="_blank">
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="2"/><path d="M6 11C6 11 1.5 7.5 1.5 5a4.5 4.5 0 019 0C10.5 7.5 6 11 6 11z"/></svg>
+        Google Maps
+      </a>
+    </div>
+  </div>`;
+}
+
+function flyToStop(lat, lng, name, time) {
+  setMode('map');
+  setTimeout(() => {
+    if (leafletMap) {
+      leafletMap.flyTo([lat, lng], 17, { animate: true, duration: 0.5 });
+      setTimeout(() => {
+        const now = getNowMinutes();
+        const sm = timeToMinutes(time);
+        const fakeStop = { lat, lng, name, time, id: 'fly' };
+        const popup = L.popup({ maxWidth: 260, className: 'dark-popup' })
+          .setLatLng([lat, lng])
+          .setContent(buildPopupHTML(fakeStop, now))
+          .openOn(leafletMap);
+      }, 600);
+    }
+  }, 200);
+}
+
+// ── Mode Toggle ───────────────────────────────────────
+function setMode(mode) {
+  STATE.currentMode = mode;
+  const listView = document.getElementById('list-view');
+  const mapView = document.getElementById('map-view');
+  const btnList = document.getElementById('btn-list');
+  const btnMap = document.getElementById('btn-map');
+  const slider = document.getElementById('mode-slider');
+
+  if (mode === 'list') {
+    listView.classList.add('active');
+    mapView.classList.remove('active');
+    btnList.classList.add('active');
+    btnMap.classList.remove('active');
+    slider.classList.remove('map-active');
+  } else {
+    listView.classList.remove('active');
+    mapView.classList.add('active');
+    btnList.classList.remove('active');
+    btnMap.classList.add('active');
+    slider.classList.add('map-active');
+    initMap();
+    refreshMap();
+  }
+}
+
+// ── Search ────────────────────────────────────────────
+function initSearch() {
+  const input = document.getElementById('search-input');
+  const clear = document.getElementById('search-clear');
+
+  input.addEventListener('input', () => {
+    STATE.searchQuery = input.value.trim();
+    clear.classList.toggle('visible', !!STATE.searchQuery);
+    refreshList();
+  });
+
+  input.addEventListener('focus', () => {
+    input.style.borderColor = 'rgba(56,189,248,0.35)';
+  });
+  input.addEventListener('blur', () => {
+    input.style.borderColor = '';
+  });
+}
+
+function clearSearch() {
+  const input = document.getElementById('search-input');
+  STATE.searchQuery = '';
+  input.value = '';
+  input.focus();
+  document.getElementById('search-clear').classList.remove('visible');
+  refreshList();
+}
+
+// ── Geofencing & Notifications ────────────────────────
+function checkGeofence() {
+  if (!STATE.userLat || !STATE.selectedDistrict) return;
+  const now = getNowMinutes();
+  const stops = STATE.allStops.filter(s => s.district === STATE.selectedDistrict);
+
+  for (const stop of stops) {
+    const sm = timeToMinutes(stop.time);
+    const diff = sm - now;
+    if (diff < 0 || diff > 15) continue;
+
+    const dist = haversine(STATE.userLat, STATE.userLng, stop.lat, stop.lng);
+
+    const key500 = `${stop.id}_500`;
+    const key200 = `${stop.id}_200`;
+
+    if (diff <= 10 && dist <= 500 && !STATE.notifiedFlags[key500]) {
+      STATE.notifiedFlags[key500] = true;
+      playBeep('short');
+      showToast(`🛰️ 清運指標已進入防禦半徑（500米內），請準備下樓。\n${stop.time} · ${stop.name}`);
+    }
+
+    if (diff <= 3 && dist <= 200 && !STATE.notifiedFlags[key200]) {
+      STATE.notifiedFlags[key200] = true;
+      playBeep('chord');
+      showToast(`🚨 警告：清運指標已進入最終攔截窗口（200米內）！請立即前往巷口！\n${stop.time} · ${stop.name}`, true);
+    }
+  }
+}
+
+function playBeep(type) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (type === 'short') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = 880;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.start(); osc.stop(ctx.currentTime + 0.3);
+    } else {
+      // 8-bit chord
+      const notes = [523, 659, 784, 1047];
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'square';
+        gain.gain.setValueAtTime(0.1, ctx.currentTime + i*0.1);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i*0.1 + 0.4);
+        osc.start(ctx.currentTime + i*0.1);
+        osc.stop(ctx.currentTime + i*0.1 + 0.4);
+      });
+    }
+  } catch(e) {}
+}
+
+// ── Toast ─────────────────────────────────────────────
+function showToast(msg, urgent = false) {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast' + (urgent ? ' urgent' : '');
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add('toast-out');
+    setTimeout(() => toast.remove(), 300);
+  }, 5000);
+}
+
+// ── Night Mode ────────────────────────────────────────
+function checkNightMode() {
+  const h = new Date().getHours();
+  const stops = STATE.selectedDistrict
+    ? STATE.allStops.filter(s => s.district === STATE.selectedDistrict)
+    : [];
+  const now = getNowMinutes();
+  const futureStops = stops.filter(s => timeToMinutes(s.time) > now);
+
+  if (h >= 22 || (h < 6 && futureStops.length === 0)) {
+    document.getElementById('night-mode').classList.add('active');
+    updateNightCountdown();
+  }
+}
+
+function updateNightCountdown() {
+  const now = new Date();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(6, 0, 0, 0);
+
+  const diff = Math.max(0, Math.floor((tomorrow - now) / 1000));
+  const h = Math.floor(diff / 3600);
+  const m = Math.floor((diff % 3600) / 60);
+  const s = diff % 60;
+  document.getElementById('night-countdown').textContent =
+    `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+// ── Confetti ──────────────────────────────────────────
+function launchConfetti() {
+  const container = document.getElementById('confetti-container');
+  const colors = ['#4ade80','#38bdf8','#fb7185','#fb923c','#a78bfa','#f472b6'];
+  for (let i = 0; i < 60; i++) {
+    const piece = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    piece.style.cssText = `
+      position:absolute;
+      left:${Math.random()*100}vw;
+      top:-10px;
+      width:${4+Math.random()*6}px;
+      height:${4+Math.random()*6}px;
+    `;
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', '50%');
+    circle.setAttribute('cy', '50%');
+    circle.setAttribute('r', '50%');
+    circle.setAttribute('fill', colors[Math.floor(Math.random()*colors.length)]);
+    piece.appendChild(circle);
+    piece.classList.add('confetti-piece');
+    piece.style.animationDuration = `${1.5 + Math.random()*2}s`;
+    piece.style.animationDelay = `${Math.random()*0.5}s`;
+    container.appendChild(piece);
+    piece.addEventListener('animationend', () => piece.remove());
+  }
+  showToast('✨ 今日清運指標大功告成！感謝你對乾淨家園的付出！');
+}
+
+// ── Prevent zoom & native behaviors ───────────────────
+function lockNativeBehaviors() {
+  document.addEventListener('gesturestart', e => e.preventDefault(), { passive: false });
+  document.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
+
+  let lastTap = 0;
+  document.addEventListener('touchend', e => {
+    const now = Date.now();
+    if (now - lastTap < 300) e.preventDefault();
+    lastTap = now;
+  }, { passive: false });
+
+  document.addEventListener('contextmenu', e => e.preventDefault());
+}
+
+// ── Service Worker / Cache ────────────────────────────
+function initServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  const swCode = `
+    const CACHE = 'tainan-v1';
+    const TILE_RE = /\\.png$/;
+    self.addEventListener('fetch', e => {
+      if (TILE_RE.test(e.request.url)) {
+        e.respondWith(
+          caches.match(e.request).then(cached => {
+            if (cached) return cached;
+            return fetch(e.request).then(res => {
+              const clone = res.clone();
+              caches.open(CACHE).then(c => c.put(e.request, clone));
+              return res;
+            }).catch(() => new Response('', {status: 503}));
+          })
+        );
+      }
+    });
+  `;
+  try {
+    const blob = new Blob([swCode], { type: 'application/javascript' });
+    const url = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(url).catch(() => {});
+  } catch(e) {}
+}
+
+// ── Helpers ───────────────────────────────────────────
+function escapeHTML(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+function escapeAttr(str) {
+  return String(str).replace(/'/g,"\\'").replace(/\n/g,' ');
+}
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+}
+
+// ── Refresh loop ──────────────────────────────────────
+function startRefreshLoop() {
+  setInterval(() => {
+    updateClock();
+    if (STATE.currentMode === 'list' && STATE.selectedDistrict) {
+      renderVirtualWindow();
+    }
+    checkGeofence();
+    updateNightCountdown();
+  }, 1000);
+
+  setInterval(() => {
+    checkNightMode();
+  }, 60000);
+}
+
+// ── BOOT ──────────────────────────────────────────────
+function boot() {
+  lockNativeBehaviors();
+  initServiceWorker();
+
+  // Load data
+  try { loadAllData(); } catch(e) { injectDemoData(); }
+
+  // Build UI
+  buildDistrictPills();
+
+  if (STATE.districts.length > 0) {
+    selectDistrict(STATE.districts[0], false);
+  }
+
+  initVirtualScroll();
+  initSearch();
+
+  // Clock
+  updateClock();
+  startRefreshLoop();
+
+  // GPS
+  initGPS();
+
+  // Dismiss splash after data is ready
+  setTimeout(() => {
+    const splash = document.getElementById('splash');
+    splash.classList.add('fade-out');
+    setTimeout(() => splash.remove(), 450);
+    checkNightMode();
+  }, STATE.allStops.length > 10 ? 800 : 1500);
+}
+
+document.addEventListener('DOMContentLoaded', boot);
+</script>
+
+<!-- ════════════════════════════════════════════════════
+  ACTUAL DATA — Copy & paste each file's content here
+  replacing the empty array placeholders above.
+  
+  Example: Replace  const rawData1 = window.rawData1 || [];
+  With the full contents of tainan_stops_1.js
+  (which starts: const stops1 = [ ... ])
+  
+  The engine auto-detects stops1…stops6 variable names.
+════════════════════════════════════════════════════ -->
 
 </body>
 </html>
