@@ -14516,6 +14516,7 @@ sc.appendChild(chip);
 });
 }
 function selectDistrict(d,manual){
+try{if(window.garbageMarkerGroup)window.garbageMarkerGroup.clearLayers();}catch(e){}
 window.currentDistrict=d;
 if(manual)window.isManualDistrict=true;
 document.querySelectorAll('.district-chip').forEach(c=>{
@@ -14528,9 +14529,9 @@ _hasInitialScrolled=false;
 filterAndRenderStops();
 playClickSound();
 if(window.map&&window._mapReady){
-if(DC[d])window.map.flyTo([DC[d].lat,DC[d].lng],14,{animate:true,duration:0.8});
+if(DC[d]){window._mapFlying=true;window.map.flyTo([DC[d].lat,DC[d].lng],14,{animate:true,duration:0.8});setTimeout(()=>{window._mapFlying=false;try{updateMapMarkers();}catch(e){}},900);}
 setTimeout(()=>{try{window.map.invalidateSize();}catch(e){}},100);
-updateMapMarkers();
+setTimeout(()=>{try{updateMapMarkers();}catch(e){}},500);
 }
 }
 function filterAndRenderStops(){
@@ -14551,7 +14552,7 @@ vsScrollTop=0;
 document.getElementById('list-container').scrollTop=0;
 }
 renderVirtualList();
-if(window._mapReady)updateMapMarkers();
+if(window._mapReady&&!window._mapFlying)updateMapMarkers();
 updateAuroraLine();
 setTimeout(()=>autoScrollToNext(),300);
 }
@@ -14607,10 +14608,15 @@ try{
 if(!bounds.contains(L.latLng(stop.lt,stop.lg)))return;
 const mins=minutesUntil(stop.t),isArr=mins<=5&&mins>=0,isPast=mins<0;
 const dc=isPast?'#334155':isArr?'#f97316':'#38bdf8';
-const sz=zoom>=15?14:zoom>=13?10:8,tot=sz+8,cen=tot/2;
-const icon=L.divIcon({className:'',iconSize:[tot,tot],iconAnchor:[cen,cen],
-html:`<svg width="${tot}" height="${tot}" viewBox="0 0 ${tot} ${tot}"><circle cx="${cen}" cy="${cen}" r="${sz/2+2}" fill="${isArr?'rgba(249,115,22,0.3)':'rgba(56,189,248,0.2)'}"/><circle cx="${cen}" cy="${cen}" r="${sz/2}" fill="${dc}" stroke="rgba(255,255,255,0.7)" stroke-width="1"/></svg>`});
-const marker=L.marker([stop.lt,stop.lg],{icon});
+const sz=zoom>=15?7:zoom>=13?5:4;
+const marker=L.circleMarker([stop.lt,stop.lg],{
+radius:sz,
+color:isArr?'rgba(249,115,22,0.9)':'rgba(255,255,255,0.7)',
+fillColor:dc,
+fillOpacity:1,
+weight:1.5,
+interactive:true
+});
 marker.on('click',()=>showPopup(stop));
 window.garbageMarkerGroup.addLayer(marker);
 }catch(e){}
