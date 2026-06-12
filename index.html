@@ -29,7 +29,7 @@
 <div id="header-right">
 <button id="audio-btn" title="音樂開關" onclick="toggleAudio()">
 <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-<path id="audio-waves" d="M3 6H1v6h2V6zm3-3H4v12h2V3zm3-2H7v16h2V1zm3 3h-2v10h2V4zm3 2h-2v6h2V6z" fill="rgba(255,255,255,0.7)"/>
+<path d="M3 6H1v6h2V6zm3-3H4v12h2V3zm3-2H7v16h2V1zm3 3h-2v10h2V4zm3 2h-2v6h2V6z" fill="rgba(255,255,255,0.7)"/>
 <line id="audio-mute-line" x1="1" y1="1" x2="17" y2="17" stroke="rgba(255,80,80,0.8)" stroke-width="1.5" stroke-linecap="round" style="display:none;"/>
 </svg>
 </button>
@@ -14316,6 +14316,7 @@ window.userLat=null;
 window.userLng=null;
 window.isManualDistrict=false;
 window.map=null;
+window.tileLayer=null;
 window.garbageMarkerGroup=null;
 window.userMarkerGroup=null;
 window.isBgmPlaying=false;
@@ -14324,6 +14325,8 @@ window.isTomorrowPreview=false;
 window.rafScheduled=false;
 window._userHasScrolled=false;
 window._confettiShown=false;
+window._mapReady=false;   
+window._dataReady=false;  
 window._gpsWatchId=null;
 window.audioCtx=null;
 window.bgmGain=null;
@@ -14406,8 +14409,9 @@ let dn=stop.n;
 if(sq&&sq.trim()){const q=sq.trim(),i2=dn.toLowerCase().indexOf(q.toLowerCase());if(i2>=0)dn=dn.slice(0,i2)+`<span class="highlight">${dn.slice(i2,i2+q.length)}</span>`+dn.slice(i2+q.length);}
 const ds=dist!==null?`距您 ${dist>=1000?(dist/1000).toFixed(1)+'公里':dist+'公尺'}`:'';
 const isExp=window.expandedCardId===sid;
-return`<div class="stop-card${isArr?' arriving':''}${isExp?' expanded':''}" data-id="${sid}" data-idx="${idx}" style="min-height:82px;" onclick="toggleCard('${sid}')">
-${isArr?`<svg class="glow-svg" viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect class="glow-rect" x="0.75" y="0.75" width="98.5" height="98.5" rx="19.25" ry="19.25" pathLength="1" stroke-dasharray="0.15 0.85" stroke-dashoffset="0"/></svg>`:''}
+const glowSVG=isArr?`<svg class="glow-svg" viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect class="glow-rect" x="0.75" y="0.75" width="98.5" height="98.5" rx="19.25" ry="19.25" pathLength="1" stroke-dasharray="0.15 0.85" stroke-dashoffset="0"/></svg>`:'';
+return`<div class="stop-card${isArr?' arriving':''}${isExp?' expanded':''}" data-id="${sid}" data-idx="${idx}" style="contain:layout;" onclick="toggleCard('${sid}')">
+${glowSVG}
 <div class="stop-card-main">
 <div class="stop-time-col"><div class="stop-time">${stop.t}</div><div class="stop-countdown ${cc}">${cs}</div></div>
 <div class="stop-info"><div class="stop-name">${dn}</div><div class="stop-meta">${stop.a}${ds?' · '+ds:''}</div></div>
@@ -14462,13 +14466,31 @@ setTimeout(()=>c.addEventListener('touchstart',_markUserScroll,{passive:true}),6
 }
 function _markUserScroll(){window._userHasScrolled=true;}
 function toggleCard(sid){
-if(window.expandedCardId===sid)window.expandedCardId=null;
-else{
-window.expandedCardId=sid;
-const s=window.filteredStops.find(s=>`${s.a}_${s.n}_${s.t}`.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'_')===sid);
-if(s&&window.map)window.map.flyTo([s.lt,s.lg],17,{animate:true,duration:0.8});
+document.querySelectorAll('.stop-card.expanded').forEach(el=>{
+if(el.dataset.id!==sid){
+el.classList.remove('expanded');
+const d=el.querySelector('.stop-detail');if(d)d.classList.remove('open');
+const g=el.querySelector('.glow-svg');if(g)g.style.opacity='1';
 }
-renderVirtualList();
+});
+const card=document.querySelector(`.stop-card[data-id="${sid}"]`);
+if(window.expandedCardId===sid){
+window.expandedCardId=null;
+if(card){
+card.classList.remove('expanded');
+const d=card.querySelector('.stop-detail');if(d)d.classList.remove('open');
+const g=card.querySelector('.glow-svg');if(g)g.style.opacity='1';
+}
+}else{
+window.expandedCardId=sid;
+if(card){
+card.classList.add('expanded');
+const d=card.querySelector('.stop-detail');if(d)d.classList.add('open');
+const g=card.querySelector('.glow-svg');if(g)g.style.opacity='0';
+const s=window.filteredStops.find(s=>`${s.a}_${s.n}_${s.t}`.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'_')===sid);
+if(s&&window.map&&window._mapReady)window.map.flyTo([s.lt,s.lg],17,{animate:true,duration:0.8});
+}
+}
 }
 function toggleBell(ev,sid){
 ev.stopPropagation();
@@ -14500,7 +14522,11 @@ if(c.dataset.district===d)c.scrollIntoView({behavior:'smooth',block:'nearest',in
 window._userHasScrolled=false;
 filterAndRenderStops();
 playClickSound();
-if(DC[d]&&window.map){window.map.flyTo([DC[d].lat,DC[d].lng],14,{animate:true,duration:0.8});updateMapMarkers();}
+if(window.map&&window._mapReady){
+if(DC[d])window.map.flyTo([DC[d].lat,DC[d].lng],14,{animate:true,duration:0.8});
+setTimeout(()=>{try{window.map.invalidateSize();}catch(e){}},100);
+updateMapMarkers();
+}
 }
 function filterAndRenderStops(){
 const dc=window.isTomorrowPreview?getTomorrowCode():getTodayCode();
@@ -14518,26 +14544,54 @@ window.filteredStops=stops;
 vsScrollTop=0;
 document.getElementById('list-container').scrollTop=0;
 renderVirtualList();
-updateMapMarkers();
+if(window._mapReady)updateMapMarkers();
 updateAuroraLine();
 setTimeout(()=>autoScrollToNext(),300);
 }
 function initMap(){
 try{
 if(typeof L==='undefined'){console.error('Leaflet not loaded');return;}
-window.map=L.map('map',{preferCanvas:true,zoomControl:false,attributionControl:false,maxBounds:[[22.85,119.95],[23.50,120.70]],maxBoundsViscosity:1.0,minZoom:11,maxZoom:18,tap:true,tapTolerance:15});
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'',subdomains:'abcd',maxZoom:19}).addTo(window.map);
+window.map=L.map('map',{
+preferCanvas:true,
+zoomControl:false,
+attributionControl:false,
+maxBounds:[[22.85,119.95],[23.50,120.70]],
+maxBoundsViscosity:1.0,
+minZoom:11,maxZoom:18,
+tap:true,tapTolerance:15
+});
+window.tileLayer=L.tileLayer(
+'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+{attribution:'',subdomains:'abcd',maxZoom:19}
+).addTo(window.map);
 window.map.setView([22.997,120.212],14);
+setTimeout(()=>{
+try{window.map.invalidateSize();}catch(e){}
+},300);
+let phase2Done=false;
+function doPhase2(){
+if(phase2Done)return;
+phase2Done=true;
+window._mapReady=true;
 window.garbageMarkerGroup=L.layerGroup().addTo(window.map);
 window.userMarkerGroup=L.layerGroup().addTo(window.map);
-window.map.on('dragstart zoomstart movestart',()=>{document.getElementById('list-container').style.pointerEvents='none';});
-window.map.on('dragend zoomend moveend',()=>{document.getElementById('list-container').style.pointerEvents='';updateMapMarkers();});
-window.map.on('moveend zoomend',()=>{updateAuroraLine();});
+window.map.on('dragstart zoomstart movestart',()=>{
+document.getElementById('list-container').style.pointerEvents='none';
+});
+window.map.on('dragend zoomend moveend',()=>{
+document.getElementById('list-container').style.pointerEvents='';
+updateMapMarkers();
+});
+window.map.on('moveend zoomend',()=>updateAuroraLine());
+if(window._dataReady)updateMapMarkers();
+}
+window.tileLayer.on('load',doPhase2);
+setTimeout(doPhase2,2000);
 }catch(e){console.warn('Map init:',e);}
 }
 function updateMapMarkers(){
 try{
-if(!window.map||!window.garbageMarkerGroup)return;
+if(!window.map||!window.garbageMarkerGroup||!window._mapReady)return;
 window.garbageMarkerGroup.clearLayers();
 const stops=window.filteredStops;if(!stops||!stops.length)return;
 const bounds=window.map.getBounds().pad(0.3),zoom=window.map.getZoom();
@@ -14570,7 +14624,7 @@ L.popup({maxWidth:300}).setLatLng([stop.lt,stop.lg]).setContent(`<div class="pop
 }
 function updateUserMarker(lat,lng,acc){
 try{
-if(!window.map||!window.userMarkerGroup)return;
+if(!window.map||!window.userMarkerGroup||!window._mapReady)return;
 window.userMarkerGroup.clearLayers();
 const icon=L.divIcon({className:'',iconSize:[36,36],iconAnchor:[18,18],html:`<svg width="36" height="36" viewBox="0 0 36 36" fill="none" style="overflow:visible;"><circle cx="18" cy="18" r="14" fill="rgba(0,122,255,0.1)" stroke="rgba(0,122,255,0.2)" stroke-width="1"><animate attributeName="r" values="14;20;14" dur="2.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.8;0;0.8" dur="2.5s" repeatCount="indefinite"/></circle><circle cx="18" cy="18" r="9" fill="rgba(0,122,255,0.15)" stroke="rgba(255,255,255,0.5)" stroke-width="0.8"/><circle cx="18" cy="18" r="5" fill="#007aff" stroke="#ffffff" stroke-width="1.5"/></svg>`});
 window.userMarkerGroup.addLayer(L.marker([lat,lng],{icon,zIndexOffset:10000}));
@@ -14580,7 +14634,7 @@ if((acc||50)>15)window.userMarkerGroup.addLayer(L.circle([lat,lng],{radius:Math.
 function updateAuroraLine(){
 try{
 const svg=document.getElementById('aurora-svg');
-if(!svg||!window.map||!window.userLat)return;
+if(!svg||!window.map||!window.userLat||!window._mapReady){if(svg)svg.innerHTML='';return;}
 const upcoming=(window.filteredStops||[]).filter(s=>minutesUntil(s.t)>=0);
 if(!upcoming.length){svg.innerHTML='';return;}
 upcoming.sort((a,b)=>minutesUntil(a.t)-minutesUntil(b.t));
@@ -14594,16 +14648,12 @@ svg.innerHTML=`<path class="aurora-path" d="M ${p1.x} ${p1.y} Q ${mx} ${my} ${p2
 }catch(e){try{document.getElementById('aurora-svg').innerHTML='';}catch(e2){}}
 }
 function onLocateBtnClick(){
-const btn=document.getElementById('locate-btn');
-const lbl=document.getElementById('locate-btn-label');
-if(!navigator.geolocation){
-lbl.textContent='GPS 不支援';return;
-}
+const btn=document.getElementById('locate-btn'),lbl=document.getElementById('locate-btn-label');
+if(!navigator.geolocation){if(lbl)lbl.textContent='GPS 不支援';return;}
 btn.classList.add('locating');lbl.textContent='定位中...';
 navigator.geolocation.getCurrentPosition(
 pos=>{
-btn.classList.remove('locating');btn.classList.add('located');
-lbl.textContent='已對齊位置';
+btn.classList.remove('locating');btn.classList.add('located');lbl.textContent='已對齊位置';
 onGpsSuccess(pos,true);
 if(!window._gpsWatchId){
 window._gpsWatchId=navigator.geolocation.watchPosition(
@@ -14627,14 +14677,13 @@ try{
 const lat=pos.coords.latitude,lng=pos.coords.longitude,acc=pos.coords.accuracy;
 window.userLat=lat;window.userLng=lng;
 const dot=document.querySelector('.gps-dot'),lbl=document.getElementById('gps-label');
-if(dot){dot.classList.add('active');}
+if(dot)dot.classList.add('active');
 if(lbl){lbl.textContent='GPS 已連線';lbl.classList.add('active');}
-updateUserMarker(lat,lng,acc);
+if(window._mapReady)updateUserMarker(lat,lng,acc);
 if(isFirst){
-if(window.map)window.map.flyTo([lat,lng],16,{animate:true,duration:1.2});
+if(window.map&&window._mapReady)window.map.flyTo([lat,lng],16,{animate:true,duration:1.2});
 if(!window.isManualDistrict){
-const sorted=sortByDist(lat,lng);
-renderDistrictBar(sorted);
+const sorted=sortByDist(lat,lng);renderDistrictBar(sorted);
 const nearest=sorted[0];
 if(nearest&&nearest!==window.currentDistrict){
 window.currentDistrict=nearest;
@@ -14642,8 +14691,7 @@ document.querySelectorAll('.district-chip').forEach(c=>{
 c.classList.toggle('active',c.dataset.district===nearest);
 if(c.dataset.district===nearest)c.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
 });
-window._userHasScrolled=false;
-filterAndRenderStops();
+window._userHasScrolled=false;filterAndRenderStops();
 }
 }
 }else{
@@ -14692,7 +14740,7 @@ function playBellAlert(){try{if(!window.audioCtx)return;[880,1108,1320,1047,880]
 function unlockAudio(){if(!window.audioCtx)initAudio();if(window.audioCtx&&window.audioCtx.state==='suspended')window.audioCtx.resume();}
 window.currentSearchQuery='';
 function clearSearch(){const input=document.getElementById('search-input');window.currentSearchQuery='';input.value='';document.getElementById('search-clear').classList.remove('visible');input.focus();window._userHasScrolled=false;filterAndRenderStops();}
-function showTimeTips(){const h=new Date().getHours(),el=document.getElementById('time-tip');let tip='';if(h>=12&&h<17)tip='⏱️ 指標提示：午後時分，環境光線充足，適宜安排出門清運物資。';else if(h>=17&&h<20)tip='🛰️ 雷達提示：傍晚黃金清運窗口已開啟，請校對手頭物資，準備前往巷口攔截目標。';if(tip){el.textContent=tip;el.classList.add('show');}}
+function showTimeTips(){const h=new Date().getHours(),el=document.getElementById('time-tip');let tip='';if(h>=12&&h<17)tip='⏱️ 午後時分，適宜安排出門清運。';else if(h>=17&&h<20)tip='🛰️ 傍晚黃金窗口已開啟，準備攔截目標。';if(tip){el.textContent=tip;el.classList.add('show');}}
 function checkBellNotifications(){
 Object.keys(window.activeBellStops).forEach(sid=>{
 const s=window.allStops.find(s=>`${s.a}_${s.n}_${s.t}`.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'_')===sid);
@@ -14710,7 +14758,38 @@ function checkAllPassed(){if(!window.filteredStops||!window.filteredStops.length
 let _tick=0;
 function periodicUpdate(){
 _tick++;
-if(_tick%6===0){filterAndRenderStops();updateMapMarkers();updateAuroraLine();checkBellNotifications();checkAllPassed();checkSleepMode();}
+if(_tick%6===0){
+document.querySelectorAll('#list-items .stop-card').forEach(cardEl=>{
+const idx=parseInt(cardEl.dataset.idx,10);
+if(isNaN(idx))return;
+const stop=window.filteredStops[idx];
+if(!stop)return;
+const mins=minutesUntil(stop.t);
+if(mins<0&&!window.isTomorrowPreview&&!(window.currentSearchQuery||'').trim()){
+if(cardEl.style.display!=='none'){
+cardEl.style.display='none';
+if(window.expandedCardId===cardEl.dataset.id)window.expandedCardId=null;
+}
+return;
+}
+const cdEl=cardEl.querySelector('.stop-countdown');
+if(cdEl&&mins>=0){
+let cs='',cc='';
+if(mins===0){cs='即將到站！';cc='urgent';}
+else if(mins<=5){cs=`剩 ${mins} 分`;cc='urgent';}
+else if(mins<60){cs=`剩 ${mins} 分`;cc='safe';}
+else{const h=Math.floor(mins/60),mm=mins%60;cs=`剩 ${h}h${mm>0?mm+'m':''}`;cc='safe';}
+cdEl.textContent=cs;cdEl.className=`stop-countdown ${cc}`;
+const isArr=mins<=5&&mins>=0;
+cardEl.classList.toggle('arriving',isArr);
+const glow=cardEl.querySelector('.glow-svg');
+if(glow){const isExp=cardEl.classList.contains('expanded');glow.style.opacity=(isArr&&!isExp)?'1':'0';}
+}
+});
+if(window._mapReady){updateMapMarkers();updateAuroraLine();}
+checkBellNotifications();checkAllPassed();checkSleepMode();
+}
+if(_tick%24===0){filterAndRenderStops();}
 }
 async function loadAllData(){
 const all=[];
@@ -14727,10 +14806,14 @@ initAudio();
 try{initMap();}catch(e){console.warn('Map:',e);}
 await new Promise(resolve=>{
 const timer=setTimeout(resolve,2500);
-const load=async()=>{try{window.allStops=await loadAllData();}catch(e){window.allStops=[];}clearTimeout(timer);resolve();};
+const load=async()=>{
+try{window.allStops=await loadAllData();}catch(e){window.allStops=[];}
+clearTimeout(timer);resolve();
+};
 if(window.requestIdleCallback)requestIdleCallback(load,{timeout:2000});else setTimeout(load,50);
 });
 if(!window.allStops||!window.allStops.length){try{window.allStops=await loadAllData();}catch(e){window.allStops=[];}}
+window._dataReady=true;
 showTimeTips();handleRestDay();
 window.currentDistrict='中西區';
 renderDistrictBar(Object.keys(DC).sort());
@@ -14742,10 +14825,14 @@ setTimeout(()=>{
 const splash=document.getElementById('splash');
 if(splash){splash.classList.add('fade-out');setTimeout(()=>splash.style.display='none',450);}
 const app=document.getElementById('app');if(app)app.style.display='flex';
+setTimeout(()=>{
+try{if(window.map)window.map.invalidateSize();}catch(e){}
+},100);
 initVirtualScroll();
 setInterval(periodicUpdate,5000);
 document.body.addEventListener('touchstart',unlockAudio,{once:true,passive:true});
 checkSleepMode();
+if(window._mapReady)updateMapMarkers();
 },1000);
 }
 document.addEventListener('DOMContentLoaded',()=>{
