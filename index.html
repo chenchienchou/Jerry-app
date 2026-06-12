@@ -14437,6 +14437,8 @@ c.addEventListener('scroll',e=>{
 vsScrollTop=e.target.scrollTop;
 if(!window.rafScheduled){window.rafScheduled=true;requestAnimationFrame(()=>{window.rafScheduled=false;renderVirtualList();});}
 },{passive:true});
+window.addEventListener('touchstart',function(){userIsBrowsing=true;},{passive:true,capture:true});
+window.addEventListener('wheel',function(){userIsBrowsing=true;},{passive:true,capture:true});
 }
 function renderVirtualList(sq){
 const stops=window.filteredStops,c=document.getElementById('list-container'),
@@ -14454,8 +14456,9 @@ it.style.top=(start*CARD_HEIGHT)+'px';it.innerHTML=html;
 document.getElementById('list-count').textContent=`${stops.length} 個清運點`;
 }
 let _hasInitialScrolled=false;
+let userIsBrowsing=false;
 function autoScrollToNext(){
-if(_hasInitialScrolled)return;
+if(userIsBrowsing||_hasInitialScrolled)return;
 const stops=window.filteredStops;if(!stops||stops.length===0)return;
 const ni=stops.findIndex(s=>minutesUntil(s.t)>=0);if(ni<0)return;
 const c=document.getElementById('list-container');
@@ -14519,6 +14522,7 @@ document.querySelectorAll('.district-chip').forEach(c=>{
 c.classList.toggle('active',c.dataset.district===d);
 if(c.dataset.district===d)c.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
 });
+userIsBrowsing=false;
 window._userHasScrolled=false;
 _hasInitialScrolled=false;
 filterAndRenderStops();
@@ -14542,8 +14546,10 @@ stops.sort((a,b)=>a.t.localeCompare(b.t));
 if(q){const ql=q.toLowerCase();stops=stops.filter(s=>s.n.toLowerCase().includes(ql)||s.a.toLowerCase().includes(ql));}
 if(window.userLat)stops.forEach(s=>{s._dist=hav(window.userLat,window.userLng,s.lt,s.lg);});
 window.filteredStops=stops;
+if(!userIsBrowsing){
 vsScrollTop=0;
 document.getElementById('list-container').scrollTop=0;
+}
 renderVirtualList();
 if(window._mapReady)updateMapMarkers();
 updateAuroraLine();
