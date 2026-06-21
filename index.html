@@ -10,199 +10,177 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap"/>
 <style>
-/* ── Reset & Base ─────────────────────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;}
-html,body{
-  height:100%;width:100%;overflow:hidden;
-  background:#09090B;color:#F4F4F5;
-  font-family:'Noto Sans TC',sans-serif;
-  overscroll-behavior:none;touch-action:pan-y;
-  -webkit-user-select:none;user-select:none;
-}
-input,textarea{-webkit-user-select:text;user-select:text;}
+html,body{height:100%;width:100%;overflow:hidden;background:#09090B;color:#F4F4F5;font-family:'Noto Sans TC',sans-serif;overscroll-behavior:none;touch-action:pan-y;-webkit-user-select:none;user-select:none;}
+input,textarea{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default;}
 .mono{font-family:'Geist Mono',monospace;}
 ::-webkit-scrollbar{display:none;}
-.scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.sc{overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
 
-/* ── Glass surfaces ──────────────────────────────────────────────────────── */
-.glass{background:rgba(255,255,255,.058);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,.1);}
-.glass-dk{background:rgba(0,0,0,.52);backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);border:1px solid rgba(255,255,255,.08);}
-
-/* ── Squircle radii ──────────────────────────────────────────────────────── */
+.glass{background:rgba(255,255,255,.06);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,.1);}
+.glass-dk{background:rgba(0,0,0,.58);backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);border:1px solid rgba(255,255,255,.09);}
 .r32{border-radius:32px;}.r24{border-radius:24px;}.r18{border-radius:18px;}.r14{border-radius:14px;}.r10{border-radius:10px;}
-
-/* ── Press feedback ──────────────────────────────────────────────────────── */
 .press{transition:transform .12s cubic-bezier(.34,1.56,.64,1);cursor:pointer;border:none;outline:none;background:none;padding:0;}
 .press:active{transform:scale(.95);}
+.hidden{display:none!important;}
+.star-dot{position:absolute;border-radius:50%;background:rgba(255,255,255,.45);}
+.nebula{position:absolute;border-radius:50%;}
 
-/* ── Animations ──────────────────────────────────────────────────────────── */
+/* Animations */
 @keyframes aurora{0%,100%{opacity:.15;transform:scale(1);}50%{opacity:.28;transform:scale(1.1);}}
-@keyframes breathe{0%,100%{opacity:.13;transform:scale(1);}50%{opacity:.26;transform:scale(1.08);}}
-@keyframes blink{0%,100%{opacity:.45;}50%{opacity:1;}}
+@keyframes blink{0%,100%{opacity:.4;}50%{opacity:1;}}
 @keyframes orbit-a{from{transform:rotate(0deg) translateX(32px) rotate(0deg);}to{transform:rotate(360deg) translateX(32px) rotate(-360deg);}}
 @keyframes orbit-b{from{transform:rotate(180deg) translateX(24px) rotate(-180deg);}to{transform:rotate(540deg) translateX(24px) rotate(-540deg);}}
 @keyframes shimmer{0%{background-position:-300% center;}100%{background-position:300% center;}}
-@keyframes fadein{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 @keyframes slideup{from{transform:translateY(100%);}to{transform:translateY(0);}}
-@keyframes toastpop{0%{transform:translateX(-50%) scale(.6);opacity:0;}65%{transform:translateX(-50%) scale(1.04);}100%{transform:translateX(-50%) scale(1);opacity:1;}}
 @keyframes scan{0%{top:0;opacity:.9;}50%{opacity:.3;}100%{top:60px;opacity:.9;}}
 @keyframes facering{0%,100%{stroke-dashoffset:200;opacity:.3;}50%{stroke-dashoffset:0;opacity:1;}}
 @keyframes rocketfloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
 @keyframes starglow{0%,100%{filter:drop-shadow(0 0 3px rgba(229,193,133,.4));opacity:.6;}50%{filter:drop-shadow(0 0 9px rgba(229,193,133,.9));opacity:1;}}
 @keyframes confettidrop{0%{opacity:1;transform:translateY(0) rotate(0deg);}100%{opacity:0;transform:translateY(120px) rotate(600deg);}}
 @keyframes logodraw{from{stroke-dashoffset:400;opacity:0;}to{stroke-dashoffset:0;opacity:1;}}
-@keyframes spinfwd{from{transform:rotate(0);}to{transform:rotate(360deg);}}
 @keyframes fabfloat{0%,100%{transform:translateX(-50%) translateY(0);}50%{transform:translateX(-50%) translateY(-5px);}}
-@keyframes splashout{from{opacity:1;filter:blur(0);}to{opacity:0;filter:blur(14px);}}
 @keyframes freezeshake{0%,100%{transform:translateX(0);}20%{transform:translateX(-4px);}40%{transform:translateX(4px);}60%{transform:translateX(-3px);}80%{transform:translateX(3px);}}
+@keyframes toastpop{0%{transform:translateX(-50%) scale(.6);opacity:0;}65%{transform:translateX(-50%) scale(1.04);}100%{transform:translateX(-50%) scale(1);opacity:1;}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(229,193,133,.6);}50%{box-shadow:0 0 0 5px rgba(229,193,133,0),0 0 14px rgba(229,193,133,.5);}}
+@keyframes tabslide{from{opacity:0;transform:translateX(12px);}to{opacity:1;transform:translateX(0);}}
 
-/* ── Skeleton ────────────────────────────────────────────────────────────── */
-.skeleton{background:linear-gradient(90deg,rgba(255,255,255,.03) 0%,rgba(255,255,255,.09) 50%,rgba(255,255,255,.03) 100%);background-size:300% 100%;animation:shimmer 1.8s ease-in-out infinite;border-radius:24px;}
-
-/* ── Layout ──────────────────────────────────────────────────────────────── */
-#app{position:fixed;inset:0;height:100dvh;z-index:1;}
-#cosmic{position:fixed;inset:0;z-index:0;background:#09090B;overflow:hidden;pointer-events:none;}
-.nebula{position:absolute;border-radius:50%;}
-.star-dot{position:absolute;border-radius:50%;background:rgba(255,255,255,.45);}
-
-/* ── Toast ───────────────────────────────────────────────────────────────── */
-#toast{
-  position:fixed;left:50%;z-index:9999;
-  top:calc(env(safe-area-inset-top,44px) + 10px);
-  backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);
-  background:rgba(10,10,14,.92);border-radius:28px;
-  padding:10px 22px;min-width:260px;max-width:84vw;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  pointer-events:none;opacity:0;transition:opacity .3s;
+/* Dynamic Island */
+#di{
+  position:fixed;top:calc(env(safe-area-inset-top,44px) + 8px);left:50%;
+  transform:translateX(-50%);z-index:9998;
+  display:flex;align-items:center;gap:7px;
+  background:rgba(18,18,24,.82);backdrop-filter:blur(20px) saturate(200%);-webkit-backdrop-filter:blur(20px) saturate(200%);
+  border:1px solid rgba(255,255,255,.1);border-radius:99px;
+  padding:6px 14px 6px 10px;cursor:pointer;
+  transition:padding .45s cubic-bezier(.34,1.56,.64,1),box-shadow .3s;
+  box-shadow:0 2px 20px rgba(0,0,0,.45);white-space:nowrap;overflow:hidden;
 }
+#di:active{transform:translateX(-50%) scale(.96);}
+#di-dot{width:8px;height:8px;border-radius:50%;background:#E5C185;flex-shrink:0;animation:pulse 2s ease-in-out infinite;}
+#di-text{font-family:'Geist Mono',monospace;font-size:11px;color:rgba(255,255,255,.72);letter-spacing:.06em;white-space:nowrap;overflow:hidden;transition:opacity .35s,max-width .35s;opacity:1;max-width:180px;}
+#di.collapsed{padding:5px;}
+#di.collapsed #di-text{opacity:0;max-width:0;}
+
+/* Toast */
+#toast{position:fixed;left:50%;z-index:9997;top:calc(env(safe-area-inset-top,44px) + 54px);backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);background:rgba(10,10,14,.92);border-radius:28px;padding:10px 22px;min-width:220px;max-width:84vw;display:flex;align-items:center;justify-content:center;gap:8px;pointer-events:none;opacity:0;transition:opacity .3s;}
 #toast.show{animation:toastpop .38s cubic-bezier(.34,1.56,.64,1) forwards;opacity:1;}
 
-/* ── Splash ──────────────────────────────────────────────────────────────── */
-#splash{
-  position:fixed;inset:0;z-index:300;background:#09090B;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
-  transition:opacity .45s ease,filter .45s ease;
-}
+/* Splash */
+#splash{position:fixed;inset:0;z-index:300;background:#09090B;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .45s ease,filter .45s ease;}
 #splash.out{opacity:0;filter:blur(14px);pointer-events:none;}
 #splash-title{font-family:'Geist Mono',monospace;font-size:23px;font-weight:600;letter-spacing:.22em;color:#E5C185;opacity:0;transition:opacity .6s ease .8s;}
 #splash-sub{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.34em;color:rgba(255,255,255,.28);opacity:0;transition:opacity .5s ease 1.1s;}
 #splash.glow #splash-title,#splash.glow #splash-sub{opacity:1;}
 #splash-aurora{position:absolute;top:28%;left:50%;transform:translateX(-50%);width:220px;height:220px;background:radial-gradient(ellipse,rgba(229,193,133,.2) 0%,transparent 70%);border-radius:50%;animation:aurora 4s ease-in-out infinite;}
 
-/* ── Onboarding ──────────────────────────────────────────────────────────── */
-#onboarding{
-  position:fixed;inset:0;z-index:200;
-  display:flex;align-items:center;justify-content:center;padding:24px;
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);background:rgba(0,0,0,.3);
-}
-.ob-card{
-  width:100%;max-width:360px;padding:32px;
-  display:flex;flex-direction:column;align-items:center;gap:24px;
-  animation:fadein .5s ease;
-}
-.ob-btn{
-  width:100%;padding:14px 20px;font-size:13px;
-  display:flex;align-items:center;justify-content:center;gap:10px;
-  font-family:'Noto Sans TC',sans-serif;cursor:pointer;
-}
+/* Onboarding */
+#onboarding{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);background:rgba(0,0,0,.3);}
 
-/* ── Main scroll ─────────────────────────────────────────────────────────── */
-#main{
-  height:100dvh;
-  padding:calc(env(safe-area-inset-top,44px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 110px);
-  overflow-y:auto;-webkit-overflow-scrolling:touch;
-}
-/* ── Bento Grid ──────────────────────────────────────────────────────────── */
+/* Bottom Tab Bar */
+#tab-bar{position:fixed;bottom:0;left:0;right:0;z-index:60;padding-bottom:env(safe-area-inset-bottom,0px);background:rgba(9,9,11,.85);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-top:1px solid rgba(255,255,255,.07);display:flex;}
+.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 0 8px;gap:4px;cursor:pointer;background:none;border:none;color:rgba(255,255,255,.35);transition:color .2s;-webkit-tap-highlight-color:transparent;}
+.tab-btn.active{color:#E5C185;}
+.tab-btn svg{transition:transform .2s cubic-bezier(.34,1.56,.64,1);}
+.tab-btn.active svg{transform:scale(1.15);}
+.tab-label{font-size:9.5px;letter-spacing:.04em;font-family:'Noto Sans TC',sans-serif;}
+
+/* Pages */
+.page{position:fixed;inset:0;z-index:2;display:none;}
+.page.active{display:block;}
+.page-scroll{height:100%;padding:calc(env(safe-area-inset-top,44px) + 60px) 16px calc(env(safe-area-inset-bottom,0px) + 80px);overflow-y:auto;-webkit-overflow-scrolling:touch;}
+
+/* Bento */
 .bento2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
-.card{padding:16px;margin-bottom:12px;}
 
-/* ── Progress bar ────────────────────────────────────────────────────────── */
+/* Progress bar */
 .pbar-bg{background:rgba(255,255,255,.06);border-radius:6px;height:5px;overflow:hidden;}
 .pbar-fg{height:100%;border-radius:6px;transition:width .9s cubic-bezier(.34,1.56,.64,1);}
 
-/* ── Sheet overlay ───────────────────────────────────────────────────────── */
-.sheet-overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:flex-end;background:rgba(0,0,0,.2);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
-.sheet{
-  width:100%;border-radius:28px 28px 0 0;
-  padding:26px 18px;
-  padding-bottom:calc(env(safe-area-inset-bottom,0px) + 22px);
-  animation:slideup .35s cubic-bezier(.34,1.56,.64,1);
-  max-height:92dvh;overflow-y:auto;
-}
+/* Sheet */
+.sheet-overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:flex-end;background:rgba(0,0,0,.3);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
+.sheet{width:100%;border-radius:28px 28px 0 0;padding:26px 18px;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 22px);animation:slideup .35s cubic-bezier(.34,1.56,.64,1);max-height:94dvh;overflow-y:auto;}
 .drag-pill{width:36px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;margin:0 auto 18px;}
 
-/* ── Numpad ──────────────────────────────────────────────────────────────── */
+/* Numpad */
 .numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:13px;}
-.numkey{
-  padding:15px 0;background:rgba(255,255,255,.058);border:none;border-radius:15px;
-  color:#F4F4F5;font-size:18px;font-family:'Geist Mono',monospace;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:transform .1s cubic-bezier(.34,1.56,.64,1);
-}
+.numkey{padding:15px 0;background:rgba(255,255,255,.06);border:none;border-radius:15px;color:#F4F4F5;font-size:18px;font-family:'Geist Mono',monospace;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .1s cubic-bezier(.34,1.56,.64,1);}
 .numkey:active{transform:scale(.93);}
 
-/* ── Toggle ──────────────────────────────────────────────────────────────── */
+/* Toggle */
 .toggle-wrap{width:44px;height:26px;border-radius:13px;border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;}
 .toggle-dot{width:20px;height:20px;border-radius:50%;position:absolute;top:3px;transition:left .2s,background .2s;}
 
-/* ── Face ID overlay ─────────────────────────────────────────────────────── */
-#faceid{
-  position:fixed;inset:0;z-index:250;
-  backdrop-filter:blur(32px) saturate(200%);-webkit-backdrop-filter:blur(32px) saturate(200%);background:rgba(0,0,0,.48);
-  display:flex;align-items:center;justify-content:center;
-}
+/* FAB */
+#fab{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 70px);left:50%;animation:fabfloat 3.5s ease-in-out infinite;z-index:50;}
+#fab button{width:58px;height:58px;border-radius:20px;border:1px solid rgba(229,193,133,.4);background:linear-gradient(135deg,rgba(229,193,133,.22),rgba(137,174,193,.18));box-shadow:0 0 28px rgba(229,193,133,.2),0 6px 28px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s cubic-bezier(.34,1.56,.64,1);}
+#fab button:active{transform:scale(.93);}
+
+/* Face ID */
+#faceid{position:fixed;inset:0;z-index:250;backdrop-filter:blur(32px) saturate(200%);-webkit-backdrop-filter:blur(32px) saturate(200%);background:rgba(0,0,0,.48);display:flex;align-items:center;justify-content:center;}
 #faceid .inner{padding:44px;display:flex;flex-direction:column;align-items:center;gap:20px;}
-#scan-beam{position:absolute;left:18px;right:18px;height:1.4px;background:#E5C185;opacity:.6;animation:scan 1.1s ease-in-out infinite;}
 
-/* ── Rocket track ────────────────────────────────────────────────────────── */
-#rocket-icon{animation:rocketfloat 2.2s ease-in-out infinite;}
-
-/* ── FAB ─────────────────────────────────────────────────────────────────── */
-#fab{
-  position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);left:50%;
-  animation:fabfloat 3.5s ease-in-out infinite;z-index:50;
-}
-#fab button{
-  width:62px;height:62px;border-radius:22px;border:1px solid rgba(229,193,133,.4);
-  background:linear-gradient(135deg,rgba(229,193,133,.22),rgba(137,174,193,.18));
-  box-shadow:0 0 30px rgba(229,193,133,.2),0 8px 32px rgba(0,0,0,.5);
-  display:flex;align-items:center;justify-content:center;cursor:pointer;
-  transition:transform .12s cubic-bezier(.34,1.56,.64,1);
-}
-#fab button:active{transform:scale(.94);}
-
-/* ── Cat icon colors ─────────────────────────────────────────────────────── */
-.cat-icon{flex-shrink:0;}
-
-/* ── Confetti ────────────────────────────────────────────────────────────── */
+/* Confetti */
 .confetti-piece{position:absolute;pointer-events:none;animation:confettidrop 1.4s ease-out forwards;}
 
-/* ── Range ───────────────────────────────────────────────────────────────── */
+/* Skeleton */
+.skeleton{background:linear-gradient(90deg,rgba(255,255,255,.03) 0%,rgba(255,255,255,.09) 50%,rgba(255,255,255,.03) 100%);background-size:300% 100%;animation:shimmer 1.8s ease-in-out infinite;border-radius:20px;}
+
+/* Section header */
+.sec-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.sec-hdr .title{font-size:13px;font-weight:500;}
+.sec-hdr .action{font-size:11.5px;color:#89AEC1;cursor:pointer;font-family:'Geist Mono',monospace;}
+
+/* Tx row */
+.tx-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);animation:fadein .3s ease;}
+
+/* Input style */
+.inp{width:100%;padding:11px 14px;color:#F4F4F5;font-size:14px;outline:none;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:14px;font-family:'Noto Sans TC',sans-serif;}
+.inp:focus{border-color:rgba(229,193,133,.4);}
+.inp.mono{font-family:'Geist Mono',monospace;}
+
+/* Amount display */
+.amount-display{text-align:center;margin-bottom:12px;}
+.amount-big{font-family:'Geist Mono',monospace;font-size:40px;font-weight:700;letter-spacing:-.02em;min-height:50px;line-height:1.2;}
+
+/* Confirm btn */
+.btn-primary{width:100%;padding:15px 0;border-radius:18px;font-size:14.5px;display:flex;align-items:center;justify-content:center;gap:9px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:transform .12s cubic-bezier(.34,1.56,.64,1),opacity .2s;}
+.btn-primary:active{transform:scale(.97);}
+.btn-ghost{width:100%;padding:13px 0;border-radius:18px;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);transition:transform .12s cubic-bezier(.34,1.56,.64,1);}
+.btn-ghost:active{transform:scale(.97);}
+
+/* Segment control */
+.seg{display:flex;background:rgba(255,255,255,.05);border-radius:12px;padding:3px;margin-bottom:14px;}
+.seg-btn{flex:1;padding:8px 0;border-radius:10px;border:none;font-size:12.5px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;color:rgba(255,255,255,.45);transition:all .2s;}
+.seg-btn.active{background:rgba(229,193,133,.18);color:#E5C185;}
+
+/* Category chips */
+.cat-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-bottom:12px;}
+.cat-chip{padding:6px 12px;border-radius:12px;border:none;font-size:12px;white-space:nowrap;display:flex;align-items:center;gap:6px;font-family:'Noto Sans TC',sans-serif;flex-shrink:0;cursor:pointer;transition:all .15s;}
+
 input[type=range]{width:100%;accent-color:#89AEC1;}
 input[type=number]{-moz-appearance:textfield;}
 input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
-
-/* ── Misc ────────────────────────────────────────────────────────────────── */
-.hidden{display:none!important;}
-.gold{color:#E5C185;}.blue{color:#89AEC1;}.amber{color:#E2D1A6;}.mint{color:#A8E6CF;}
-.op4{opacity:.4;}.op5{opacity:.5;}.op3{opacity:.3;}
 </style>
 </head>
 <body>
 
-<!-- ── Cosmic Background ────────────────────────────────────────────────── -->
-<div id="cosmic"></div>
+<div id="cosmic" style="position:fixed;inset:0;z-index:0;background:#09090B;overflow:hidden;pointer-events:none;"></div>
 
-<!-- ── Toast ────────────────────────────────────────────────────────────── -->
+<!-- Dynamic Island -->
+<div id="di" class="hidden"><div id="di-dot"></div><span id="di-text">Demo 模式</span></div>
+
+<!-- Toast -->
 <div id="toast">
   <svg id="toast-star" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#E5C185" stroke-width="1.5"><path d="M12 2 L13.5 10.5 L22 12 L13.5 13.5 L12 22 L10.5 13.5 L2 12 L10.5 10.5 Z"/></svg>
-  <span id="toast-msg" style="font-family:'Noto Sans TC',sans-serif;font-size:12.5px;color:#F4F4F5;letter-spacing:.02em;line-height:1.5;"></span>
+  <span id="toast-msg" style="font-size:12.5px;color:#F4F4F5;letter-spacing:.02em;line-height:1.5;"></span>
 </div>
 
-<!-- ── Splash ────────────────────────────────────────────────────────────── -->
+<!-- Splash -->
 <div id="splash">
   <div id="splash-aurora"></div>
-  <svg id="brand-svg" width="68" height="68" viewBox="0 0 40 40" fill="none" stroke="#E5C185" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <svg width="68" height="68" viewBox="0 0 40 40" fill="none" stroke="#E5C185" stroke-width="1.5" stroke-linecap="round">
     <path d="M20 34 C20 34 6 25 6 15 A7 7 0 0 1 20 12 A7 7 0 0 1 34 15 C34 25 20 34 20 34Z" style="stroke-dasharray:120;stroke-dashoffset:120;animation:logodraw 1.6s cubic-bezier(.16,1,.3,1) forwards;"/>
     <ellipse cx="20" cy="20" rx="17" ry="8" style="transform:rotate(-20deg);transform-origin:20px 20px;opacity:.4;stroke-dasharray:120;stroke-dashoffset:120;animation:logodraw 1.8s cubic-bezier(.16,1,.3,1) .2s forwards;"/>
     <circle cx="20" cy="3" r="1.5" fill="#E5C185" stroke="none" style="opacity:0;animation:logodraw .3s ease .9s forwards;"/>
@@ -212,282 +190,354 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
   <div id="splash-sub">SYNCED VIA COSMIC CLOUD</div>
 </div>
 
-<!-- ── App Shell ─────────────────────────────────────────────────────────── -->
-<div id="app" class="hidden">
-
-  <!-- Onboarding -->
-  <div id="onboarding" class="hidden">
-    <div class="ob-card glass-dk r24">
-      <svg width="48" height="48" viewBox="0 0 40 40" fill="none" stroke="#E5C185" stroke-width="1.5" stroke-linecap="round">
-        <path d="M20 34 C20 34 6 25 6 15 A7 7 0 0 1 20 12 A7 7 0 0 1 34 15 C34 25 20 34 20 34Z"/>
-        <ellipse cx="20" cy="20" rx="17" ry="8" style="transform:rotate(-20deg);transform-origin:20px 20px;opacity:.4;"/>
-        <circle cx="20" cy="3" r="1.5" fill="#E5C185" stroke="none"/>
-        <circle cx="37" cy="20" r="1.2" fill="#E5C185" stroke="none"/>
-      </svg>
-      <div style="text-align:center;">
-        <div class="mono" style="font-size:19px;font-weight:600;letter-spacing:.15em;color:#E5C185;">WECOUNT</div>
-        <div style="font-size:12.5px;opacity:.5;margin-top:8px;line-height:1.8;">情侶雙軌財務，透明、安全、有溫度。</div>
-      </div>
-      <div style="width:100%;display:flex;flex-direction:column;gap:10px;">
-        <button id="btn-passkeys" class="ob-btn press r18" style="background:rgba(229,193,133,.13);border:1px solid rgba(229,193,133,.34);color:#E5C185;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E5C185" stroke-width="1.5" stroke-linecap="round"><path d="M12 2 L20 5.5 L20 11 C20 16 16 20 12 22 C8 20 4 16 4 11 L4 5.5 Z"/><circle cx="12" cy="12" r="2" fill="#E5C185" stroke="none"/></svg>
-          Passkeys 刷臉註冊雙人連線
-        </button>
-        <button id="btn-demo" class="ob-btn press r18" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.72);">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.5"><path d="M12 2 L13.5 10.5 L22 12 L13.5 13.5 L12 22 L10.5 13.5 L2 12 L10.5 10.5 Z"/></svg>
-          訪客沙盒快速試玩
-        </button>
-      </div>
-      <div style="font-size:10px;opacity:.28;text-align:center;line-height:1.9;">試玩模式不會儲存任何資料<br/>隨時可以升級至雙人實時同步</div>
+<!-- Onboarding -->
+<div id="onboarding" class="hidden">
+  <div class="glass-dk r24" style="width:100%;max-width:360px;padding:32px;display:flex;flex-direction:column;align-items:center;gap:24px;animation:fadein .5s ease;">
+    <svg width="48" height="48" viewBox="0 0 40 40" fill="none" stroke="#E5C185" stroke-width="1.5" stroke-linecap="round">
+      <path d="M20 34 C20 34 6 25 6 15 A7 7 0 0 1 20 12 A7 7 0 0 1 34 15 C34 25 20 34 20 34Z"/>
+      <ellipse cx="20" cy="20" rx="17" ry="8" style="transform:rotate(-20deg);transform-origin:20px 20px;opacity:.4;"/>
+      <circle cx="20" cy="3" r="1.5" fill="#E5C185" stroke="none"/><circle cx="37" cy="20" r="1.2" fill="#E5C185" stroke="none"/>
+    </svg>
+    <div style="text-align:center;">
+      <div class="mono" style="font-size:19px;font-weight:600;letter-spacing:.15em;color:#E5C185;">WECOUNT</div>
+      <div style="font-size:12.5px;opacity:.5;margin-top:8px;line-height:1.8;">情侶雙軌財務，透明、安全、有溫度。</div>
     </div>
+    <div style="width:100%;display:flex;flex-direction:column;gap:10px;">
+      <button id="btn-passkeys" class="press r18" style="width:100%;padding:14px 20px;background:rgba(229,193,133,.13);border:1px solid rgba(229,193,133,.34);color:#E5C185;font-size:13px;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'Noto Sans TC',sans-serif;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E5C185" stroke-width="1.5" stroke-linecap="round"><path d="M12 2 L20 5.5 L20 11 C20 16 16 20 12 22 C8 20 4 16 4 11 L4 5.5 Z"/><circle cx="12" cy="12" r="2" fill="#E5C185" stroke="none"/></svg>
+        Passkeys 刷臉註冊雙人連線
+      </button>
+      <button id="btn-demo" class="press r18" style="width:100%;padding:14px 20px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.72);font-size:13px;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'Noto Sans TC',sans-serif;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.5"><path d="M12 2 L13.5 10.5 L22 12 L13.5 13.5 L12 22 L10.5 13.5 L2 12 L10.5 10.5 Z"/></svg>
+        訪客沙盒快速試玩
+      </button>
+    </div>
+    <div style="font-size:10px;opacity:.28;text-align:center;line-height:1.9;">試玩模式不會儲存任何資料<br/>隨時可以升級至雙人實時同步</div>
   </div>
+</div>
 
-  <!-- Main content -->
-  <div id="main" class="scroll hidden">
+<!-- ══════════════════════════════════════════════
+     PAGE: 首頁 (Home)
+══════════════════════════════════════════════ -->
+<div id="page-home" class="page">
+  <div class="page-scroll sc">
 
     <!-- Header -->
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
       <div style="display:flex;align-items:center;gap:10px;">
-        <svg width="30" height="30" viewBox="0 0 40 40" fill="none" id="header-logo" stroke="#E5C185" stroke-width="1.5" stroke-linecap="round">
+        <svg width="28" height="28" viewBox="0 0 40 40" fill="none" id="header-logo" stroke="#E5C185" stroke-width="1.5" stroke-linecap="round">
           <path d="M20 34 C20 34 6 25 6 15 A7 7 0 0 1 20 12 A7 7 0 0 1 34 15 C34 25 20 34 20 34Z"/>
           <ellipse cx="20" cy="20" rx="17" ry="8" style="transform:rotate(-20deg);transform-origin:20px 20px;opacity:.4;"/>
-          <circle cx="20" cy="3" r="1.5" fill="#E5C185" stroke="none"/>
-          <circle cx="37" cy="20" r="1.2" fill="#E5C185" stroke="none"/>
+          <circle cx="20" cy="3" r="1.5" fill="#E5C185" stroke="none"/><circle cx="37" cy="20" r="1.2" fill="#E5C185" stroke="none"/>
         </svg>
         <div>
           <div class="mono" id="header-title" style="font-size:15px;font-weight:600;letter-spacing:.15em;color:#E5C185;line-height:1;">WECOUNT</div>
-          <div style="display:flex;align-items:center;gap:5px;margin-top:5px;">
+          <div style="display:flex;align-items:center;gap:5px;margin-top:4px;">
             <div id="sync-dot" style="width:5px;height:5px;border-radius:50%;background:#A8E6CF;animation:blink 2s ease-in-out infinite;"></div>
-            <div class="mono" style="font-size:9px;letter-spacing:.28em;color:rgba(255,255,255,.28);">SYNCED VIA COSMIC CLOUD</div>
+            <div class="mono" style="font-size:9px;letter-spacing:.25em;color:rgba(255,255,255,.28);">SYNCED VIA COSMIC CLOUD</div>
           </div>
         </div>
       </div>
       <button id="btn-settings" class="press glass r14" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
-        <svg width="16" height="14" viewBox="0 0 16 14" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="1.5" stroke-linecap="round">
-          <line x1="0" y1="2" x2="16" y2="2"/><line x1="0" y1="7" x2="16" y2="7"/><line x1="0" y1="12" x2="16" y2="12"/>
+        <svg width="15" height="13" viewBox="0 0 15 13" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="1.5" stroke-linecap="round">
+          <line x1="0" y1="1.5" x2="15" y2="1.5"/><line x1="0" y1="6.5" x2="15" y2="6.5"/><line x1="0" y1="11.5" x2="15" y2="11.5"/>
         </svg>
       </button>
     </div>
 
-    <!-- Demo banner -->
-    <button id="demo-banner" class="press glass r24 hidden" style="width:100%;padding:12px 18px;border:1px solid rgba(137,174,193,.22);color:#89AEC1;font-size:12.5px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:9px;font-family:'Noto Sans TC',sans-serif;animation:blink 3s ease-in-out infinite;">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#89AEC1" stroke-width="1.5" stroke-linecap="round" style="animation:spinfwd 3s linear infinite;">
-        <circle cx="7" cy="7" r="5"/><path d="M7 2 A5 5 0 0 1 12 7"/><polyline points="10,5 12,7 14,5"/>
-      </svg>
-      開啟雙人實時同步（現正 Demo 模式）
-    </button>
-
-    <!-- Dual Bento -->
+    <!-- Dual Bento Cards -->
     <div class="bento2">
       <!-- Shared ledger -->
-      <div class="glass r32" style="padding:16px;min-height:172px;">
-        <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(229,193,133,.7)" stroke-width="1.5">
+      <div id="card-shared" class="glass r32" style="padding:16px;min-height:178px;cursor:pointer;transition:transform .15s;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(229,193,133,.7)" stroke-width="1.5">
             <circle cx="12" cy="12" r="3"/>
             <ellipse cx="12" cy="12" rx="10" ry="4.5" style="transform:rotate(-30deg);transform-origin:12px 12px;"/>
             <ellipse cx="12" cy="12" rx="10" ry="4.5" style="transform:rotate(30deg);transform-origin:12px 12px;"/>
           </svg>
-          <div style="font-size:10px;opacity:.4;letter-spacing:.07em;">共同存摺</div>
+          <div style="font-size:9.5px;opacity:.4;letter-spacing:.06em;">共同存摺</div>
         </div>
-        <!-- Orbit viz -->
-        <div style="display:flex;justify-content:center;margin-bottom:8px;">
-          <svg width="72" height="72" viewBox="0 0 76 76" fill="none" style="overflow:visible;">
+        <div style="display:flex;justify-content:center;margin-bottom:6px;">
+          <svg width="64" height="64" viewBox="0 0 76 76" fill="none" style="overflow:visible;">
             <ellipse cx="38" cy="38" rx="33" ry="16" stroke="rgba(229,193,133,.18)" stroke-width="1" style="transform:rotate(-20deg);transform-origin:38px 38px;"/>
             <ellipse cx="38" cy="38" rx="26" ry="13" stroke="rgba(137,174,193,.18)" stroke-width="1" style="transform:rotate(25deg);transform-origin:38px 38px;"/>
             <circle cx="38" cy="38" r="5" fill="rgba(229,193,133,.12)" stroke="rgba(229,193,133,.5)" stroke-width="1.2"/>
             <circle cx="38" cy="38" r="2.5" fill="#E5C185"/>
-            <g style="transform-origin:38px 38px;animation:orbit-a 4s linear infinite;">
-              <circle cx="38" cy="6" r="4" fill="#E5C185" opacity=".9"/>
-            </g>
-            <g style="transform-origin:38px 38px;animation:orbit-b 6.5s linear infinite;">
-              <circle cx="38" cy="14" r="3" fill="#89AEC1" opacity=".85"/>
-            </g>
+            <g style="transform-origin:38px 38px;animation:orbit-a 4s linear infinite;"><circle cx="38" cy="6" r="4" fill="#E5C185" opacity=".9"/></g>
+            <g style="transform-origin:38px 38px;animation:orbit-b 6.5s linear infinite;"><circle cx="38" cy="14" r="3" fill="#89AEC1" opacity=".85"/></g>
           </svg>
         </div>
-        <div class="mono" id="shared-remain" style="font-size:17px;font-weight:700;text-align:center;letter-spacing:-.01em;">NT$5,180</div>
-        <div style="font-size:9.5px;opacity:.35;text-align:center;margin-top:2px;">剩餘共享預算</div>
-        <div class="pbar-bg" style="margin-top:9px;">
-          <div id="shared-pbar" class="pbar-fg" style="width:25.9%;background:linear-gradient(90deg,#89AEC1,#E5C185);"></div>
-        </div>
-        <div id="aa-label" style="margin-top:9px;padding:5px 8px;background:rgba(255,255,255,.04);border-radius:9px;font-size:9px;opacity:.5;line-height:1.7;">AA 淨額：小宇欠 NT$2,260</div>
+        <div class="mono" id="h-shared-remain" style="font-size:16px;font-weight:700;text-align:center;">NT$5,180</div>
+        <div style="font-size:9px;opacity:.35;text-align:center;margin-top:2px;">剩餘共享預算</div>
+        <div class="pbar-bg" style="margin-top:7px;"><div id="h-shared-pbar" class="pbar-fg" style="width:25.9%;background:linear-gradient(90deg,#89AEC1,#E5C185);"></div></div>
+        <div id="h-aa" style="margin-top:7px;padding:4px 7px;background:rgba(255,255,255,.04);border-radius:8px;font-size:9px;opacity:.5;">AA 淨額：計算中</div>
       </div>
 
       <!-- Private vault -->
-      <div id="vault-card" class="glass r32" style="padding:16px;min-height:172px;cursor:pointer;">
-        <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(137,174,193,.7)" stroke-width="1.5">
+      <div id="card-vault" class="glass r32" style="padding:16px;min-height:178px;cursor:pointer;transition:transform .15s;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(137,174,193,.7)" stroke-width="1.5">
             <path d="M12 2 L20 5.5 L20 11 C20 16 16 20 12 22 C8 20 4 16 4 11 L4 5.5 Z"/>
             <circle cx="12" cy="12" r="2" fill="rgba(137,174,193,.7)" stroke="none"/>
           </svg>
-          <div style="font-size:10px;opacity:.4;letter-spacing:.07em;">私人小金庫</div>
+          <div style="font-size:9.5px;opacity:.4;letter-spacing:.06em;">私人小金庫</div>
         </div>
-        <div id="vault-locked" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:calc(100% - 40px);gap:16px;">
-          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="rgba(137,174,193,.45)" stroke-width="1.5" stroke-linecap="round">
+        <div id="vault-locked-state" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:calc(100% - 38px);gap:12px;">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(137,174,193,.45)" stroke-width="1.5" stroke-linecap="round">
             <path d="M12 2 L20 5.5 L20 11 C20 16 16 20 12 22 C8 20 4 16 4 11 L4 5.5 Z"/>
             <circle cx="12" cy="12" r="2" fill="rgba(137,174,193,.45)" stroke="none"/>
           </svg>
-          <div style="font-size:11px;opacity:.45;text-align:center;line-height:1.8;">Face ID 解鎖<br/>平行私密宇宙</div>
+          <div style="font-size:10.5px;opacity:.4;text-align:center;line-height:1.8;">Face ID 解鎖<br/>私密宇宙</div>
         </div>
-        <div id="vault-unlocked" class="hidden" style="animation:fadein .4s ease;">
-          <div class="mono" style="font-size:22px;font-weight:700;color:#89AEC1;margin-top:6px;">NT$12,800</div>
-          <div style="font-size:10px;opacity:.4;margin-top:3px;">安全可支配餘額</div>
-          <div style="margin-top:10px;font-size:11px;opacity:.6;background:rgba(137,174,193,.07);border-radius:10px;padding:8px 10px;line-height:1.7;">下個月要買求婚戒指</div>
-          <div style="font-size:9px;opacity:.28;margin-top:8px;text-align:right;">點擊重新鎖定</div>
+        <div id="vault-unlocked-state" class="hidden" style="animation:fadein .4s ease;">
+          <div class="mono" style="font-size:20px;font-weight:700;color:#89AEC1;margin-top:4px;" id="v-balance">NT$12,800</div>
+          <div style="font-size:9.5px;opacity:.4;margin-top:3px;">安全可支配餘額</div>
+          <div id="v-note" style="margin-top:8px;font-size:10.5px;opacity:.6;background:rgba(137,174,193,.07);border-radius:9px;padding:7px 9px;line-height:1.7;">下個月要買求婚戒指</div>
+          <div style="font-size:9px;opacity:.25;margin-top:6px;text-align:right;">點擊重新鎖定</div>
         </div>
       </div>
     </div>
 
     <!-- Low budget warning -->
-    <div id="low-budget-warn" class="glass r18 hidden" style="padding:13px 16px;margin-bottom:12px;border-color:rgba(226,209,166,.18);animation:fadein .4s ease;">
-      <div style="font-size:12.5px;color:#E2D1A6;line-height:1.8;display:flex;align-items:flex-start;gap:9px;">
-        <svg style="flex-shrink:0;margin-top:2px;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E2D1A6" stroke-width="1.5"><path d="M12 2 L13.5 10.5 L22 12 L13.5 13.5 L12 22 L10.5 13.5 L2 12 L10.5 10.5 Z"/></svg>
-        <span id="low-budget-msg"></span>
+    <div id="low-warn" class="glass r18 hidden" style="padding:12px 16px;margin-bottom:12px;border-color:rgba(226,209,166,.2);animation:fadein .4s ease;">
+      <div style="font-size:12px;color:#E2D1A6;line-height:1.8;display:flex;align-items:flex-start;gap:8px;">
+        <svg style="flex-shrink:0;margin-top:2px;" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#E2D1A6" stroke-width="1.5"><path d="M12 2 L13.5 10.5 L22 12 L13.5 13.5 L12 22 L10.5 13.5 L2 12 L10.5 10.5 Z"/></svg>
+        <span id="low-warn-msg"></span>
       </div>
     </div>
 
     <!-- Rocket Goal Card -->
-    <div class="glass r32 card" style="position:relative;overflow:hidden;">
-      <div id="confetti-container" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:inherit;z-index:10;"></div>
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+    <div class="glass r32" style="padding:18px;margin-bottom:12px;position:relative;overflow:hidden;">
+      <div id="confetti-wrap" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:10;"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
         <div>
-          <div style="font-size:10px;opacity:.4;letter-spacing:.09em;margin-bottom:4px;">宇宙築夢目標</div>
-          <div style="font-size:14px;font-weight:500;">東京跨年基金</div>
+          <div style="font-size:9.5px;opacity:.4;letter-spacing:.08em;margin-bottom:3px;">宇宙築夢目標</div>
+          <div id="goal-name-h" style="font-size:14px;font-weight:500;">東京跨年基金</div>
         </div>
-        <div class="mono" id="goal-pct" style="font-size:24px;font-weight:700;color:#E5C185;">72%</div>
+        <div class="mono" id="goal-pct-h" style="font-size:22px;font-weight:700;color:#E5C185;">72%</div>
       </div>
       <div style="display:flex;gap:14px;align-items:flex-start;">
-        <!-- Rocket track SVG -->
-        <svg width="34" height="116" viewBox="0 0 34 116" style="flex-shrink:0;">
-          <line x1="17" y1="4" x2="17" y2="112" stroke="rgba(255,255,255,.06)" stroke-width="1.5"/>
-          <!-- 20% milestone -->
-          <circle cx="17" cy="108" r="3.5" fill="#E5C185"/>
-          <text x="24" y="111.5" font-size="7" fill="#E5C185" font-family="Geist Mono,monospace">20%</text>
-          <!-- 50% milestone -->
-          <circle cx="17" cy="59" r="3.5" fill="#E5C185"/>
-          <text x="24" y="62.5" font-size="7" fill="#E5C185" font-family="Geist Mono,monospace">50%</text>
-          <!-- 100% milestone -->
+        <svg width="32" height="108" viewBox="0 0 32 108" style="flex-shrink:0;">
+          <line x1="16" y1="4" x2="16" y2="104" stroke="rgba(255,255,255,.06)" stroke-width="1.5"/>
+          <circle cx="16" cy="100" r="3.5" fill="#E5C185"/>
+          <text x="22" y="103.5" font-size="7" fill="#E5C185" font-family="Geist Mono,monospace">20%</text>
+          <circle cx="16" cy="55" r="3.5" fill="#E5C185"/>
+          <text x="22" y="58.5" font-size="7" fill="#E5C185" font-family="Geist Mono,monospace">50%</text>
           <g style="animation:starglow 2.5s ease-in-out infinite;">
-            <path d="M17 7 L17.9 9.2 L20.5 10 L17.9 10.8 L17 13 L16.1 10.8 L13.5 10 L16.1 9.2 Z" fill="rgba(229,193,133,.35)" stroke="none"/>
+            <path d="M16 7 L16.9 9.2 L19.5 10 L16.9 10.8 L16 13 L15.1 10.8 L12.5 10 L15.1 9.2 Z" fill="rgba(229,193,133,.35)" stroke="none"/>
           </g>
-          <text x="24" y="13" font-size="7" fill="rgba(255,255,255,.25)" font-family="Geist Mono,monospace">100%</text>
-          <!-- Rocket at 72% -->
-          <g id="rocket-icon" style="animation:rocketfloat 2.2s ease-in-out infinite;">
-            <g transform="translate(8,24)">
+          <text x="22" y="13" font-size="7" fill="rgba(255,255,255,.25)" font-family="Geist Mono,monospace">100%</text>
+          <g id="rocket-g" style="animation:rocketfloat 2.2s ease-in-out infinite;">
+            <g transform="translate(7,24)">
               <polygon points="9,0 18,20 9,15 0,20" fill="none" stroke="#E5C185" stroke-width="1.4" stroke-linejoin="round"/>
             </g>
           </g>
         </svg>
         <div style="flex:1;">
-          <div class="mono" id="goal-amounts" style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:8px;">NT$ 57,600 / 80,000</div>
-          <div class="pbar-bg" style="margin-bottom:14px;">
-            <div id="goal-pbar" class="pbar-fg" style="width:72%;background:linear-gradient(90deg,#E5C185,#89AEC1);"></div>
-          </div>
-          <!-- Memo stars -->
-          <div id="memo-stars" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;"></div>
-          <button id="btn-fuel" class="press r14" style="padding:6px 14px;background:rgba(229,193,133,.1);border:1px solid rgba(229,193,133,.22);color:#E5C185;font-size:12px;display:flex;align-items:center;gap:7px;font-family:'Noto Sans TC',sans-serif;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E5C185" stroke-width="1.5"><polygon points="12,2 20,22 12,17 4,22"/><line x1="12" y1="17" x2="12" y2="22"/></svg>
-            注入燃料
+          <div class="mono" id="goal-amounts-h" style="font-size:11.5px;color:rgba(255,255,255,.4);margin-bottom:7px;">NT$ 57,600 / 80,000</div>
+          <div class="pbar-bg" style="margin-bottom:12px;"><div id="goal-pbar-h" class="pbar-fg" style="width:72%;background:linear-gradient(90deg,#E5C185,#89AEC1);"></div></div>
+          <div id="memo-stars-h" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"></div>
+          <button id="btn-open-goal" class="press r14" style="padding:6px 14px;background:rgba(229,193,133,.1);border:1px solid rgba(229,193,133,.22);color:#E5C185;font-size:12px;display:flex;align-items:center;gap:7px;font-family:'Noto Sans TC',sans-serif;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#E5C185" stroke-width="1.5"><polygon points="12,2 20,22 12,17 4,22"/></svg>
+            注入燃料 / 查看明細
           </button>
         </div>
       </div>
-      <!-- Fuel panel -->
-      <div id="fuel-panel" class="hidden" style="margin-top:14px;display:flex;flex-direction:column;gap:8px;animation:fadein .2s ease;">
-        <input id="fuel-amt" type="number" placeholder="金額 NT$" class="mono" style="padding:10px 14px;color:#F4F4F5;font-size:14px;outline:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;width:100%;"/>
-        <input id="fuel-memo" type="text" placeholder="附上一句愛的心得（可選）" style="padding:10px 14px;color:#F4F4F5;font-size:12.5px;outline:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;width:100%;font-family:'Noto Sans TC',sans-serif;"/>
-        <button id="btn-fuel-save" class="press r14" style="padding:11px;background:rgba(229,193,133,.15);border:1px solid rgba(229,193,133,.3);color:#E5C185;font-size:13px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Noto Sans TC',sans-serif;width:100%;">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#E5C185" stroke-width="1.5"><polygon points="12,2 20,22 12,17 4,22"/><line x1="12" y1="17" x2="12" y2="22"/></svg>
-          啟動補給
-        </button>
-      </div>
     </div>
 
-    <!-- Transactions -->
+    <!-- Recent transactions (home) -->
     <div class="glass r32" style="padding:16px 16px 6px;margin-bottom:12px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <div style="font-size:13px;font-weight:500;">最近帳目</div>
-        <div class="mono" id="tx-total" style="font-size:11px;opacity:.38;">本月 NT$14,820</div>
+      <div class="sec-hdr">
+        <span class="title">最近帳目</span>
+        <span class="action" id="btn-view-all-tx">查看全部</span>
       </div>
-      <div id="tx-list"></div>
+      <div id="home-tx-list"></div>
     </div>
 
-    <!-- Stats mini -->
+    <!-- Stats -->
     <div class="bento2">
-      <div class="glass r18" style="padding:14px;">
-        <div style="font-size:10px;opacity:.38;margin-bottom:5px;">小星支出</div>
-        <div class="mono" id="stat-mine" style="font-size:15px;font-weight:600;color:#89AEC1;">NT$1,240</div>
+      <div class="glass r18" style="padding:13px;">
+        <div style="font-size:9.5px;opacity:.38;margin-bottom:4px;">小星支出</div>
+        <div class="mono" id="stat-mine" style="font-size:15px;font-weight:600;color:#89AEC1;">NT$0</div>
       </div>
-      <div class="glass r18" style="padding:14px;">
-        <div style="font-size:10px;opacity:.38;margin-bottom:5px;">小宇支出</div>
-        <div class="mono" id="stat-theirs" style="font-size:15px;font-weight:600;color:#E5C185;">NT$4,480</div>
+      <div class="glass r18" style="padding:13px;">
+        <div style="font-size:9.5px;opacity:.38;margin-bottom:4px;">小宇支出</div>
+        <div class="mono" id="stat-theirs" style="font-size:15px;font-weight:600;color:#E5C185;">NT$0</div>
       </div>
     </div>
 
-    <!-- Smart alloc status -->
-    <div id="alloc-status" class="glass r18" style="padding:12px 14px;margin-top:12px;display:flex;justify-content:space-between;align-items:center;">
-      <div style="display:flex;align-items:center;gap:7px;">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(137,174,193,.7)" stroke-width="1.5"><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="10"/><circle cx="12" cy="6" r="1.5" fill="rgba(137,174,193,.7)" stroke="none"/></svg>
+    <!-- Alloc status -->
+    <div id="alloc-status" class="glass r18" style="padding:11px 14px;margin-top:12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(137,174,193,.7)" stroke-width="1.5"><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="10"/><circle cx="12" cy="6" r="1.5" fill="rgba(137,174,193,.7)" stroke="none"/></svg>
         <div id="alloc-label" style="font-size:11px;opacity:.55;">引力抽成 5% 啟用中</div>
       </div>
-      <div class="mono" id="alloc-total" style="font-size:11px;color:#89AEC1;">NT$741</div>
+      <div class="mono" id="alloc-total" style="font-size:11px;color:#89AEC1;">NT$0</div>
     </div>
-  </div><!-- /#main -->
-
-  <!-- FAB -->
-  <div id="fab">
-    <button id="btn-add">
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#E5C185" stroke-width="1.7" stroke-linecap="round">
-        <line x1="11" y1="2" x2="11" y2="20"/><line x1="2" y1="11" x2="20" y2="11"/>
-      </svg>
-    </button>
-  </div>
-</div><!-- /#app -->
-
-<!-- ── Add Expense Sheet ──────────────────────────────────────────────────── -->
-<div id="add-sheet" class="sheet-overlay hidden">
-  <div class="sheet glass-dk">
-    <div class="drag-pill"></div>
-    <div style="font-size:15px;font-weight:500;text-align:center;margin-bottom:14px;">記一筆帳</div>
-    <!-- Currency toggle -->
-    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;">
-      <button data-cur="TWD" class="cur-btn press" style="padding:6px 22px;border-radius:20px;border:none;background:rgba(229,193,133,.18);color:#E5C185;font-size:12.5px;font-family:'Geist Mono',monospace;">TWD</button>
-      <button data-cur="JPY" class="cur-btn press" style="padding:6px 22px;border-radius:20px;border:none;background:rgba(255,255,255,.06);color:rgba(255,255,255,.45);font-size:12.5px;font-family:'Geist Mono',monospace;">JPY</button>
-    </div>
-    <!-- Amount -->
-    <div style="text-align:center;margin-bottom:12px;">
-      <div class="mono" id="add-display" style="font-size:38px;font-weight:700;letter-spacing:-.02em;min-height:48px;line-height:1.2;">NT$0</div>
-      <div id="add-jpy-equiv" class="mono hidden" style="font-size:13px;color:#89AEC1;margin-top:4px;"></div>
-      <div id="add-boost-hint" class="mono hidden" style="font-size:11px;color:rgba(229,193,133,.65);margin-top:5px;display:flex;align-items:center;justify-content:center;gap:5px;">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(229,193,133,.65)" stroke-width="1.5"><polygon points="12,2 20,22 12,17 4,22"/></svg>
-        <span id="add-boost-text"></span>
-      </div>
-    </div>
-    <!-- Desc -->
-    <input id="add-desc" type="text" placeholder="花費說明…" style="width:100%;padding:10px 16px;color:#F4F4F5;font-size:14px;outline:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;margin-bottom:10px;font-family:'Noto Sans TC',sans-serif;"/>
-    <!-- Category -->
-    <div id="cat-strip" style="display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;"></div>
-    <!-- Payer -->
-    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;">
-      <button data-payer="小星" class="payer-btn press" style="padding:7px 22px;border-radius:20px;border:none;background:rgba(137,174,193,.15);color:#89AEC1;font-size:13px;font-family:'Noto Sans TC',sans-serif;">小星 付</button>
-      <button data-payer="小宇" class="payer-btn press" style="padding:7px 22px;border-radius:20px;border:none;background:rgba(255,255,255,.05);color:rgba(255,255,255,.38);font-size:13px;font-family:'Noto Sans TC',sans-serif;">小宇 付</button>
-    </div>
-    <!-- Numpad -->
-    <div class="numpad" id="numpad"></div>
-    <!-- Save -->
-    <button id="btn-save-expense" class="press r18" style="width:100%;padding:15px 0;background:rgba(229,193,133,.14);border:1px solid rgba(229,193,133,.33);color:#E5C185;font-size:14.5px;display:flex;align-items:center;justify-content:center;gap:9px;font-family:'Noto Sans TC',sans-serif;">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#E5C185" stroke-width="1.5"><path d="M12 2 L13.5 10.5 L22 12 L13.5 13.5 L12 22 L10.5 13.5 L2 12 L10.5 10.5 Z"/></svg>
-      儲存這筆帳
-    </button>
   </div>
 </div>
 
-<!-- ── Settings Sheet ─────────────────────────────────────────────────────── -->
-<div id="settings-sheet" class="sheet-overlay hidden">
-  <div class="sheet glass-dk">
-    <div class="drag-pill"></div>
-    <div style="font-size:15px;font-weight:500;text-align:center;margin-bottom:20px;">設定</div>
+<!-- ══════════════════════════════════════════════
+     PAGE: 共同帳本 (Shared)
+══════════════════════════════════════════════ -->
+<div id="page-shared" class="page">
+  <div class="page-scroll sc">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div style="font-size:16px;font-weight:600;">共同存摺</div>
+      <button id="btn-add-shared" class="press glass r14" style="padding:7px 14px;display:flex;align-items:center;gap:6px;font-size:12.5px;color:#E5C185;font-family:'Noto Sans TC',sans-serif;">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#E5C185" stroke-width="1.6" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg>
+        新增支出
+      </button>
+    </div>
+
+    <!-- Budget overview card -->
+    <div class="glass r24" style="padding:18px;margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+        <div>
+          <div style="font-size:10px;opacity:.4;margin-bottom:4px;">本月共享預算</div>
+          <div class="mono" id="s-budget-display" style="font-size:28px;font-weight:700;color:#E5C185;">NT$20,000</div>
+        </div>
+        <button id="btn-edit-budget" class="press" style="font-size:11px;color:#89AEC1;font-family:'Geist Mono',monospace;padding:4px 10px;border:1px solid rgba(137,174,193,.25);border-radius:10px;background:rgba(137,174,193,.08);">編輯預算</button>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:10px;">
+        <div style="flex:1;background:rgba(255,255,255,.04);border-radius:12px;padding:10px;">
+          <div style="font-size:9px;opacity:.4;margin-bottom:4px;">已使用</div>
+          <div class="mono" id="s-spent" style="font-size:15px;font-weight:600;color:#E5C185;">NT$14,820</div>
+        </div>
+        <div style="flex:1;background:rgba(255,255,255,.04);border-radius:12px;padding:10px;">
+          <div style="font-size:9px;opacity:.4;margin-bottom:4px;">剩餘</div>
+          <div class="mono" id="s-remain" style="font-size:15px;font-weight:600;color:#A8E6CF;">NT$5,180</div>
+        </div>
+      </div>
+      <div class="pbar-bg"><div id="s-pbar" class="pbar-fg" style="width:74.1%;background:linear-gradient(90deg,#89AEC1,#E5C185);"></div></div>
+    </div>
+
+    <!-- AA Settlement card -->
+    <div class="glass r24" style="padding:16px;margin-bottom:12px;">
+      <div style="font-size:11px;opacity:.4;margin-bottom:10px;letter-spacing:.06em;">AA 自動結算</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <div style="flex:1;text-align:center;background:rgba(137,174,193,.07);border-radius:12px;padding:10px;">
+          <div style="font-size:9px;opacity:.4;margin-bottom:5px;">小星</div>
+          <div class="mono" id="s-aa-mine" style="font-size:15px;font-weight:600;color:#89AEC1;">NT$0</div>
+        </div>
+        <div style="flex:1;text-align:center;background:rgba(229,193,133,.07);border-radius:12px;padding:10px;">
+          <div style="font-size:9px;opacity:.4;margin-bottom:5px;">小宇</div>
+          <div class="mono" id="s-aa-theirs" style="font-size:15px;font-weight:600;color:#E5C185;">NT$0</div>
+        </div>
+      </div>
+      <div id="s-aa-verdict" class="glass r10" style="padding:10px 12px;font-size:12.5px;line-height:1.7;text-align:center;"></div>
+    </div>
+
+    <!-- Shared transactions -->
+    <div class="glass r24" style="padding:16px 16px 6px;">
+      <div class="sec-hdr">
+        <span class="title">支出明細</span>
+        <span id="s-tx-count" style="font-size:11px;opacity:.38;font-family:'Geist Mono',monospace;">0 筆</span>
+      </div>
+      <div id="shared-tx-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PAGE: 個人帳本 (Personal)
+══════════════════════════════════════════════ -->
+<div id="page-personal" class="page">
+  <div class="page-scroll sc">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div style="font-size:16px;font-weight:600;">私人小金庫</div>
+      <button id="btn-add-personal" class="press glass r14" style="padding:7px 14px;display:flex;align-items:center;gap:6px;font-size:12.5px;color:#89AEC1;font-family:'Noto Sans TC',sans-serif;">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#89AEC1" stroke-width="1.6" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg>
+        新增記錄
+      </button>
+    </div>
+
+    <!-- Personal vault card (needs Face ID) -->
+    <div id="personal-locked" class="glass r24" style="padding:32px;margin-bottom:12px;display:flex;flex-direction:column;align-items:center;gap:16px;">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="rgba(137,174,193,.5)" stroke-width="1.5" stroke-linecap="round">
+        <path d="M12 2 L20 5.5 L20 11 C20 16 16 20 12 22 C8 20 4 16 4 11 L4 5.5 Z"/>
+        <circle cx="12" cy="12" r="2" fill="rgba(137,174,193,.5)" stroke="none"/>
+      </svg>
+      <div style="text-align:center;">
+        <div style="font-size:14px;font-weight:500;margin-bottom:6px;">私人帳本已上鎖</div>
+        <div style="font-size:12px;opacity:.45;line-height:1.8;">點擊解鎖查看個人財務資訊<br/>另一半看不到這裡的任何內容</div>
+      </div>
+      <button id="btn-unlock-personal" class="press r18" style="padding:12px 28px;background:rgba(137,174,193,.14);border:1px solid rgba(137,174,193,.3);color:#89AEC1;font-size:13px;font-family:'Noto Sans TC',sans-serif;">
+        Face ID 解鎖
+      </button>
+    </div>
+
+    <!-- Personal unlocked content -->
+    <div id="personal-unlocked" class="hidden">
+      <!-- Balance card -->
+      <div class="glass r24" style="padding:18px;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-size:10px;opacity:.4;margin-bottom:4px;">安全可支配餘額</div>
+            <div class="mono" id="p-balance" style="font-size:30px;font-weight:700;color:#89AEC1;">NT$12,800</div>
+          </div>
+          <button id="btn-edit-vault" class="press" style="font-size:11px;color:#89AEC1;font-family:'Geist Mono',monospace;padding:4px 10px;border:1px solid rgba(137,174,193,.25);border-radius:10px;background:rgba(137,174,193,.08);">編輯</button>
+        </div>
+        <div id="p-note" style="margin-top:10px;font-size:12px;opacity:.6;background:rgba(137,174,193,.07);border-radius:10px;padding:9px 11px;line-height:1.7;"></div>
+      </div>
+
+      <!-- Personal income/expense stats -->
+      <div class="bento2">
+        <div class="glass r18" style="padding:13px;">
+          <div style="font-size:9.5px;opacity:.38;margin-bottom:4px;">個人總支出</div>
+          <div class="mono" id="p-total-out" style="font-size:15px;font-weight:600;color:#E5C185;">NT$0</div>
+        </div>
+        <div class="glass r18" style="padding:13px;">
+          <div style="font-size:9.5px;opacity:.38;margin-bottom:4px;">個人總收入</div>
+          <div class="mono" id="p-total-in" style="font-size:15px;font-weight:600;color:#A8E6CF;">NT$0</div>
+        </div>
+      </div>
+
+      <!-- Personal transactions -->
+      <div class="glass r24" style="padding:16px 16px 6px;margin-top:12px;">
+        <div class="sec-hdr">
+          <span class="title">個人記錄</span>
+          <span id="p-tx-count" style="font-size:11px;opacity:.38;font-family:'Geist Mono',monospace;">0 筆</span>
+        </div>
+        <div id="personal-tx-list"></div>
+        <div id="personal-empty" style="text-align:center;padding:24px 0;opacity:.35;font-size:13px;">尚無個人記錄，點擊右上角新增</div>
+      </div>
+
+      <!-- Lock again -->
+      <button id="btn-lock-vault" class="btn-ghost" style="margin-top:12px;margin-bottom:4px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 2 L20 5.5 L20 11 C20 16 16 20 12 22 C8 20 4 16 4 11 L4 5.5 Z"/></svg>
+        重新鎖定
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PAGE: 目標 (Goals)
+══════════════════════════════════════════════ -->
+<div id="page-goals" class="page">
+  <div class="page-scroll sc">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div style="font-size:16px;font-weight:600;">築夢目標</div>
+      <button id="btn-add-goal" class="press glass r14" style="padding:7px 14px;display:flex;align-items:center;gap:6px;font-size:12.5px;color:#E5C185;font-family:'Noto Sans TC',sans-serif;">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#E5C185" stroke-width="1.6" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg>
+        新增目標
+      </button>
+    </div>
+    <div id="goals-list"></div>
+    <div id="goals-empty" class="hidden" style="text-align:center;padding:48px 24px;opacity:.35;font-size:13px;line-height:1.9;">尚無目標<br/>點擊右上角建立第一個共同夢想</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PAGE: 設定 (Settings)
+══════════════════════════════════════════════ -->
+<div id="page-settings" class="page">
+  <div class="page-scroll sc">
+    <div style="font-size:16px;font-weight:600;margin-bottom:16px;">設定</div>
+
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-      <!-- Zen -->
-      <div class="glass r18" style="padding:16px;">
+      <div class="glass r18" style="padding:15px;">
         <div style="font-size:10.5px;opacity:.45;margin-bottom:10px;">靜音禪模式</div>
         <div style="display:flex;align-items:center;justify-content:space-between;">
           <svg id="vol-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.5"><polygon points="5,9 10,9 15,4 15,20 10,15 5,15"/><path d="M18 9 Q21 12 18 15"/><path d="M19.5 6.5 Q24 12 19.5 17.5"/></svg>
@@ -496,8 +546,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
           </button>
         </div>
       </div>
-      <!-- Alloc -->
-      <div class="glass r18" style="padding:16px;">
+      <div class="glass r18" style="padding:15px;">
         <div style="font-size:10.5px;opacity:.45;margin-bottom:10px;">引力自動抽成</div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.5"><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="10"/><circle cx="12" cy="6" r="1.5" fill="rgba(255,255,255,.55)" stroke="none"/></svg>
@@ -509,13 +558,37 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
         <input id="alloc-range" type="range" min="1" max="20" value="5"/>
       </div>
     </div>
-    <!-- Avatars -->
-    <div class="glass r18" style="padding:16px;margin-bottom:10px;">
-      <div style="font-size:10.5px;opacity:.45;margin-bottom:14px;">星際頭像</div>
-      <div id="avatar-list" style="display:flex;gap:14px;"></div>
+
+    <!-- Alloc target selector -->
+    <div class="glass r18" style="padding:15px;margin-bottom:10px;">
+      <div style="font-size:10.5px;opacity:.45;margin-bottom:10px;">抽成自動存入目標</div>
+      <div id="alloc-target-list"></div>
     </div>
-    <!-- Danger -->
-    <div class="glass r18" style="padding:16px;border-color:rgba(200,60,60,.15);">
+
+    <!-- Avatars -->
+    <div class="glass r18" style="padding:15px;margin-bottom:10px;">
+      <div style="font-size:10.5px;opacity:.45;margin-bottom:13px;">我的星際頭像</div>
+      <div id="avatar-list" style="display:flex;gap:12px;"></div>
+    </div>
+
+    <!-- Partner name -->
+    <div class="glass r18" style="padding:15px;margin-bottom:10px;">
+      <div style="font-size:10.5px;opacity:.45;margin-bottom:10px;">夥伴名稱</div>
+      <div style="display:flex;gap:8px;">
+        <div style="flex:1;">
+          <div style="font-size:9.5px;opacity:.4;margin-bottom:5px;">我</div>
+          <input id="my-name-input" class="inp" value="小星" style="font-size:13px;"/>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:9.5px;opacity:.4;margin-bottom:5px;">另一半</div>
+          <input id="partner-name-input" class="inp" value="小宇" style="font-size:13px;"/>
+        </div>
+      </div>
+      <button id="btn-save-names" class="press r10" style="margin-top:10px;padding:8px;width:100%;background:rgba(229,193,133,.1);border:1px solid rgba(229,193,133,.22);color:#E5C185;font-size:12px;font-family:'Noto Sans TC',sans-serif;">儲存名稱</button>
+    </div>
+
+    <!-- Danger zone -->
+    <div class="glass r18" style="padding:15px;border-color:rgba(200,60,60,.15);">
       <div style="font-size:10.5px;opacity:.45;margin-bottom:12px;">危險區域</div>
       <div style="position:relative;display:inline-block;">
         <button id="btn-breakup" style="padding:10px 24px;border-radius:14px;background:rgba(200,60,60,.09);border:1px solid rgba(200,60,60,.2);color:rgba(220,80,80,.7);font-size:13px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">解除關係（長按 3 秒）</button>
@@ -528,7 +601,196 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
   </div>
 </div>
 
-<!-- ── Face ID Overlay ────────────────────────────────────────────────────── -->
+<!-- Tab Bar -->
+<div id="tab-bar" class="hidden">
+  <button class="tab-btn active" data-page="home">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 11 L12 2 L21 11"/><path d="M5 9 V21 H10 V16 H14 V21 H19 V9"/></svg>
+    <span class="tab-label">首頁</span>
+  </button>
+  <button class="tab-btn" data-page="shared">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <circle cx="12" cy="12" r="3"/><ellipse cx="12" cy="12" rx="10" ry="4.5" style="transform:rotate(-30deg);transform-origin:12px 12px;"/><ellipse cx="12" cy="12" rx="10" ry="4.5" style="transform:rotate(30deg);transform-origin:12px 12px;"/>
+    </svg>
+    <span class="tab-label">共同帳本</span>
+  </button>
+  <button class="tab-btn" data-page="personal">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <path d="M12 2 L20 5.5 L20 11 C20 16 16 20 12 22 C8 20 4 16 4 11 L4 5.5 Z"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/>
+    </svg>
+    <span class="tab-label">個人帳本</span>
+  </button>
+  <button class="tab-btn" data-page="goals">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <polygon points="12,2 20,22 12,17 4,22"/><line x1="12" y1="17" x2="12" y2="22"/>
+    </svg>
+    <span class="tab-label">築夢目標</span>
+  </button>
+  <button class="tab-btn" data-page="settings">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+    <span class="tab-label">設定</span>
+  </button>
+</div>
+
+<!-- FAB (only on home/shared/personal pages) -->
+<div id="fab" class="hidden"><button id="btn-fab">
+  <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#E5C185" stroke-width="1.7" stroke-linecap="round">
+    <line x1="11" y1="2" x2="11" y2="20"/><line x1="2" y1="11" x2="20" y2="11"/>
+  </svg>
+</button></div>
+
+<!-- ════════════════ SHEETS ════════════════ -->
+
+<!-- Add/Edit Transaction Sheet -->
+<div id="tx-sheet" class="sheet-overlay hidden">
+  <div class="sheet glass-dk">
+    <div class="drag-pill"></div>
+    <div id="tx-sheet-title" style="font-size:15px;font-weight:500;text-align:center;margin-bottom:14px;">新增支出</div>
+
+    <!-- Shared / Personal segment -->
+    <div id="tx-type-seg" class="seg">
+      <button class="seg-btn active" data-type="shared">共同支出</button>
+      <button class="seg-btn" data-type="personal-out">個人支出</button>
+      <button class="seg-btn" data-type="personal-in">個人收入</button>
+    </div>
+
+    <!-- Currency toggle -->
+    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;">
+      <button data-cur="TWD" class="cur-btn press" style="padding:5px 20px;border-radius:18px;border:none;background:rgba(229,193,133,.18);color:#E5C185;font-size:12px;font-family:'Geist Mono',monospace;">TWD</button>
+      <button data-cur="JPY" class="cur-btn press" style="padding:5px 20px;border-radius:18px;border:none;background:rgba(255,255,255,.06);color:rgba(255,255,255,.45);font-size:12px;font-family:'Geist Mono',monospace;">JPY</button>
+    </div>
+
+    <!-- Amount display -->
+    <div class="amount-display">
+      <div class="amount-big" id="tx-amount-display">NT$0</div>
+      <div id="tx-jpy-equiv" class="mono hidden" style="font-size:12.5px;color:#89AEC1;margin-top:3px;"></div>
+      <div id="tx-boost-hint" class="hidden" style="font-size:11px;color:rgba(229,193,133,.65);margin-top:4px;display:flex;align-items:center;justify-content:center;gap:5px;font-family:'Geist Mono',monospace;">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(229,193,133,.65)" stroke-width="1.5"><polygon points="12,2 20,22 12,17 4,22"/></svg>
+        <span id="tx-boost-text"></span>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <input id="tx-desc" type="text" placeholder="說明（如：藥師流拉麵）" class="inp" style="margin-bottom:10px;"/>
+
+    <!-- Category strip -->
+    <div id="tx-cat-strip" class="cat-strip"></div>
+
+    <!-- Payer (shared only) -->
+    <div id="tx-payer-row" style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;">
+      <button data-payer="小星" class="payer-btn press" style="padding:6px 20px;border-radius:18px;border:none;background:rgba(137,174,193,.15);color:#89AEC1;font-size:12.5px;font-family:'Noto Sans TC',sans-serif;">小星 付</button>
+      <button data-payer="小宇" class="payer-btn press" style="padding:6px 20px;border-radius:18px;border:none;background:rgba(255,255,255,.05);color:rgba(255,255,255,.38);font-size:12.5px;font-family:'Noto Sans TC',sans-serif;">小宇 付</button>
+    </div>
+
+    <!-- Goal selector for boost (shared only) -->
+    <div id="tx-goal-row" style="margin-bottom:12px;">
+      <div style="font-size:10px;opacity:.4;margin-bottom:6px;">自動存入目標</div>
+      <div id="tx-goal-select" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+    </div>
+
+    <!-- Numpad -->
+    <div class="numpad" id="tx-numpad"></div>
+
+    <!-- Save -->
+    <button id="btn-tx-save" class="btn-primary" style="background:rgba(229,193,133,.14);border:1px solid rgba(229,193,133,.33);color:#E5C185;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#E5C185" stroke-width="1.5"><path d="M12 2 L13.5 10.5 L22 12 L13.5 13.5 L12 22 L10.5 13.5 L2 12 L10.5 10.5 Z"/></svg>
+      儲存
+    </button>
+    <button id="btn-tx-delete" class="btn-ghost hidden" style="margin-top:8px;color:rgba(220,80,80,.7);border-color:rgba(200,60,60,.2);">刪除這筆記錄</button>
+  </div>
+</div>
+
+<!-- Edit Budget Sheet -->
+<div id="budget-sheet" class="sheet-overlay hidden">
+  <div class="sheet glass-dk">
+    <div class="drag-pill"></div>
+    <div style="font-size:15px;font-weight:500;text-align:center;margin-bottom:18px;">編輯共享預算</div>
+    <div class="amount-display">
+      <div class="amount-big" id="budget-display">NT$20,000</div>
+    </div>
+    <div class="numpad" id="budget-numpad"></div>
+    <button id="btn-budget-save" class="btn-primary" style="background:rgba(229,193,133,.14);border:1px solid rgba(229,193,133,.33);color:#E5C185;">儲存預算</button>
+  </div>
+</div>
+
+<!-- Add/Edit Goal Sheet -->
+<div id="goal-sheet" class="sheet-overlay hidden">
+  <div class="sheet glass-dk">
+    <div class="drag-pill"></div>
+    <div id="goal-sheet-title" style="font-size:15px;font-weight:500;text-align:center;margin-bottom:18px;">新增目標</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+      <input id="goal-name-input" type="text" placeholder="目標名稱（如：東京跨年）" class="inp"/>
+      <div style="display:flex;gap:8px;">
+        <div style="flex:1;">
+          <div style="font-size:10px;opacity:.4;margin-bottom:5px;">目標金額 NT$</div>
+          <input id="goal-target-input" type="number" placeholder="80000" class="inp mono"/>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:10px;opacity:.4;margin-bottom:5px;">已存金額 NT$</div>
+          <input id="goal-saved-input" type="number" placeholder="0" class="inp mono"/>
+        </div>
+      </div>
+    </div>
+    <button id="btn-goal-save" class="btn-primary" style="background:rgba(229,193,133,.14);border:1px solid rgba(229,193,133,.33);color:#E5C185;margin-bottom:8px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E5C185" stroke-width="1.5"><polygon points="12,2 20,22 12,17 4,22"/></svg>
+      儲存目標
+    </button>
+    <button id="btn-goal-delete" class="btn-ghost hidden" style="color:rgba(220,80,80,.7);border-color:rgba(200,60,60,.2);">刪除目標</button>
+  </div>
+</div>
+
+<!-- Goal Detail / Fuel Sheet -->
+<div id="goal-detail-sheet" class="sheet-overlay hidden">
+  <div class="sheet glass-dk">
+    <div class="drag-pill"></div>
+    <div id="gd-name" style="font-size:15px;font-weight:500;text-align:center;margin-bottom:4px;">東京跨年基金</div>
+    <div style="text-align:center;margin-bottom:18px;">
+      <div class="mono" id="gd-pct" style="font-size:36px;font-weight:700;color:#E5C185;">72%</div>
+      <div class="mono" id="gd-amounts" style="font-size:13px;color:rgba(255,255,255,.4);margin-top:3px;"></div>
+      <div class="pbar-bg" style="margin-top:10px;"><div id="gd-pbar" class="pbar-fg" style="background:linear-gradient(90deg,#E5C185,#89AEC1);"></div></div>
+    </div>
+    <div id="gd-stars-wrap" style="margin-bottom:14px;">
+      <div style="font-size:10px;opacity:.38;margin-bottom:7px;">愛的心得</div>
+      <div id="gd-stars" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+      <input id="gd-fuel-amt" type="number" placeholder="注入燃料金額 NT$" class="inp mono"/>
+      <input id="gd-fuel-memo" type="text" placeholder="附上一句愛的心得（可選）" class="inp"/>
+      <button id="btn-gd-fuel" class="btn-primary" style="background:rgba(229,193,133,.15);border:1px solid rgba(229,193,133,.3);color:#E5C185;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E5C185" stroke-width="1.5"><polygon points="12,2 20,22 12,17 4,22"/></svg>
+        注入燃料
+      </button>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button id="btn-gd-edit" class="btn-ghost" style="flex:1;">編輯目標</button>
+      <button id="btn-gd-close" class="btn-ghost" style="flex:1;">關閉</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Vault Sheet -->
+<div id="vault-edit-sheet" class="sheet-overlay hidden">
+  <div class="sheet glass-dk">
+    <div class="drag-pill"></div>
+    <div style="font-size:15px;font-weight:500;text-align:center;margin-bottom:18px;">編輯私人金庫</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+      <div>
+        <div style="font-size:10px;opacity:.4;margin-bottom:5px;">安全可支配餘額 NT$</div>
+        <input id="vault-bal-input" type="number" class="inp mono" placeholder="12800"/>
+      </div>
+      <div>
+        <div style="font-size:10px;opacity:.4;margin-bottom:5px;">私密備忘</div>
+        <textarea id="vault-note-input" class="inp" rows="3" placeholder="只有自己看得到…" style="resize:none;line-height:1.6;"></textarea>
+      </div>
+    </div>
+    <button id="btn-vault-save" class="btn-primary" style="background:rgba(137,174,193,.14);border:1px solid rgba(137,174,193,.3);color:#89AEC1;margin-bottom:8px;">儲存</button>
+    <button id="btn-vault-cancel" class="btn-ghost">取消</button>
+  </div>
+</div>
+
+<!-- Face ID overlay -->
 <div id="faceid" class="hidden">
   <div class="inner glass r24">
     <div style="position:relative;width:100px;height:100px;">
@@ -536,48 +798,30 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
         <circle cx="48" cy="48" r="44" stroke="rgba(229,193,133,.18)" stroke-width="1"/>
         <circle cx="48" cy="48" r="44" stroke="#E5C185" stroke-width="1.5" stroke-dasharray="276" style="animation:facering 1.6s ease-in-out infinite;transform-origin:48px 48px;transform:rotate(-90deg);"/>
         <circle cx="48" cy="48" r="32" stroke="rgba(255,255,255,.3)" stroke-width="1"/>
-        <circle id="faceid-ring2" cx="48" cy="48" r="32" stroke="#89AEC1" stroke-width="1.2" stroke-dasharray="201" style="transform-origin:48px 48px;transform:rotate(-90deg);opacity:0;"/>
+        <circle id="fid-ring2" cx="48" cy="48" r="32" stroke="#89AEC1" stroke-width="1.2" stroke-dasharray="201" style="transform-origin:48px 48px;transform:rotate(-90deg);opacity:0;"/>
       </svg>
-      <div id="scan-beam" style="position:absolute;left:18px;right:18px;height:1.4px;background:#E5C185;opacity:.6;top:47px;animation:scan 1.1s ease-in-out infinite;"></div>
-      <svg id="faceid-eyes" width="100" height="100" viewBox="0 0 96 96" fill="none" style="position:absolute;top:0;left:0;opacity:0;">
+      <div id="fid-scan" style="position:absolute;left:18px;right:18px;height:1.4px;background:#E5C185;opacity:.6;top:47px;animation:scan 1.1s ease-in-out infinite;"></div>
+      <svg id="fid-eyes" width="100" height="100" viewBox="0 0 96 96" fill="none" style="position:absolute;top:0;left:0;opacity:0;">
         <circle cx="33" cy="40" r="5.5" stroke="#E5C185" stroke-width="1.3"/>
         <circle cx="63" cy="40" r="5.5" stroke="#E5C185" stroke-width="1.3"/>
         <path d="M35 58 Q48 67 61 58" stroke="#E5C185" stroke-width="1.3"/>
       </svg>
-      <svg id="faceid-done" width="100" height="100" viewBox="0 0 96 96" fill="none" style="position:absolute;top:0;left:0;opacity:0;">
+      <svg id="fid-done" width="100" height="100" viewBox="0 0 96 96" fill="none" style="position:absolute;top:0;left:0;opacity:0;">
         <circle cx="48" cy="48" r="15" stroke="#E5C185" stroke-width="1.3"/>
       </svg>
     </div>
-    <div id="faceid-msg" style="font-size:13.5px;opacity:.65;text-align:center;">Face ID 雙子星對焦驗證中…</div>
+    <div id="fid-msg" style="font-size:13.5px;opacity:.65;text-align:center;">Face ID 雙子星對焦驗證中…</div>
   </div>
 </div>
 
+<!-- ════════════════ SCRIPT ════════════════ -->
 <script>
 'use strict';
-
-// ── State ──────────────────────────────────────────────────────────────────
 const safe = n => Math.round((n + Number.EPSILON) * 100) / 100;
 const clamp = (v,lo,hi) => Math.max(lo, Math.min(hi, v));
+const fmt = n => `NT$${Math.abs(n).toLocaleString()}`;
 
-const WARN_MSGS = [
-  '燃料剩餘不多，本週開啟自煮模式，攜手共度星際風暴。',
-  '引力場微幅收縮，一頓溫馨家常是最省電的浪漫。',
-  '能量趨近臨界，本月剩餘星際幣留給最重要的彼此。',
-  '軌道修正中，宅家追劇比任何消費都更耐燃。',
-];
-
-const CATS = [
-  {key:'dining',label:'餐飲'},
-  {key:'grocery',label:'購物'},
-  {key:'transit',label:'交通'},
-  {key:'leisure',label:'娛樂'},
-  {key:'home',label:'居家'},
-  {key:'health',label:'健康'},
-  {key:'travel',label:'旅遊'},
-  {key:'gift',label:'禮物'},
-  {key:'cafe',label:'咖啡'},
-];
-
+// ── SVG paths for categories ────────────────────────────────────────────────
 const CAT_PATHS = {
   dining:  '<path d="M12 2 V10"/><path d="M8 4 Q4 8 6 12 Q9 16 12 14 Q15 16 18 12 Q20 8 16 4"/><path d="M12 14 V22"/>',
   grocery: '<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10 Q8 4 12 4 Q16 4 16 10"/>',
@@ -586,171 +830,206 @@ const CAT_PATHS = {
   home:    '<path d="M3 11 L12 2 L21 11"/><path d="M5 9 V21 H10 V16 H14 V21 H19 V9"/>',
   health:  '<path d="M12 21 C12 21 3 15 3 8.5 A4.5 4.5 0 0 1 12 6.5 A4.5 4.5 0 0 1 21 8.5 C21 15 12 21 12 21"/>',
   travel:  '<polygon points="12,2 22,20 12,16 2,20" fill="none"/><line x1="12" y1="16" x2="12" y2="22"/>',
-  gift:    '<rect x="4" y="10" width="16" height="12" rx="2"/><rect x="2" y="6" width="20" height="4" rx="1"/><path d="M12 6 V22"/><path d="M12 6 Q12 2 8 2 Q6 2 6 5 Q6 6 8 6 H12"/><path d="M12 6 Q12 2 16 2 Q18 2 18 5 Q18 6 16 6 H12"/>',
+  gift:    '<rect x="4" y="10" width="16" height="12" rx="2"/><rect x="2" y="6" width="20" height="4" rx="1"/><path d="M12 6 V22"/>',
   cafe:    '<path d="M6 3 V7"/><path d="M10 3 V7"/><path d="M14 3 V7"/><path d="M4 7 H18 Q18 17 11 17 Q4 17 4 7"/><path d="M18 9 Q22 9 22 13 Q22 17 18 17"/>',
+  income:  '<line x1="12" y1="19" x2="12" y2="5"/><polyline points="5,12 12,5 19,12"/>',
 };
-
-const AVATARS_SVG = [
-  { id:'pilot', label:'星際飛行員', svg:`<svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="#E5C185" stroke-width="1.5" stroke-linecap="round"><circle cx="18" cy="14" r="7"/><path d="M9 28 Q9 22 18 22 Q27 22 27 28"/><path d="M12 10 Q13 8 18 8 Q23 8 24 10"/><circle cx="14" cy="14" r="1.5" fill="#E5C185" stroke="none"/><circle cx="22" cy="14" r="1.5" fill="#E5C185" stroke="none"/></svg>` },
-  { id:'cat',   label:'外星貓咪',  svg:`<svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="#89AEC1" stroke-width="1.5" stroke-linecap="round"><path d="M10 10 L6 4 L10 14"/><path d="M26 10 L30 4 L26 14"/><ellipse cx="18" cy="18" rx="10" ry="9"/><path d="M14 18 Q18 22 22 18"/><circle cx="14" cy="15" r="1.5" fill="#89AEC1" stroke="none"/><circle cx="22" cy="15" r="1.5" fill="#89AEC1" stroke="none"/><path d="M15 20 L13 23"/><path d="M21 20 L23 23"/></svg>` },
-  { id:'planet',label:'行星漫遊',  svg:`<svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="#A8E6CF" stroke-width="1.5" stroke-linecap="round"><circle cx="18" cy="18" r="9"/><ellipse cx="18" cy="18" rx="17" ry="6" style="transform:rotate(-25deg);transform-origin:18px 18px;"/><circle cx="18" cy="13" r="2.5"/></svg>` },
+const CATS = [
+  {key:'dining',label:'餐飲'},{key:'grocery',label:'購物'},{key:'transit',label:'交通'},
+  {key:'leisure',label:'娛樂'},{key:'home',label:'居家'},{key:'health',label:'健康'},
+  {key:'travel',label:'旅遊'},{key:'gift',label:'禮物'},{key:'cafe',label:'咖啡'},
+];
+const WARN_MSGS = [
+  '燃料剩餘不多，本週開啟自煮模式，攜手共度星際風暴。',
+  '引力場微幅收縮，一頓溫馨家常是最省電的浪漫。',
+  '能量趨近臨界，本月剩餘星際幣留給最重要的彼此。',
+  '軌道修正中，宅家追劇比任何消費都更耐燃。',
+];
+const AVATARS = [
+  {id:'pilot',  label:'飛行員', svg:'<svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="#E5C185" stroke-width="1.5" stroke-linecap="round"><circle cx="18" cy="14" r="7"/><path d="M9 28 Q9 22 18 22 Q27 22 27 28"/><circle cx="14" cy="14" r="1.5" fill="#E5C185" stroke="none"/><circle cx="22" cy="14" r="1.5" fill="#E5C185" stroke="none"/></svg>'},
+  {id:'cat',    label:'外星貓', svg:'<svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="#89AEC1" stroke-width="1.5" stroke-linecap="round"><path d="M10 10 L6 4 L10 14"/><path d="M26 10 L30 4 L26 14"/><ellipse cx="18" cy="18" rx="10" ry="9"/><path d="M14 18 Q18 22 22 18"/><circle cx="14" cy="15" r="1.5" fill="#89AEC1" stroke="none"/><circle cx="22" cy="15" r="1.5" fill="#89AEC1" stroke="none"/></svg>'},
+  {id:'planet', label:'行星',   svg:'<svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="#A8E6CF" stroke-width="1.5" stroke-linecap="round"><circle cx="18" cy="18" r="9"/><ellipse cx="18" cy="18" rx="17" ry="6" style="transform:rotate(-25deg);transform-origin:18px 18px;"/><circle cx="18" cy="13" r="2.5"/></svg>'},
 ];
 
-let state = {
-  sharedBudget: 20000,
-  sharedSpent:  14820,
-  txs: [
-    { id:1, desc:'藥師流拉麵', amount:980,  cat:'dining',  date:'06/19', payer:'小宇', conflict:false },
-    { id:2, desc:'全聯採買',   amount:1240, cat:'grocery', date:'06/18', payer:'小星', conflict:false },
-    { id:3, desc:'新宿購物',   amount:3500, cat:'travel',  date:'06/17', payer:'小宇', conflict:true  },
+// ── State ──────────────────────────────────────────────────────────────────
+let S = {
+  myName: '小星', partnerName: '小宇',
+  sharedBudget: 20000, sharedSpent: 14820,
+  zenMode: false, smartAlloc: true, allocPct: 5, allocGoalId: null,
+  selectedAvatar: 'pilot', personalUnlocked: false,
+  vaultBalance: 12800, vaultNote: '下個月要買求婚戒指',
+  sharedTxs: [
+    {id:1, desc:'藥師流拉麵', amount:980,  cat:'dining',  date:'06/19', payer:'小宇', conflict:false},
+    {id:2, desc:'全聯採買',   amount:1240, cat:'grocery', date:'06/18', payer:'小星', conflict:false},
+    {id:3, desc:'新宿購物',   amount:3500, cat:'travel',  date:'06/17', payer:'小宇', conflict:true},
   ],
-  goalSaved:  57600,
-  goalTarget: 80000,
-  goalMsgs:   ['期待與你牽手倒數','想在淺草橋看煙火'],
-  zenMode:    false,
-  smartAlloc: true,
-  allocPct:   5,
-  currency:   'TWD',
-  addAmount:  '',
-  addCat:     'dining',
-  addPayer:   '小星',
-  privateUnlocked: false,
-  selectedAvatar:  'pilot',
+  personalTxs: [
+    {id:101, desc:'健身房月費', amount:1200, cat:'health', date:'06/01', type:'out'},
+    {id:102, desc:'六月薪資',   amount:45000, cat:'income', date:'06/05', type:'in'},
+  ],
+  goals: [
+    {id:'g1', name:'東京跨年基金', target:80000, saved:57600, msgs:['期待與你牽手倒數','想在淺草橋看煙火']},
+  ],
 };
+
+// tx form state
+let txForm = {
+  editId: null, editLedger: null,
+  type: 'shared', currency: 'TWD', amount: '', cat: 'dining', payer: '小星',
+};
+let budgetAmount = '';
+let goalForm = { editId: null };
+let fidCallback = null;
+let currentGoalDetail = null;
 
 // ── Audio ──────────────────────────────────────────────────────────────────
 let audioCtx = null;
-function initAudio() {
-  if(!audioCtx) try { audioCtx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){}
-}
-document.addEventListener('touchstart', initAudio, { once:true });
-document.addEventListener('click', initAudio, { once:true });
-
+function initAudio() { if(!audioCtx) try { audioCtx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){} }
+document.addEventListener('touchstart', initAudio, {once:true});
+document.addEventListener('click', initAudio, {once:true});
 function earcon(type) {
-  if(state.zenMode || !audioCtx) return;
+  if(S.zenMode||!audioCtx) return;
   try {
-    const o = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
     o.connect(g); g.connect(audioCtx.destination);
-    const t = audioCtx.currentTime;
-    const fx = {
-      tap:    ()=>{ o.type='sine';     o.frequency.setValueAtTime(880,t); g.gain.setValueAtTime(.07,t); g.gain.exponentialRampToValueAtTime(.001,t+.14); },
-      save:   ()=>{ o.type='triangle'; o.frequency.setValueAtTime(523,t); o.frequency.exponentialRampToValueAtTime(1046,t+.22); g.gain.setValueAtTime(.1,t); g.gain.exponentialRampToValueAtTime(.001,t+.28); },
-      unlock: ()=>{ o.type='sine';     o.frequency.setValueAtTime(440,t); o.frequency.setValueAtTime(660,t+.1); o.frequency.setValueAtTime(880,t+.2); g.gain.setValueAtTime(.1,t); g.gain.exponentialRampToValueAtTime(.001,t+.5); },
-      rocket: ()=>{ o.type='sawtooth'; o.frequency.setValueAtTime(180,t); o.frequency.exponentialRampToValueAtTime(820,t+.4); g.gain.setValueAtTime(.12,t); g.gain.exponentialRampToValueAtTime(.001,t+.65); },
-      boot:   ()=>{ o.type='sine';     o.frequency.setValueAtTime(120,t); o.frequency.exponentialRampToValueAtTime(240,t+.6); g.gain.setValueAtTime(.08,t); g.gain.exponentialRampToValueAtTime(.001,t+.8); },
-      freeze: ()=>{ o.type='square';   o.frequency.setValueAtTime(220,t); g.gain.setValueAtTime(.04,t); g.gain.exponentialRampToValueAtTime(.001,t+.3); },
-    };
-    (fx[type]||fx.tap)();
+    const t=audioCtx.currentTime;
+    ({
+      tap:    ()=>{o.type='sine';    o.frequency.setValueAtTime(880,t);g.gain.setValueAtTime(.07,t);g.gain.exponentialRampToValueAtTime(.001,t+.14);},
+      save:   ()=>{o.type='triangle';o.frequency.setValueAtTime(523,t);o.frequency.exponentialRampToValueAtTime(1046,t+.22);g.gain.setValueAtTime(.1,t);g.gain.exponentialRampToValueAtTime(.001,t+.28);},
+      unlock: ()=>{o.type='sine';   o.frequency.setValueAtTime(440,t);o.frequency.setValueAtTime(660,t+.1);o.frequency.setValueAtTime(880,t+.2);g.gain.setValueAtTime(.1,t);g.gain.exponentialRampToValueAtTime(.001,t+.5);},
+      rocket: ()=>{o.type='sawtooth';o.frequency.setValueAtTime(180,t);o.frequency.exponentialRampToValueAtTime(820,t+.4);g.gain.setValueAtTime(.12,t);g.gain.exponentialRampToValueAtTime(.001,t+.65);},
+      boot:   ()=>{o.type='sine';   o.frequency.setValueAtTime(120,t);o.frequency.exponentialRampToValueAtTime(240,t+.6);g.gain.setValueAtTime(.08,t);g.gain.exponentialRampToValueAtTime(.001,t+.8);},
+      freeze: ()=>{o.type='square'; o.frequency.setValueAtTime(220,t);g.gain.setValueAtTime(.04,t);g.gain.exponentialRampToValueAtTime(.001,t+.3);},
+    }[type]||(() => {}))();
     o.start(t); o.stop(t+.9);
   } catch(e){}
 }
 
 // ── Toast ──────────────────────────────────────────────────────────────────
-let toastTimer = null;
+let toastTmr = null;
 function showToast(msg, color) {
-  const el = document.getElementById('toast');
-  const star = document.getElementById('toast-star');
-  const msgEl = document.getElementById('toast-msg');
-  msgEl.textContent = msg;
-  const c = color || '#E5C185';
-  el.style.borderColor = c;
-  star.setAttribute('stroke', c);
-  el.classList.remove('show');
-  void el.offsetWidth;
-  el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.classList.remove('show'); el.style.opacity=0; }, 2800);
+  const el=document.getElementById('toast'), star=document.getElementById('toast-star');
+  document.getElementById('toast-msg').textContent = msg;
+  el.style.borderColor = color||'#E5C185';
+  star.setAttribute('stroke', color||'#E5C185');
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  clearTimeout(toastTmr);
+  toastTmr = setTimeout(()=>{el.classList.remove('show');el.style.opacity=0;}, 2800);
 }
+
+// ── Dynamic Island ─────────────────────────────────────────────────────────
+let diCollapsed = false, diTimer = null;
+const diEl = document.getElementById('di');
+function collapseDI() { diCollapsed=true; diEl.classList.add('collapsed'); }
+function expandDI(label) {
+  diCollapsed=false; document.getElementById('di-text').textContent=label||'訪客沙盒體驗中';
+  diEl.classList.remove('collapsed');
+  clearTimeout(diTimer); diTimer=setTimeout(collapseDI, 3500);
+}
+diEl.addEventListener('click', ()=>{ earcon('tap'); diCollapsed ? expandDI() : collapseDI(); });
 
 // ── Cosmic background ──────────────────────────────────────────────────────
 function buildCosmic() {
-  const wrap = document.getElementById('cosmic');
-  const hr = new Date().getHours();
-  let c1 = '#181035', c2 = '#0C1E2D';
-  if(hr>=5&&hr<8)        { c1='#2A1A06'; c2='#180E04'; }
-  else if(hr>=11&&hr<14) { c1='#091522'; c2='#04090F'; }
+  const wrap=document.getElementById('cosmic');
+  const hr=new Date().getHours();
+  let c1='#181035', c2='#0C1E2D';
+  if(hr>=5&&hr<8){c1='#2A1A06';c2='#180E04';}
+  else if(hr>=11&&hr<14){c1='#091522';c2='#04090F';}
+  wrap.innerHTML=`<div class="nebula" style="top:-25%;left:-25%;width:75%;height:75%;background:radial-gradient(ellipse,${c1} 0%,transparent 70%);animation:aurora 9s ease-in-out infinite;"></div><div class="nebula" style="bottom:-25%;right:-25%;width:75%;height:75%;background:radial-gradient(ellipse,${c2} 0%,transparent 70%);animation:aurora 13s ease-in-out infinite 3s;"></div>`;
+  for(let i=0;i<30;i++){const d=document.createElement('div');d.className='star-dot';const sz=i%7===0?2:1;d.style.cssText=`left:${(i*41+7)%100}%;top:${(i*57+11)%100}%;width:${sz}px;height:${sz}px;animation:aurora ${4+(i%7)}s ease-in-out infinite ${(i*.28).toFixed(1)}s;`;wrap.appendChild(d);}
+}
 
-  wrap.innerHTML = `
-    <div class="nebula" style="top:-25%;left:-25%;width:75%;height:75%;background:radial-gradient(ellipse,${c1} 0%,transparent 70%);animation:aurora 9s ease-in-out infinite;"></div>
-    <div class="nebula" style="bottom:-25%;right:-25%;width:75%;height:75%;background:radial-gradient(ellipse,${c2} 0%,transparent 70%);animation:aurora 13s ease-in-out infinite 3s;"></div>
-    <div class="nebula" style="top:25%;left:50%;transform:translateX(-50%);width:280px;height:280px;background:radial-gradient(ellipse,rgba(229,193,133,.06) 0%,transparent 70%);animation:aurora 7s ease-in-out infinite 1s;"></div>
-  `;
-  for(let i=0;i<32;i++){
-    const d = document.createElement('div');
-    d.className = 'star-dot';
-    const sz = i%7===0 ? 2 : 1;
-    d.style.cssText = `left:${(i*41+7)%100}%;top:${(i*57+11)%100}%;width:${sz}px;height:${sz}px;animation:breathe ${4+(i%7)}s ease-in-out infinite ${(i*.28).toFixed(1)}s;`;
-    wrap.appendChild(d);
+// ── Confetti ──────────────────────────────────────────────────────────────
+function spawnConfetti() {
+  const wrap=document.getElementById('confetti-wrap'); wrap.innerHTML='';
+  const cols=['#E5C185','#89AEC1','#A8E6CF','#B08AE5','#E58A8A','#F4F4F5'];
+  for(let i=0;i<22;i++){
+    const el=document.createElement('div');el.className='confetti-piece';
+    const sz=5+Math.random()*9;
+    el.style.cssText=`left:${Math.random()*100}%;top:10%;animation-delay:${(Math.random()*.55).toFixed(2)}s;`;
+    el.innerHTML=`<svg width="${sz}" height="${sz}" viewBox="0 0 10 10"><polygon points="5,0 6.5,3.5 10,3.8 7.5,6.2 8.1,10 5,7.9 1.9,10 2.5,6.2 0,3.8 3.5,3.5" fill="${cols[i%6]}"/></svg>`;
+    wrap.appendChild(el);
   }
+  setTimeout(()=>{wrap.innerHTML='';}, 1600);
 }
 
-// ── Computed values ────────────────────────────────────────────────────────
-function computeAA() {
+// ── Face ID ────────────────────────────────────────────────────────────────
+function openFaceID(onSuccess) {
+  fidCallback=onSuccess;
+  const ov=document.getElementById('faceid'); ov.classList.remove('hidden');
+  document.getElementById('fid-ring2').style.opacity=0;
+  document.getElementById('fid-eyes').style.opacity=0;
+  document.getElementById('fid-done').style.opacity=0;
+  document.getElementById('fid-msg').textContent='Face ID 雙子星對焦驗證中…';
+  setTimeout(()=>{document.getElementById('fid-ring2').style.cssText+='opacity:1;animation:facering 1.2s ease-in-out infinite .3s;';},700);
+  setTimeout(()=>{document.getElementById('fid-eyes').style.opacity=1;},1400);
+  setTimeout(()=>{document.getElementById('fid-done').style.opacity=1;document.getElementById('fid-msg').textContent='驗證成功';earcon('unlock');},2100);
+  setTimeout(()=>{ov.classList.add('hidden');if(fidCallback)fidCallback();},2600);
+}
+
+// ── Token bucket ────────────────────────────────────────────────────────────
+class Bucket{constructor(c,r){this.c=c;this.t=c;this.r=r;this.l=Date.now();}consume(){const n=Date.now();this.t=Math.min(this.c,this.t+(n-this.l)/1000*this.r);this.l=n;if(this.t>=1){this.t--;return true;}return false;}}
+const saveBucket=new Bucket(1,1);
+
+// ── Derived values ─────────────────────────────────────────────────────────
+function getAA() {
   let mine=0, theirs=0;
-  state.txs.forEach(t => {
-    if(t.payer==='小星') mine = safe(mine+t.amount);
-    else theirs = safe(theirs+t.amount);
-  });
-  return { mine, theirs, diff: safe(mine-theirs) };
+  S.sharedTxs.forEach(t=>{if(t.payer===S.myName)mine=safe(mine+t.amount);else theirs=safe(theirs+t.amount);});
+  return {mine,theirs,diff:safe(mine-theirs)};
+}
+function getGoal(id) { return S.goals.find(g=>g.id===id); }
+function goalPct(g) { return clamp(Math.round(safe((g.saved/g.target)*100)),0,100); }
+
+// ── TX row HTML ──────────────────────────────────────────────────────────────
+function txRowHTML(tx, ledger) {
+  const isShared = ledger==='shared';
+  const isIncome = tx.type==='in';
+  const color = isIncome ? '#A8E6CF' : (tx.payer===S.myName ? '#89AEC1' : '#E5C185');
+  const cat = tx.cat||(isIncome?'income':'dining');
+  const paths = CAT_PATHS[cat]||CAT_PATHS.dining;
+  const sign = isIncome ? '+' : '-';
+  const amtColor = isIncome ? '#A8E6CF' : color;
+  return `<div class="tx-row" data-id="${tx.id}" data-ledger="${ledger}" style="cursor:pointer;">
+    <div style="width:34px;height:34px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(255,255,255,.04);border-radius:10px;">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>
+    </div>
+    <div style="flex:1;min-width:0;">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <span style="font-size:13px;font-weight:500;">${tx.desc}</span>
+        ${tx.conflict?`<span style="font-size:9px;background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.22);border-radius:5px;padding:1px 5px;color:#D4A800;">待確認</span>`:''}
+      </div>
+      <div style="font-size:10px;opacity:.34;margin-top:2px;">${tx.date}${isShared?' · '+tx.payer:''}</div>
+    </div>
+    <div class="mono" style="font-size:14px;font-weight:600;flex-shrink:0;color:${amtColor};">${sign}${fmt(tx.amount)}</div>
+  </div>`;
 }
 
-// ── Render transactions ────────────────────────────────────────────────────
-function renderTxList() {
-  const list = document.getElementById('tx-list');
-  list.innerHTML = '';
-  state.txs.slice(0,7).forEach(tx => {
-    const row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);animation:fadein .3s ease;';
-    const iconColor = tx.payer==='小星' ? '#89AEC1' : '#E5C185';
-    const paths = CAT_PATHS[tx.cat] || CAT_PATHS.cafe;
-    row.innerHTML = `
-      <div style="width:34px;height:34px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>
-      </div>
-      <div style="flex:1;min-width:0;">
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-          <span style="font-size:13.5px;font-weight:500;">${tx.desc}</span>
-          ${tx.conflict ? `<button class="conflict-btn" data-id="${tx.id}" style="font-size:9.5px;background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.22);border-radius:6px;padding:2px 7px;color:#D4A800;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">待確認重複</button>` : ''}
-        </div>
-        <div style="font-size:10.5px;opacity:.34;margin-top:2px;">${tx.date} · ${tx.payer}</div>
-      </div>
-      <div class="mono" style="font-size:14.5px;font-weight:600;flex-shrink:0;color:${iconColor};">-NT$${tx.amount.toLocaleString()}</div>
-    `;
-    list.appendChild(row);
-  });
-  list.querySelectorAll('.conflict-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      earcon('tap');
-      const id = parseInt(btn.dataset.id);
-      state.txs = state.txs.map(t => t.id===id ? {...t,conflict:false} : t);
-      renderTxList();
-      showToast('重複記錄已消除');
+function attachTxRowClicks(container, ledger) {
+  container.querySelectorAll('.tx-row').forEach(row => {
+    row.addEventListener('click', ()=>{
+      const id = parseInt(row.dataset.id);
+      const tx = ledger==='shared'
+        ? S.sharedTxs.find(t=>t.id===id)
+        : S.personalTxs.find(t=>t.id===id);
+      if(tx) openEditTx(tx, ledger);
     });
   });
 }
 
-// ── Render memo stars ──────────────────────────────────────────────────────
-function renderMemoStars() {
-  const wrap = document.getElementById('memo-stars');
-  wrap.innerHTML = '';
-  state.goalMsgs.forEach((m, i) => {
-    const star = document.createElement('div');
-    star.style.cssText = 'cursor:pointer;width:28px;height:28px;position:relative;';
-    star.innerHTML = `
-      <svg width="28" height="28" viewBox="0 0 26 26" fill="none" style="animation:starglow 2.5s ease-in-out infinite;">
-        <path d="M13 1 L15.5 9.5 L24 9.5 L17.5 15 L20 23 L13 18 L6 23 L8.5 15 L2 9.5 L10.5 9.5 Z" stroke="#E5C185" stroke-width="1.4" fill="rgba(229,193,133,.15)"/>
-      </svg>
-    `;
-    let flipped = false;
-    star.addEventListener('click', () => {
-      earcon('tap');
-      flipped = !flipped;
-      if(flipped) {
-        star.innerHTML = `<div style="position:absolute;inset:0;background:rgba(229,193,133,.14);border-radius:8px;display:flex;align-items:center;justify-content:center;animation:fadein .3s ease;"><div style="font-size:7px;color:#E5C185;padding:2px;line-height:1.4;text-align:center;">${m}</div></div>`;
-      } else {
-        renderMemoStars();
-      }
+// ── Render memo stars ─────────────────────────────────────────────────────
+function renderMemoStars(containerId, goal) {
+  const wrap=document.getElementById(containerId); if(!wrap) return;
+  wrap.innerHTML='';
+  (goal.msgs||[]).forEach((m,i)=>{
+    const star=document.createElement('div');
+    star.style.cssText='cursor:pointer;width:26px;height:26px;position:relative;';
+    star.innerHTML=`<svg width="26" height="26" viewBox="0 0 26 26" fill="none" style="animation:starglow 2.5s ease-in-out infinite;"><path d="M13 1 L15.5 9.5 L24 9.5 L17.5 15 L20 23 L13 18 L6 23 L8.5 15 L2 9.5 L10.5 9.5 Z" stroke="#E5C185" stroke-width="1.4" fill="rgba(229,193,133,.15)"/></svg>`;
+    let flipped=false;
+    star.addEventListener('click',()=>{
+      earcon('tap'); flipped=!flipped;
+      star.innerHTML=flipped
+        ?`<div style="position:absolute;inset:0;background:rgba(229,193,133,.14);border-radius:8px;display:flex;align-items:center;justify-content:center;"><div style="font-size:7px;color:#E5C185;padding:2px;line-height:1.4;text-align:center;">${m}</div></div>`
+        :`<svg width="26" height="26" viewBox="0 0 26 26" fill="none" style="animation:starglow 2.5s ease-in-out infinite;"><path d="M13 1 L15.5 9.5 L24 9.5 L17.5 15 L20 23 L13 18 L6 23 L8.5 15 L2 9.5 L10.5 9.5 Z" stroke="#E5C185" stroke-width="1.4" fill="rgba(229,193,133,.15)"/></svg>`;
     });
     wrap.appendChild(star);
   });
@@ -758,425 +1037,628 @@ function renderMemoStars() {
 
 // ── Full UI update ─────────────────────────────────────────────────────────
 function updateUI() {
-  const budgetLeft = safe(state.sharedBudget - state.sharedSpent);
-  const budgetPct  = clamp(safe((budgetLeft/state.sharedBudget)*100), 0, 100);
-  const lowBudget  = budgetPct <= 20;
-  const aa         = computeAA();
-  const goalPct    = clamp(Math.round(safe((state.goalSaved/state.goalTarget)*100)), 0, 100);
+  const budgetLeft=safe(S.sharedBudget-S.sharedSpent);
+  const budgetPct=clamp(safe((budgetLeft/S.sharedBudget)*100),0,100);
+  const lowBudget=budgetPct<=20;
+  const aa=getAA();
+  const primaryGoal=S.goals[0];
+  const gPct=primaryGoal?goalPct(primaryGoal):0;
+  const accent=lowBudget?'#E2D1A6':'#E5C185';
 
-  // Header accent
-  const accent = lowBudget ? '#E2D1A6' : '#E5C185';
-  document.getElementById('header-title').style.color = accent;
-  document.getElementById('header-logo').setAttribute('stroke', accent);
+  // Header
+  document.getElementById('header-title').style.color=accent;
+  document.getElementById('header-logo').setAttribute('stroke',accent);
 
-  // Shared ledger
-  document.getElementById('shared-remain').textContent = `${budgetLeft<0?'-':''}NT$${Math.abs(budgetLeft).toLocaleString()}`;
-  document.getElementById('shared-pbar').style.width = budgetPct+'%';
-  document.getElementById('shared-pbar').style.background = lowBudget
-    ? 'linear-gradient(90deg,#E2D1A6,#E5C185)'
-    : 'linear-gradient(90deg,#89AEC1,#E5C185)';
+  // ── HOME PAGE ──
+  document.getElementById('h-shared-remain').textContent=`${budgetLeft<0?'-':''}${fmt(budgetLeft)}`;
+  document.getElementById('h-shared-pbar').style.width=budgetPct+'%';
+  document.getElementById('h-shared-pbar').style.background=lowBudget?'linear-gradient(90deg,#E2D1A6,#E5C185)':'linear-gradient(90deg,#89AEC1,#E5C185)';
+  const aaEl=document.getElementById('h-aa');
+  if(aa.diff>0)      aaEl.textContent=`AA：${S.partnerName}欠${S.myName} ${fmt(aa.diff)}`;
+  else if(aa.diff<0) aaEl.textContent=`AA：${S.myName}欠${S.partnerName} ${fmt(Math.abs(aa.diff))}`;
+  else               aaEl.textContent='AA：雙方持平';
 
-  // AA label
-  const aaEl = document.getElementById('aa-label');
-  if(aa.diff > 0)       aaEl.textContent = `AA 淨額：小宇欠 NT$${Math.abs(aa.diff).toLocaleString()}`;
-  else if(aa.diff < 0)  aaEl.textContent = `AA 淨額：小星欠 NT$${Math.abs(aa.diff).toLocaleString()}`;
-  else                  aaEl.textContent = 'AA 淨額：雙方持平';
+  const warnEl=document.getElementById('low-warn');
+  if(lowBudget){warnEl.classList.remove('hidden');document.getElementById('low-warn-msg').textContent=WARN_MSGS[Math.floor(Math.random()*WARN_MSGS.length)];}
+  else warnEl.classList.add('hidden');
 
-  // Low budget warning
-  const warnEl = document.getElementById('low-budget-warn');
-  if(lowBudget) {
-    warnEl.classList.remove('hidden');
-    document.getElementById('low-budget-msg').textContent = WARN_MSGS[Math.floor(Math.random()*WARN_MSGS.length)];
-  } else {
-    warnEl.classList.add('hidden');
+  // Home goal
+  if(primaryGoal){
+    document.getElementById('goal-name-h').textContent=primaryGoal.name;
+    document.getElementById('goal-pct-h').textContent=gPct+'%';
+    document.getElementById('goal-pbar-h').style.width=gPct+'%';
+    document.getElementById('goal-amounts-h').textContent=`NT$ ${primaryGoal.saved.toLocaleString()} / ${primaryGoal.target.toLocaleString()}`;
+    renderMemoStars('memo-stars-h', primaryGoal);
+    // position rocket
+    const rocketY=safe(24-(gPct/100)*18);
+    const g=document.getElementById('rocket-g');
+    if(g) g.querySelector('g').setAttribute('transform',`translate(7,${rocketY})`);
   }
 
-  // Goal
-  document.getElementById('goal-pct').textContent    = goalPct+'%';
-  document.getElementById('goal-pbar').style.width   = goalPct+'%';
-  document.getElementById('goal-amounts').textContent = `NT$ ${state.goalSaved.toLocaleString()} / ${state.goalTarget.toLocaleString()}`;
-
-  // TX total
-  document.getElementById('tx-total').textContent = `本月 NT$${state.sharedSpent.toLocaleString()}`;
+  // Home recent tx
+  const homeTx=document.getElementById('home-tx-list');
+  homeTx.innerHTML='';
+  [...S.sharedTxs].slice(0,4).forEach(tx=>{const d=document.createElement('div');d.innerHTML=txRowHTML(tx,'shared');homeTx.appendChild(d.firstElementChild);});
+  attachTxRowClicks(homeTx,'shared');
 
   // Stats
-  document.getElementById('stat-mine').textContent   = `NT$${aa.mine.toLocaleString()}`;
-  document.getElementById('stat-theirs').textContent = `NT$${aa.theirs.toLocaleString()}`;
+  document.getElementById('stat-mine').textContent=fmt(aa.mine);
+  document.getElementById('stat-theirs').textContent=fmt(aa.theirs);
 
   // Alloc
-  const allocTotal = safe(state.sharedSpent * (state.allocPct/100));
-  document.getElementById('alloc-label').textContent  = `引力抽成 ${state.allocPct}% 啟用中`;
-  document.getElementById('alloc-total').textContent  = `NT$${allocTotal.toLocaleString()}`;
-  document.getElementById('alloc-status').style.display = state.smartAlloc ? 'flex' : 'none';
+  const allocTotal=safe(S.sharedSpent*(S.allocPct/100));
+  document.getElementById('alloc-label').textContent=`引力抽成 ${S.allocPct}% 啟用中`;
+  document.getElementById('alloc-total').textContent=fmt(allocTotal);
+  document.getElementById('alloc-status').style.display=S.smartAlloc?'flex':'none';
 
-  renderTxList();
-  renderMemoStars();
-}
+  // ── SHARED PAGE ──
+  document.getElementById('s-budget-display').textContent=fmt(S.sharedBudget);
+  document.getElementById('s-spent').textContent=fmt(S.sharedSpent);
+  const sRemain=safe(S.sharedBudget-S.sharedSpent);
+  document.getElementById('s-remain').textContent=`${sRemain<0?'-':''}${fmt(sRemain)}`;
+  document.getElementById('s-pbar').style.width=budgetPct+'%';
+  document.getElementById('s-aa-mine').textContent=fmt(aa.mine);
+  document.getElementById('s-aa-theirs').textContent=fmt(aa.theirs);
+  const verdict=document.getElementById('s-aa-verdict');
+  if(aa.diff>0)      verdict.innerHTML=`<span style="color:#E5C185;">${S.partnerName}</span> 需轉 <span style="color:#E5C185;font-family:'Geist Mono',monospace;">${fmt(aa.diff)}</span> 給 ${S.myName}`;
+  else if(aa.diff<0) verdict.innerHTML=`<span style="color:#89AEC1;">${S.myName}</span> 需轉 <span style="color:#89AEC1;font-family:'Geist Mono',monospace;">${fmt(Math.abs(aa.diff))}</span> 給 ${S.partnerName}`;
+  else               verdict.textContent='雙方支出均等，無需轉帳';
+  const sList=document.getElementById('shared-tx-list');
+  sList.innerHTML='';
+  S.sharedTxs.forEach(tx=>{const d=document.createElement('div');d.innerHTML=txRowHTML(tx,'shared');sList.appendChild(d.firstElementChild);});
+  attachTxRowClicks(sList,'shared');
+  document.getElementById('s-tx-count').textContent=S.sharedTxs.length+' 筆';
 
-// ── Confetti ───────────────────────────────────────────────────────────────
-function spawnConfetti() {
-  const wrap = document.getElementById('confetti-container');
-  wrap.innerHTML = '';
-  const colors = ['#E5C185','#89AEC1','#A8E6CF','#B08AE5','#E58A8A','#F4F4F5'];
-  for(let i=0;i<22;i++){
-    const el = document.createElement('div');
-    el.className = 'confetti-piece';
-    const sz = 5 + Math.random()*9;
-    const c  = colors[i%6];
-    const delay = (Math.random()*.55).toFixed(2);
-    el.style.cssText = `left:${Math.random()*100}%;top:12%;animation-delay:${delay}s;`;
-    el.innerHTML = `<svg width="${sz}" height="${sz}" viewBox="0 0 10 10"><polygon points="5,0 6.5,3.5 10,3.8 7.5,6.2 8.1,10 5,7.9 1.9,10 2.5,6.2 0,3.8 3.5,3.5" fill="${c}"/></svg>`;
-    wrap.appendChild(el);
+  // ── PERSONAL PAGE (only if unlocked) ──
+  if(S.personalUnlocked) {
+    document.getElementById('p-balance').textContent=fmt(S.vaultBalance);
+    document.getElementById('p-note').textContent=S.vaultNote;
+    let pOut=0, pIn=0;
+    S.personalTxs.forEach(t=>{ if(t.type==='in') pIn=safe(pIn+t.amount); else pOut=safe(pOut+t.amount); });
+    document.getElementById('p-total-out').textContent=fmt(pOut);
+    document.getElementById('p-total-in').textContent=fmt(pIn);
+    const pList=document.getElementById('personal-tx-list');
+    pList.innerHTML='';
+    S.personalTxs.forEach(tx=>{const d=document.createElement('div');d.innerHTML=txRowHTML(tx,'personal');pList.appendChild(d.firstElementChild);});
+    attachTxRowClicks(pList,'personal');
+    document.getElementById('p-tx-count').textContent=S.personalTxs.length+' 筆';
+    document.getElementById('personal-empty').style.display=S.personalTxs.length?'none':'block';
   }
-  setTimeout(() => { wrap.innerHTML = ''; }, 1600);
-}
 
-// ── Token bucket ───────────────────────────────────────────────────────────
-class Bucket {
-  constructor(cap,rate){ this.cap=cap; this.tok=cap; this.rate=rate; this.last=Date.now(); }
-  consume(){
-    const now=Date.now();
-    this.tok=Math.min(this.cap,this.tok+(now-this.last)/1000*this.rate);
-    this.last=now;
-    if(this.tok>=1){this.tok--;return true;}
-    return false;
+  // ── GOALS PAGE ──
+  const gList=document.getElementById('goals-list');
+  gList.innerHTML='';
+  if(S.goals.length===0){document.getElementById('goals-empty').classList.remove('hidden');}
+  else {
+    document.getElementById('goals-empty').classList.add('hidden');
+    S.goals.forEach(goal=>{
+      const p=goalPct(goal);
+      const card=document.createElement('div');
+      card.className='glass r24';
+      card.style.cssText='padding:18px;margin-bottom:12px;cursor:pointer;transition:transform .15s;';
+      card.innerHTML=`
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+          <div style="font-size:14px;font-weight:500;">${goal.name}</div>
+          <div class="mono" style="font-size:20px;font-weight:700;color:#E5C185;">${p}%</div>
+        </div>
+        <div class="mono" style="font-size:11.5px;color:rgba(255,255,255,.4);margin-bottom:8px;">NT$ ${goal.saved.toLocaleString()} / ${goal.target.toLocaleString()}</div>
+        <div class="pbar-bg"><div class="pbar-fg" style="width:${p}%;background:linear-gradient(90deg,#E5C185,#89AEC1);"></div></div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;" id="gs-${goal.id}"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button class="press r10 btn-fuel-goal" data-id="${goal.id}" style="flex:1;padding:7px 0;background:rgba(229,193,133,.1);border:1px solid rgba(229,193,133,.22);color:#E5C185;font-size:12px;font-family:'Noto Sans TC',sans-serif;">注入燃料</button>
+          <button class="press r10 btn-edit-goal" data-id="${goal.id}" style="padding:7px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.55);font-size:12px;font-family:'Noto Sans TC',sans-serif;">編輯</button>
+        </div>`;
+      gList.appendChild(card);
+      renderMemoStars('gs-'+goal.id, goal);
+      card.querySelector('.btn-fuel-goal').addEventListener('click',e=>{e.stopPropagation();openGoalDetail(goal.id);});
+      card.querySelector('.btn-edit-goal').addEventListener('click',e=>{e.stopPropagation();openEditGoal(goal.id);});
+    });
   }
-}
-const saveBucket = new Bucket(1,1);
 
-// ── Add expense sheet ──────────────────────────────────────────────────────
-function buildNumpad() {
-  const pad = document.getElementById('numpad');
-  pad.innerHTML = '';
-  const keys = ['1','2','3','4','5','6','7','8','9','.','0','⌫'];
-  keys.forEach(k => {
-    const btn = document.createElement('button');
-    btn.className = 'numkey';
-    if(k==='⌫') {
-      btn.innerHTML = `<svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5" stroke-linecap="round"><path d="M6 1 L17 1 Q18 1 18 7 Q18 13 17 13 L6 13 L1 7 Z" fill="none"/><line x1="9" y1="4" x2="14" y2="10"/><line x1="14" y1="4" x2="9" y2="10"/></svg>`;
-    } else {
-      btn.textContent = k;
-    }
-    btn.addEventListener('click', () => {
+  // ── SETTINGS PAGE ──
+  // Avatar list
+  const avList=document.getElementById('avatar-list');
+  avList.innerHTML='';
+  AVATARS.forEach(a=>{
+    const w=document.createElement('div');
+    w.style.cssText='cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;';
+    const on=S.selectedAvatar===a.id;
+    w.innerHTML=`<div style="width:50px;height:50px;border-radius:16px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;border:1.5px solid ${on?'rgba(229,193,133,.65)':'transparent'};box-shadow:${on?'0 0 14px rgba(229,193,133,.3)':'none'};transition:all .2s;">${a.svg}</div><div style="font-size:9px;opacity:${on?.9:.32};text-align:center;">${a.label}</div>`;
+    w.addEventListener('click',()=>{earcon('tap');S.selectedAvatar=a.id;updateUI();});
+    avList.appendChild(w);
+  });
+  // Alloc target list
+  const atList=document.getElementById('alloc-target-list');
+  atList.innerHTML='';
+  if(S.goals.length===0){atList.innerHTML='<div style="font-size:11.5px;opacity:.35;">尚無目標，請先建立目標</div>';}
+  else {
+    S.goals.forEach(g=>{
+      const btn=document.createElement('button');
+      const on=S.allocGoalId===g.id;
+      btn.className='press r10'; btn.style.cssText=`padding:7px 14px;border:1px solid ${on?'rgba(229,193,133,.35)':'rgba(255,255,255,.1)'};background:${on?'rgba(229,193,133,.12)':'rgba(255,255,255,.04)'};color:${on?'#E5C185':'rgba(255,255,255,.5)'};font-size:12px;font-family:'Noto Sans TC',sans-serif;margin-bottom:6px;margin-right:6px;`;
+      btn.textContent=g.name;
+      btn.addEventListener('click',()=>{S.allocGoalId=on?null:g.id;updateUI();});
+      atList.appendChild(btn);
+    });
+  }
+  // Name inputs
+  document.getElementById('my-name-input').value=S.myName;
+  document.getElementById('partner-name-input').value=S.partnerName;
+
+  // Update vault-locked / unlocked payer names
+  document.querySelectorAll('.payer-btn').forEach(btn=>{
+    if(btn.dataset.payer!=='小星'&&btn.dataset.payer!=='小宇') return;
+  });
+}
+
+// ── Tab navigation ─────────────────────────────────────────────────────────
+function switchTab(page) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  const pg=document.getElementById('page-'+page);
+  if(pg){pg.classList.add('active');}
+  const tb=document.querySelector(`.tab-btn[data-page="${page}"]`);
+  if(tb){tb.classList.add('active');}
+  // FAB visibility
+  const fabEl=document.getElementById('fab');
+  const showFab=['home','shared','personal'].includes(page);
+  fabEl.style.display=showFab?'block':'none';
+  if(showFab){fabEl.style.animation='fabfloat 3.5s ease-in-out infinite';}
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{ earcon('tap'); switchTab(btn.dataset.page); });
+});
+
+// Home "查看全部"
+document.getElementById('btn-view-all-tx').addEventListener('click',()=>{ earcon('tap'); switchTab('shared'); });
+
+// ── Transaction Sheet ──────────────────────────────────────────────────────
+function buildNumpad(numpadId, displayId, valueGetter, valueSetter, onUpdate) {
+  const pad=document.getElementById(numpadId); if(!pad) return;
+  pad.innerHTML='';
+  ['1','2','3','4','5','6','7','8','9','.','0','⌫'].forEach(k=>{
+    const btn=document.createElement('button'); btn.className='numkey';
+    btn.innerHTML=k==='⌫'
+      ?'<svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5" stroke-linecap="round"><path d="M6 1 L17 1 Q18 1 18 7 Q18 13 17 13 L6 13 L1 7 Z" fill="none"/><line x1="9" y1="4" x2="14" y2="10"/><line x1="14" y1="4" x2="9" y2="10"/></svg>'
+      :k;
+    btn.addEventListener('click',()=>{
       earcon('tap');
-      if(k==='⌫') { state.addAmount = state.addAmount.slice(0,-1); }
-      else if(k==='.' && state.addAmount.includes('.')) { return; }
-      else if(state.addAmount.length < 10) { state.addAmount += k; }
-      updateAddDisplay();
+      let v=valueGetter();
+      if(k==='⌫') v=v.slice(0,-1);
+      else if(k==='.'&&v.includes('.')) return;
+      else if(v.length<10) v+=k;
+      valueSetter(v);
+      if(onUpdate) onUpdate(v);
     });
     pad.appendChild(btn);
   });
 }
 
-function buildCatStrip() {
-  const strip = document.getElementById('cat-strip');
-  strip.innerHTML = '';
-  CATS.forEach(c => {
-    const btn = document.createElement('button');
-    const isActive = state.addCat === c.key;
-    const col = isActive ? '#89AEC1' : 'rgba(255,255,255,.4)';
-    btn.className = 'press';
-    btn.style.cssText = `padding:6px 12px;border-radius:14px;border:none;background:${isActive?'rgba(137,174,193,.18)':'rgba(255,255,255,.05)'};color:${isActive?'#89AEC1':'rgba(255,255,255,.45)'};font-size:12px;white-space:nowrap;display:flex;align-items:center;gap:6px;font-family:'Noto Sans TC',sans-serif;flex-shrink:0;`;
-    const paths = CAT_PATHS[c.key]||CAT_PATHS.cafe;
-    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>${c.label}`;
-    btn.addEventListener('click', () => { earcon('tap'); state.addCat = c.key; buildCatStrip(); });
+function buildCatStrip(containerId, currentCat, onSelect) {
+  const strip=document.getElementById(containerId); if(!strip) return;
+  strip.innerHTML='';
+  CATS.forEach(c=>{
+    const btn=document.createElement('button');
+    const on=currentCat===c.key;
+    btn.className='cat-chip press';
+    btn.style.cssText=`background:${on?'rgba(137,174,193,.18)':'rgba(255,255,255,.05)'};color:${on?'#89AEC1':'rgba(255,255,255,.45)'};`;
+    const col=on?'#89AEC1':'rgba(255,255,255,.4)';
+    btn.innerHTML=`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${CAT_PATHS[c.key]||''}</svg>${c.label}`;
+    btn.addEventListener('click',()=>{ earcon('tap'); onSelect(c.key); });
     strip.appendChild(btn);
   });
 }
 
-function updateAddDisplay() {
-  const sym = state.currency === 'JPY' ? '¥' : 'NT$';
-  document.getElementById('add-display').textContent = sym + (state.addAmount||'0');
-  const n = parseFloat(state.addAmount||'0');
-  const jpyEl = document.getElementById('add-jpy-equiv');
-  const boostEl = document.getElementById('add-boost-hint');
-  const boostTxt = document.getElementById('add-boost-text');
-  if(state.currency==='JPY' && n) {
-    const twd = safe(n*0.205);
-    jpyEl.textContent = `¥${n.toLocaleString()} ⇄ NT$${twd.toLocaleString()} TWD`;
-    jpyEl.classList.remove('hidden');
-  } else { jpyEl.classList.add('hidden'); }
-  if(state.smartAlloc && n) {
-    const twd = state.currency==='JPY' ? safe(n*0.205) : n;
-    const boost = safe(twd*(state.allocPct/100));
-    boostTxt.textContent = `自動空投 ${state.allocPct}% = NT$${boost.toLocaleString()} 至火箭基金`;
+function updateTxDisplay() {
+  const sym=txForm.currency==='JPY'?'¥':'NT$';
+  document.getElementById('tx-amount-display').textContent=sym+(txForm.amount||'0');
+  const n=parseFloat(txForm.amount||'0');
+  const jpyEl=document.getElementById('tx-jpy-equiv');
+  const boostEl=document.getElementById('tx-boost-hint');
+  if(txForm.currency==='JPY'&&n){jpyEl.textContent=`¥${n.toLocaleString()} ⇄ NT$${safe(n*.205).toLocaleString()} TWD`;jpyEl.classList.remove('hidden');}
+  else jpyEl.classList.add('hidden');
+  const isShared=txForm.type==='shared';
+  if(S.smartAlloc&&isShared&&n&&S.allocGoalId){
+    const twd=txForm.currency==='JPY'?safe(n*.205):n;
+    document.getElementById('tx-boost-text').textContent=`自動空投 ${S.allocPct}% = ${fmt(safe(twd*(S.allocPct/100)))} 至 ${getGoal(S.allocGoalId)?.name||'目標'}`;
     boostEl.classList.remove('hidden');
-  } else { boostEl.classList.add('hidden'); }
+  } else boostEl.classList.add('hidden');
 }
 
-function openAddSheet() {
-  state.addAmount = '';
-  state.addCat = 'dining';
-  state.addPayer = '小星';
-  buildNumpad();
-  buildCatStrip();
-  updateAddDisplay();
-  updatePayerBtns();
-  document.getElementById('add-desc').value = '';
-  document.getElementById('add-sheet').classList.remove('hidden');
+function openAddTx(defaultType) {
+  txForm={editId:null,editLedger:null,type:defaultType||'shared',currency:'TWD',amount:'',cat:'dining',payer:S.myName};
+  document.getElementById('tx-sheet-title').textContent='新增記錄';
+  document.getElementById('btn-tx-delete').classList.add('hidden');
+  setupTxSheet();
+  document.getElementById('tx-sheet').classList.remove('hidden');
 }
-function closeAddSheet() { document.getElementById('add-sheet').classList.add('hidden'); }
+
+function openEditTx(tx, ledger) {
+  txForm={
+    editId:tx.id, editLedger:ledger,
+    type:ledger==='shared'?'shared':(tx.type==='in'?'personal-in':'personal-out'),
+    currency:'TWD', amount:String(tx.amount), cat:tx.cat||'dining',
+    payer:tx.payer||S.myName,
+  };
+  document.getElementById('tx-sheet-title').textContent='編輯記錄';
+  document.getElementById('btn-tx-delete').classList.remove('hidden');
+  setupTxSheet();
+  document.getElementById('tx-desc').value=tx.desc;
+  document.getElementById('tx-sheet').classList.remove('hidden');
+}
+
+function setupTxSheet() {
+  // Segment
+  document.querySelectorAll('#tx-type-seg .seg-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.type===txForm.type);
+  });
+  // Payer row
+  const isShared=txForm.type==='shared';
+  document.getElementById('tx-payer-row').style.display=isShared?'flex':'none';
+  document.getElementById('tx-goal-row').style.display=(isShared&&S.smartAlloc)?'block':'none';
+  // Currency
+  document.querySelectorAll('.cur-btn').forEach(b=>{
+    const on=b.dataset.cur===txForm.currency;
+    b.style.background=on?'rgba(229,193,133,.18)':'rgba(255,255,255,.06)';
+    b.style.color=on?'#E5C185':'rgba(255,255,255,.45)';
+  });
+  // Numpad
+  buildNumpad('tx-numpad','tx-amount-display',()=>txForm.amount,(v)=>{txForm.amount=v;},updateTxDisplay);
+  // Cat strip
+  buildCatStrip('tx-cat-strip', txForm.cat, (k)=>{ txForm.cat=k; buildCatStrip('tx-cat-strip',k,(k2)=>{txForm.cat=k2;buildCatStrip('tx-cat-strip',k2,()=>{});});});
+  // Payer btns
+  updatePayerBtns();
+  // Goal selector
+  const gs=document.getElementById('tx-goal-select');
+  gs.innerHTML='';
+  S.goals.forEach(g=>{
+    const on=S.allocGoalId===g.id;
+    const b=document.createElement('button');
+    b.className='press r10';b.style.cssText=`padding:5px 10px;border:1px solid ${on?'rgba(229,193,133,.3)':'rgba(255,255,255,.1)'};background:${on?'rgba(229,193,133,.1)':'rgba(255,255,255,.04)'};color:${on?'#E5C185':'rgba(255,255,255,.45)'};font-size:11.5px;font-family:'Noto Sans TC',sans-serif;`;
+    b.textContent=g.name;
+    b.addEventListener('click',()=>{S.allocGoalId=on?null:g.id;setupTxSheet();});
+    gs.appendChild(b);
+  });
+  document.getElementById('tx-desc').value='';
+  updateTxDisplay();
+}
 
 function updatePayerBtns() {
-  document.querySelectorAll('.payer-btn').forEach(btn => {
-    const isActive = btn.dataset.payer === state.addPayer;
-    btn.style.background = isActive ? 'rgba(137,174,193,.15)' : 'rgba(255,255,255,.05)';
-    btn.style.color = isActive ? '#89AEC1' : 'rgba(255,255,255,.38)';
+  document.querySelectorAll('.payer-btn').forEach(btn=>{
+    const on=btn.dataset.payer===txForm.payer||btn.dataset.payer===S.myName&&txForm.payer===S.myName;
+    // reset first
+  });
+  document.querySelectorAll('.payer-btn').forEach(btn=>{
+    const on=btn.dataset.payer===txForm.payer;
+    btn.style.background=on?'rgba(137,174,193,.15)':'rgba(255,255,255,.05)';
+    btn.style.color=on?'#89AEC1':'rgba(255,255,255,.38)';
   });
 }
 
-// ── Currency buttons ───────────────────────────────────────────────────────
-document.querySelectorAll('.cur-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    earcon('tap');
-    state.currency = btn.dataset.cur;
-    document.querySelectorAll('.cur-btn').forEach(b => {
-      const on = b.dataset.cur === state.currency;
-      b.style.background = on ? 'rgba(229,193,133,.18)' : 'rgba(255,255,255,.06)';
-      b.style.color = on ? '#E5C185' : 'rgba(255,255,255,.45)';
+// Segment clicks
+document.querySelectorAll('#tx-type-seg .seg-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    earcon('tap'); txForm.type=btn.dataset.type;
+    const isShared=txForm.type==='shared';
+    document.getElementById('tx-payer-row').style.display=isShared?'flex':'none';
+    document.getElementById('tx-goal-row').style.display=(isShared&&S.smartAlloc)?'block':'none';
+    document.querySelectorAll('#tx-type-seg .seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.type===btn.dataset.type));
+    updateTxDisplay();
+  });
+});
+// Currency
+document.querySelectorAll('.cur-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    earcon('tap'); txForm.currency=btn.dataset.cur;
+    document.querySelectorAll('.cur-btn').forEach(b=>{
+      const on=b.dataset.cur===txForm.currency;
+      b.style.background=on?'rgba(229,193,133,.18)':'rgba(255,255,255,.06)';
+      b.style.color=on?'#E5C185':'rgba(255,255,255,.45)';
     });
-    updateAddDisplay();
+    updateTxDisplay();
   });
 });
-
-// ── Payer buttons ──────────────────────────────────────────────────────────
-document.querySelectorAll('.payer-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    earcon('tap');
-    state.addPayer = btn.dataset.payer;
-    updatePayerBtns();
-  });
+// Payer
+document.querySelectorAll('.payer-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{ earcon('tap'); txForm.payer=btn.dataset.payer; updatePayerBtns(); });
 });
+// Close tx sheet backdrop
+document.getElementById('tx-sheet').addEventListener('click',e=>{ if(e.target===document.getElementById('tx-sheet')){document.getElementById('tx-sheet').classList.add('hidden');}});
 
-// ── Save expense ───────────────────────────────────────────────────────────
-document.getElementById('btn-save-expense').addEventListener('click', () => {
-  if(!saveBucket.consume()) {
-    earcon('freeze');
-    const saveBtn = document.getElementById('btn-save-expense');
-    saveBtn.style.animation = 'freezeshake .3s ease';
-    saveBtn.textContent = '星際冷卻中 3s';
-    saveBtn.disabled = true;
-    let cd = 3;
-    const t = setInterval(() => {
-      cd--;
-      saveBtn.textContent = `星際冷卻中 ${cd}s`;
-      if(cd<=0){
-        clearInterval(t);
-        saveBtn.disabled=false;
-        saveBtn.style.animation='';
-        saveBtn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#E5C185" stroke-width="1.5"><path d="M12 2 L13.5 10.5 L22 12 L13.5 13.5 L12 22 L10.5 13.5 L2 12 L10.5 10.5 Z"/></svg>儲存這筆帳`;
+// Save tx
+document.getElementById('btn-tx-save').addEventListener('click',()=>{
+  if(!saveBucket.consume()){ earcon('freeze'); showToast('操作太快，請稍候'); return; }
+  const n=parseFloat(txForm.amount||'0');
+  const desc=document.getElementById('tx-desc').value.trim();
+  if(!n||!desc){showToast('請輸入金額與說明');return;}
+  const twd=txForm.currency==='JPY'?safe(n*.205):n;
+  const today=new Date().toLocaleDateString('zh-TW',{month:'2-digit',day:'2-digit'});
+  const isShared=txForm.type==='shared';
+  const isIn=txForm.type==='personal-in';
+
+  if(txForm.editId&&txForm.editLedger) {
+    // Edit
+    if(txForm.editLedger==='shared'){
+      S.sharedTxs=S.sharedTxs.map(t=>t.id===txForm.editId?{...t,desc,amount:twd,cat:txForm.cat,payer:txForm.payer,conflict:false}:t);
+      // Recalc spent
+      S.sharedSpent=safe(S.sharedTxs.reduce((a,t)=>a+t.amount,0));
+    } else {
+      const oldTx=S.personalTxs.find(t=>t.id===txForm.editId);
+      S.personalTxs=S.personalTxs.map(t=>t.id===txForm.editId?{...t,desc,amount:twd,cat:txForm.cat,type:isIn?'in':'out'}:t);
+    }
+    showToast('已更新記錄');
+  } else {
+    // Add new
+    if(isShared){
+      const boost=S.smartAlloc&&S.allocGoalId?safe(twd*(S.allocPct/100)):0;
+      S.sharedTxs.unshift({id:Date.now(),desc,amount:twd,cat:txForm.cat,date:today,payer:txForm.payer,conflict:false});
+      S.sharedSpent=safe(S.sharedSpent+twd);
+      if(boost&&S.allocGoalId){
+        const g=S.goals.find(g=>g.id===S.allocGoalId);
+        if(g){
+          const prev=goalPct(g); g.saved=safe(g.saved+boost);
+          if([20,50,100].some(m=>prev<m&&goalPct(g)>=m)) spawnConfetti();
+        }
       }
-    },1000);
-    return;
+    } else {
+      S.personalTxs.unshift({id:Date.now(),desc,amount:twd,cat:txForm.cat,date:today,type:isIn?'in':'out'});
+    }
+    earcon('save');
+    showToast(`已記錄 ${fmt(twd)}`);
   }
-  const n = parseFloat(state.addAmount||'0');
-  const desc = document.getElementById('add-desc').value.trim();
-  if(!n || !desc) { showToast('請輸入金額與說明'); return; }
-  const twd = state.currency==='JPY' ? safe(n*0.205) : n;
-  const boost = state.smartAlloc ? safe(twd*(state.allocPct/100)) : 0;
-  const today = new Date().toLocaleDateString('zh-TW',{month:'2-digit',day:'2-digit'});
-  state.txs.unshift({ id:Date.now(), desc, amount:twd, cat:state.addCat, date:today, payer:state.addPayer, conflict:false });
-  state.sharedSpent = safe(state.sharedSpent + twd);
-  state.goalSaved   = safe(state.goalSaved + boost);
-  earcon('save');
-  closeAddSheet();
+  document.getElementById('tx-sheet').classList.add('hidden');
   updateUI();
-  setTimeout(() => showToast(`${state.addPayer} 記了一筆 NT$${twd.toLocaleString()}`), 200);
 });
 
-// ── Fuel panel ─────────────────────────────────────────────────────────────
-document.getElementById('btn-fuel').addEventListener('click', () => {
-  earcon('tap');
-  const panel = document.getElementById('fuel-panel');
-  panel.classList.toggle('hidden');
+// Delete tx
+document.getElementById('btn-tx-delete').addEventListener('click',()=>{
+  if(!txForm.editId) return;
+  if(!confirm('確定刪除這筆記錄？')) return;
+  if(txForm.editLedger==='shared'){
+    S.sharedTxs=S.sharedTxs.filter(t=>t.id!==txForm.editId);
+    S.sharedSpent=safe(S.sharedTxs.reduce((a,t)=>a+t.amount,0));
+  } else {
+    S.personalTxs=S.personalTxs.filter(t=>t.id!==txForm.editId);
+  }
+  document.getElementById('tx-sheet').classList.add('hidden');
+  showToast('已刪除'); updateUI();
 });
 
-document.getElementById('btn-fuel-save').addEventListener('click', () => {
-  const n = parseFloat(document.getElementById('fuel-amt').value||'0');
-  const memo = document.getElementById('fuel-memo').value.trim();
-  if(!n||n<=0) return;
-  const prevPct = safe((state.goalSaved/state.goalTarget)*100);
-  state.goalSaved = safe(state.goalSaved + n);
-  const newPct = safe((state.goalSaved/state.goalTarget)*100);
-  earcon('rocket');
-  if([20,50,100].some(m => prevPct < m && newPct >= m)) spawnConfetti();
-  if(memo) { state.goalMsgs.push(memo); }
-  document.getElementById('fuel-amt').value = '';
-  document.getElementById('fuel-memo').value = '';
-  document.getElementById('fuel-panel').classList.add('hidden');
-  updateUI();
-  showToast('燃料注入成功！');
+// ── Budget Sheet ────────────────────────────────────────────────────────────
+document.getElementById('btn-edit-budget').addEventListener('click',()=>{
+  budgetAmount=String(S.sharedBudget);
+  document.getElementById('budget-display').textContent='NT$'+S.sharedBudget.toLocaleString();
+  buildNumpad('budget-numpad','budget-display',
+    ()=>budgetAmount,
+    (v)=>{budgetAmount=v;document.getElementById('budget-display').textContent='NT$'+(parseFloat(v||'0')).toLocaleString();},
+    null
+  );
+  document.getElementById('budget-sheet').classList.remove('hidden');
+});
+document.getElementById('budget-sheet').addEventListener('click',e=>{ if(e.target===document.getElementById('budget-sheet')) document.getElementById('budget-sheet').classList.add('hidden'); });
+document.getElementById('btn-budget-save').addEventListener('click',()=>{
+  const n=parseFloat(budgetAmount||'0');
+  if(!n||n<=0){showToast('請輸入有效金額');return;}
+  S.sharedBudget=safe(n); earcon('save');
+  document.getElementById('budget-sheet').classList.add('hidden');
+  showToast('預算已更新'); updateUI();
 });
 
-// ── Settings ───────────────────────────────────────────────────────────────
-function buildAvatars() {
-  const list = document.getElementById('avatar-list');
-  list.innerHTML = '';
-  AVATARS_SVG.forEach(a => {
-    const wrap = document.createElement('div');
-    wrap.style.cssText = 'cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;';
-    const isActive = state.selectedAvatar === a.id;
-    wrap.innerHTML = `
-      <div style="width:52px;height:52px;border-radius:18px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;border:1.5px solid ${isActive?'rgba(229,193,133,.65)':'transparent'};box-shadow:${isActive?'0 0 16px rgba(229,193,133,.3)':'none'};transition:all .2s;">${a.svg}</div>
-      <div style="font-size:9px;opacity:${isActive?.9:.32};text-align:center;line-height:1.4;">${a.label}</div>
-    `;
-    wrap.addEventListener('click', () => { earcon('tap'); state.selectedAvatar = a.id; buildAvatars(); });
-    list.appendChild(wrap);
-  });
+// ── Goal Sheet ──────────────────────────────────────────────────────────────
+document.getElementById('btn-add-goal').addEventListener('click',()=>openAddGoal());
+function openAddGoal(){
+  goalForm.editId=null;
+  document.getElementById('goal-sheet-title').textContent='新增目標';
+  document.getElementById('goal-name-input').value='';
+  document.getElementById('goal-target-input').value='';
+  document.getElementById('goal-saved-input').value='';
+  document.getElementById('btn-goal-delete').classList.add('hidden');
+  document.getElementById('goal-sheet').classList.remove('hidden');
 }
-
-// Zen toggle
-let zenOn = false;
-document.getElementById('zen-toggle').addEventListener('click', () => {
-  earcon('tap');
-  zenOn = !zenOn;
-  state.zenMode = zenOn;
-  const btn = document.getElementById('zen-toggle');
-  const dot = btn.querySelector('.toggle-dot');
-  btn.style.background = zenOn ? 'rgba(229,193,133,.28)' : 'rgba(255,255,255,.09)';
-  dot.style.left = zenOn ? '21px' : '3px';
-  dot.style.background = zenOn ? '#E5C185' : 'rgba(255,255,255,.38)';
-  // Update volume icon
-  const vi = document.getElementById('vol-icon');
-  vi.innerHTML = zenOn
-    ? '<polygon points="5,9 10,9 15,4 15,20 10,15 5,15"/><line x1="18" y1="9" x2="23" y2="15"/><line x1="23" y1="9" x2="18" y2="15"/>'
-    : '<polygon points="5,9 10,9 15,4 15,20 10,15 5,15"/><path d="M18 9 Q21 12 18 15"/><path d="M19.5 6.5 Q24 12 19.5 17.5"/>';
+function openEditGoal(id){
+  const g=getGoal(id); if(!g) return;
+  goalForm.editId=id;
+  document.getElementById('goal-sheet-title').textContent='編輯目標';
+  document.getElementById('goal-name-input').value=g.name;
+  document.getElementById('goal-target-input').value=g.target;
+  document.getElementById('goal-saved-input').value=g.saved;
+  document.getElementById('btn-goal-delete').classList.remove('hidden');
+  document.getElementById('goal-sheet').classList.remove('hidden');
+}
+document.getElementById('goal-sheet').addEventListener('click',e=>{ if(e.target===document.getElementById('goal-sheet')) document.getElementById('goal-sheet').classList.add('hidden'); });
+document.getElementById('btn-goal-save').addEventListener('click',()=>{
+  const name=document.getElementById('goal-name-input').value.trim();
+  const target=parseFloat(document.getElementById('goal-target-input').value||'0');
+  const saved=parseFloat(document.getElementById('goal-saved-input').value||'0');
+  if(!name||!target){showToast('請輸入目標名稱與金額');return;}
+  if(goalForm.editId){
+    S.goals=S.goals.map(g=>g.id===goalForm.editId?{...g,name,target:safe(target),saved:safe(saved)}:g);
+    showToast('目標已更新');
+  } else {
+    S.goals.push({id:'g'+Date.now(),name,target:safe(target),saved:safe(saved),msgs:[]});
+    if(!S.allocGoalId&&S.goals.length===1) S.allocGoalId=S.goals[0].id;
+    showToast('目標已建立');
+  }
+  earcon('save'); document.getElementById('goal-sheet').classList.add('hidden'); updateUI();
+});
+document.getElementById('btn-goal-delete').addEventListener('click',()=>{
+  if(!goalForm.editId||!confirm('確定刪除此目標？')) return;
+  S.goals=S.goals.filter(g=>g.id!==goalForm.editId);
+  if(S.allocGoalId===goalForm.editId) S.allocGoalId=S.goals[0]?.id||null;
+  document.getElementById('goal-sheet').classList.add('hidden');
+  showToast('目標已刪除'); updateUI();
 });
 
-// Alloc toggle
-let allocOn = true;
-document.getElementById('alloc-toggle').addEventListener('click', () => {
-  earcon('tap');
-  allocOn = !allocOn;
-  state.smartAlloc = allocOn;
-  const btn = document.getElementById('alloc-toggle');
-  const dot = btn.querySelector('.toggle-dot');
-  btn.style.background = allocOn ? 'rgba(137,174,193,.28)' : 'rgba(255,255,255,.09)';
-  dot.style.left = allocOn ? '21px' : '3px';
-  dot.style.background = allocOn ? 'rgb(137,174,193)' : 'rgba(255,255,255,.38)';
-  document.getElementById('alloc-pct-label').style.opacity = allocOn ? 1 : .3;
-  document.getElementById('alloc-range').disabled = !allocOn;
-  updateUI();
+// ── Goal Detail Sheet ───────────────────────────────────────────────────────
+function openGoalDetail(id){
+  const g=getGoal(id); if(!g) return;
+  currentGoalDetail=id;
+  const p=goalPct(g);
+  document.getElementById('gd-name').textContent=g.name;
+  document.getElementById('gd-pct').textContent=p+'%';
+  document.getElementById('gd-amounts').textContent=`NT$ ${g.saved.toLocaleString()} / ${g.target.toLocaleString()}`;
+  document.getElementById('gd-pbar').style.width=p+'%';
+  renderMemoStars('gd-stars',g);
+  document.getElementById('gd-fuel-amt').value='';
+  document.getElementById('gd-fuel-memo').value='';
+  document.getElementById('goal-detail-sheet').classList.remove('hidden');
+}
+document.getElementById('btn-open-goal').addEventListener('click',()=>{ if(S.goals[0]) openGoalDetail(S.goals[0].id); });
+document.getElementById('btn-gd-close').addEventListener('click',()=>document.getElementById('goal-detail-sheet').classList.add('hidden'));
+document.getElementById('goal-detail-sheet').addEventListener('click',e=>{ if(e.target===document.getElementById('goal-detail-sheet')) document.getElementById('goal-detail-sheet').classList.add('hidden'); });
+document.getElementById('btn-gd-edit').addEventListener('click',()=>{ document.getElementById('goal-detail-sheet').classList.add('hidden'); if(currentGoalDetail) openEditGoal(currentGoalDetail); });
+document.getElementById('btn-gd-fuel').addEventListener('click',()=>{
+  const g=getGoal(currentGoalDetail); if(!g) return;
+  const n=parseFloat(document.getElementById('gd-fuel-amt').value||'0');
+  const memo=document.getElementById('gd-fuel-memo').value.trim();
+  if(!n||n<=0){showToast('請輸入金額');return;}
+  const prev=goalPct(g); g.saved=safe(g.saved+n);
+  if([20,50,100].some(m=>prev<m&&goalPct(g)>=m)) spawnConfetti();
+  if(memo) g.msgs.push(memo);
+  earcon('rocket');
+  openGoalDetail(currentGoalDetail);
+  updateUI(); showToast('燃料注入成功！');
 });
 
-// Alloc range
-document.getElementById('alloc-range').addEventListener('input', e => {
-  state.allocPct = parseInt(e.target.value);
-  document.getElementById('alloc-pct-label').textContent = `抽成 ${state.allocPct}%`;
+// ── Vault ──────────────────────────────────────────────────────────────────
+function unlockPersonal(){
+  S.personalUnlocked=true;
+  document.getElementById('personal-locked').style.display='none';
+  document.getElementById('personal-unlocked').classList.remove('hidden');
+  document.getElementById('vault-locked-state').classList.add('hidden');
+  document.getElementById('vault-unlocked-state').classList.remove('hidden');
+  document.getElementById('v-balance').textContent=fmt(S.vaultBalance);
+  document.getElementById('v-note').textContent=S.vaultNote;
+  updateUI(); showToast('私密宇宙已解鎖','#89AEC1');
+}
+function lockPersonal(){
+  S.personalUnlocked=false;
+  document.getElementById('personal-locked').style.display='flex';
+  document.getElementById('personal-unlocked').classList.add('hidden');
+  document.getElementById('vault-locked-state').classList.remove('hidden');
+  document.getElementById('vault-unlocked-state').classList.add('hidden');
+}
+document.getElementById('card-vault').addEventListener('click',()=>{
+  earcon('tap');
+  if(!S.personalUnlocked) openFaceID(unlockPersonal);
+  else lockPersonal();
+});
+document.getElementById('btn-unlock-personal').addEventListener('click',()=>{ earcon('tap'); openFaceID(unlockPersonal); });
+document.getElementById('btn-lock-vault').addEventListener('click',()=>{ earcon('tap'); lockPersonal(); showToast('已重新鎖定'); });
+
+// Vault edit
+document.getElementById('btn-edit-vault').addEventListener('click',()=>{
+  document.getElementById('vault-bal-input').value=S.vaultBalance;
+  document.getElementById('vault-note-input').value=S.vaultNote;
+  document.getElementById('vault-edit-sheet').classList.remove('hidden');
+});
+document.getElementById('vault-edit-sheet').addEventListener('click',e=>{ if(e.target===document.getElementById('vault-edit-sheet')) document.getElementById('vault-edit-sheet').classList.add('hidden'); });
+document.getElementById('btn-vault-save').addEventListener('click',()=>{
+  const bal=parseFloat(document.getElementById('vault-bal-input').value||'0');
+  const note=document.getElementById('vault-note-input').value.trim();
+  S.vaultBalance=safe(bal); S.vaultNote=note;
+  earcon('save'); document.getElementById('vault-edit-sheet').classList.add('hidden');
+  updateUI(); showToast('金庫已更新');
+});
+document.getElementById('btn-vault-cancel').addEventListener('click',()=>document.getElementById('vault-edit-sheet').classList.add('hidden'));
+
+// ── Shared card click ───────────────────────────────────────────────────────
+document.getElementById('card-shared').addEventListener('click',()=>{ earcon('tap'); switchTab('shared'); });
+
+// ── FAB ─────────────────────────────────────────────────────────────────────
+document.getElementById('btn-fab').addEventListener('click',()=>{
+  earcon('tap');
+  const activePage=document.querySelector('.tab-btn.active')?.dataset.page;
+  if(activePage==='personal'){
+    if(!S.personalUnlocked){ openFaceID(()=>{ unlockPersonal(); openAddTx('personal-out'); }); return; }
+    openAddTx('personal-out');
+  } else {
+    openAddTx('shared');
+  }
+});
+document.getElementById('btn-add-shared').addEventListener('click',()=>{ earcon('tap'); openAddTx('shared'); });
+document.getElementById('btn-add-personal').addEventListener('click',()=>{
+  earcon('tap');
+  if(!S.personalUnlocked){ openFaceID(()=>{ unlockPersonal(); openAddTx('personal-out'); }); return; }
+  openAddTx('personal-out');
+});
+
+// ── Settings ────────────────────────────────────────────────────────────────
+document.getElementById('btn-settings').addEventListener('click',()=>{ earcon('tap'); switchTab('settings'); });
+let zenOn=false;
+document.getElementById('zen-toggle').addEventListener('click',()=>{
+  earcon('tap'); zenOn=!zenOn; S.zenMode=zenOn;
+  const btn=document.getElementById('zen-toggle'),dot=btn.querySelector('.toggle-dot');
+  btn.style.background=zenOn?'rgba(229,193,133,.28)':'rgba(255,255,255,.09)';
+  dot.style.left=zenOn?'21px':'3px'; dot.style.background=zenOn?'#E5C185':'rgba(255,255,255,.38)';
+  const vi=document.getElementById('vol-icon');
+  vi.innerHTML=zenOn
+    ?'<polygon points="5,9 10,9 15,4 15,20 10,15 5,15"/><line x1="18" y1="9" x2="23" y2="15"/><line x1="23" y1="9" x2="18" y2="15"/>'
+    :'<polygon points="5,9 10,9 15,4 15,20 10,15 5,15"/><path d="M18 9 Q21 12 18 15"/><path d="M19.5 6.5 Q24 12 19.5 17.5"/>';
+});
+let allocOn=true;
+document.getElementById('alloc-toggle').addEventListener('click',()=>{
+  earcon('tap'); allocOn=!allocOn; S.smartAlloc=allocOn;
+  const btn=document.getElementById('alloc-toggle'),dot=btn.querySelector('.toggle-dot');
+  btn.style.background=allocOn?'rgba(137,174,193,.28)':'rgba(255,255,255,.09)';
+  dot.style.left=allocOn?'21px':'3px'; dot.style.background=allocOn?'rgb(137,174,193)':'rgba(255,255,255,.38)';
+  document.getElementById('alloc-pct-label').style.opacity=allocOn?1:.3;
+  document.getElementById('alloc-range').disabled=!allocOn;
   updateUI();
+});
+document.getElementById('alloc-range').addEventListener('input',e=>{
+  S.allocPct=parseInt(e.target.value);
+  document.getElementById('alloc-pct-label').textContent=`抽成 ${S.allocPct}%`;
+  updateUI();
+});
+document.getElementById('btn-save-names').addEventListener('click',()=>{
+  S.myName=document.getElementById('my-name-input').value.trim()||'小星';
+  S.partnerName=document.getElementById('partner-name-input').value.trim()||'小宇';
+  earcon('save'); showToast('名稱已更新'); updateUI();
 });
 
 // Breakup hold
-let holdTimer = null;
-const breakupBtn = document.getElementById('btn-breakup');
-const breakupRing = document.getElementById('breakup-ring');
-const breakupArc  = document.getElementById('breakup-arc');
-
-breakupBtn.addEventListener('pointerdown', () => {
-  breakupRing.style.display = 'block';
-  const start = Date.now();
-  holdTimer = setInterval(() => {
-    const p = clamp((Date.now()-start)/3000, 0, 1);
-    breakupArc.setAttribute('stroke-dashoffset', safe(69*(1-p)));
-    if(p >= 1) {
-      clearInterval(holdTimer);
-      breakupRing.style.display = 'none';
-      breakupArc.setAttribute('stroke-dashoffset','69');
-      alert('已進入 14 天冷靜期隔離沙盒');
-    }
-  }, 50);
+let holdTmr=null;
+const bBtn=document.getElementById('btn-breakup'),bRing=document.getElementById('breakup-ring'),bArc=document.getElementById('breakup-arc');
+bBtn.addEventListener('pointerdown',()=>{
+  bRing.style.display='block';
+  const start=Date.now();
+  holdTmr=setInterval(()=>{
+    const p=clamp((Date.now()-start)/3000,0,1);
+    bArc.setAttribute('stroke-dashoffset',safe(69*(1-p)));
+    if(p>=1){clearInterval(holdTmr);bRing.style.display='none';bArc.setAttribute('stroke-dashoffset','69');alert('已進入 14 天冷靜期隔離沙盒');}
+  },50);
 });
-['pointerup','pointerleave','pointercancel'].forEach(ev => {
-  breakupBtn.addEventListener(ev, () => {
-    clearInterval(holdTimer);
-    breakupRing.style.display = 'none';
-    breakupArc.setAttribute('stroke-dashoffset','69');
-  });
-});
+['pointerup','pointerleave','pointercancel'].forEach(ev=>bBtn.addEventListener(ev,()=>{clearInterval(holdTmr);bRing.style.display='none';bArc.setAttribute('stroke-dashoffset','69');}));
 
-// ── Face ID ────────────────────────────────────────────────────────────────
-function openFaceID() {
-  const overlay = document.getElementById('faceid');
-  overlay.classList.remove('hidden');
-  document.getElementById('faceid-ring2').style.opacity = 0;
-  document.getElementById('faceid-eyes').style.opacity = 0;
-  document.getElementById('faceid-done').style.opacity = 0;
-  document.getElementById('faceid-msg').textContent = 'Face ID 雙子星對焦驗證中…';
-  setTimeout(() => { document.getElementById('faceid-ring2').style.cssText += 'opacity:1;animation:facering 1.2s ease-in-out infinite .3s;'; }, 700);
-  setTimeout(() => { document.getElementById('faceid-eyes').style.opacity = 1; }, 1400);
-  setTimeout(() => {
-    document.getElementById('faceid-done').style.opacity = 1;
-    document.getElementById('faceid-msg').textContent = '驗證成功，進入私密宇宙';
-    earcon('unlock');
-  }, 2100);
-  setTimeout(() => {
-    overlay.classList.add('hidden');
-    state.privateUnlocked = true;
-    document.getElementById('vault-locked').classList.add('hidden');
-    document.getElementById('vault-unlocked').classList.remove('hidden');
-    showToast('私密宇宙已解鎖', '#E5C185');
-  }, 2600);
-}
+// Passkeys
+document.getElementById('btn-passkeys').addEventListener('click',()=>{ earcon('tap'); showToast('Passkeys 雙人連線即將開放'); });
 
-document.getElementById('vault-card').addEventListener('click', () => {
-  earcon('tap');
-  if(!state.privateUnlocked) { openFaceID(); }
-  else {
-    state.privateUnlocked = false;
-    document.getElementById('vault-locked').classList.remove('hidden');
-    document.getElementById('vault-unlocked').classList.add('hidden');
-  }
-});
+// ── Lifecycle ────────────────────────────────────────────────────────────────
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') showToast('星際連線已重新校正完畢','#89AEC1'); });
+window.addEventListener('online',()=>{document.getElementById('sync-dot').style.background='#A8E6CF';showToast('量子通道已重建');});
+window.addEventListener('offline',()=>{document.getElementById('sync-dot').style.background='rgba(255,255,255,.2)';showToast('離線模式：資料安全暫存','#E2D1A6');});
 
-// ── Button wiring ──────────────────────────────────────────────────────────
-document.getElementById('btn-add').addEventListener('click', () => { earcon('tap'); openAddSheet(); });
-document.getElementById('add-sheet').addEventListener('click', e => { if(e.target===document.getElementById('add-sheet')) closeAddSheet(); });
+// ── Boot ─────────────────────────────────────────────────────────────────────
+buildCosmic();
+document.getElementById('onboarding').classList.remove('hidden');
 
-document.getElementById('btn-settings').addEventListener('click', () => {
-  earcon('tap');
-  buildAvatars();
-  document.getElementById('settings-sheet').classList.remove('hidden');
-});
-document.getElementById('settings-sheet').addEventListener('click', e => {
-  if(e.target===document.getElementById('settings-sheet')) document.getElementById('settings-sheet').classList.add('hidden');
-});
+setTimeout(()=>{ earcon('boot'); document.getElementById('splash').classList.add('glow'); }, 1400);
+setTimeout(()=>{ document.getElementById('splash').classList.add('out'); }, 2300);
+setTimeout(()=>{ document.getElementById('splash').style.display='none'; }, 2800);
 
-document.getElementById('btn-passkeys').addEventListener('click', () => { earcon('tap'); showToast('Passkeys 雙人連線功能即將開放'); });
-
-document.getElementById('btn-demo').addEventListener('click', () => {
+document.getElementById('btn-demo').addEventListener('click',()=>{
   earcon('tap');
   document.getElementById('onboarding').classList.add('hidden');
-  document.getElementById('demo-banner').classList.remove('hidden');
-  document.getElementById('main').classList.remove('hidden');
-  showToast('訪客沙盒已啟動，盡情體驗');
-});
-
-document.getElementById('demo-banner').addEventListener('click', () => { earcon('tap'); showToast('Passkeys 雙人連線即將開放'); });
-
-// ── Lifecycle ──────────────────────────────────────────────────────────────
-document.addEventListener('visibilitychange', () => {
-  if(document.visibilityState==='visible') showToast('星際連線已重新校正完畢', '#89AEC1');
-});
-window.addEventListener('online',  () => { document.getElementById('sync-dot').style.background='#A8E6CF'; showToast('量子通道已重建，資料同步完畢'); });
-window.addEventListener('offline', () => { document.getElementById('sync-dot').style.background='rgba(255,255,255,.2)'; showToast('離線模式：帳目已安全暫存本機','#E2D1A6'); });
-
-// ── Boot sequence ──────────────────────────────────────────────────────────
-buildCosmic();
-document.getElementById('app').classList.remove('hidden');
-
-// Splash
-setTimeout(() => {
-  earcon('boot');
-  document.getElementById('splash').classList.add('glow');
-}, 1400);
-setTimeout(() => {
-  document.getElementById('splash').classList.add('out');
-}, 2300);
-setTimeout(() => {
-  document.getElementById('splash').style.display = 'none';
-  document.getElementById('onboarding').classList.remove('hidden');
+  document.getElementById('tab-bar').classList.remove('hidden');
+  document.getElementById('fab').classList.remove('hidden');
+  document.getElementById('di').classList.remove('hidden');
+  switchTab('home');
   updateUI();
-}, 2800);
+  expandDI('Demo 模式');
+  S.allocGoalId=S.goals[0]?.id||null;
+});
 </script>
 </body>
 </html>
