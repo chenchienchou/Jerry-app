@@ -1,1120 +1,1182 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#09090B"/>
+<title>WeCount 織愛存摺</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap"/>
+<style>
+/* ── Reset & Base ─────────────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;}
+html,body{
+  height:100%;width:100%;overflow:hidden;
+  background:#09090B;color:#F4F4F5;
+  font-family:'Noto Sans TC',sans-serif;
+  overscroll-behavior:none;touch-action:pan-y;
+  -webkit-user-select:none;user-select:none;
+}
+input,textarea{-webkit-user-select:text;user-select:text;}
+.mono{font-family:'Geist Mono',monospace;}
+::-webkit-scrollbar{display:none;}
+.scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
 
-// WeCount 織愛存摺 v2 — Zero-Emoji Production Build
-// Single-file React + Tailwind, deploy-ready for Vercel
-// All icons: pure SVG stroke geometry, no emoji, no external icon libs
+/* ── Glass surfaces ──────────────────────────────────────────────────────── */
+.glass{background:rgba(255,255,255,.058);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,.1);}
+.glass-dk{background:rgba(0,0,0,.52);backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);border:1px solid rgba(255,255,255,.08);}
 
-import { useState, useEffect, useRef, useCallback, useMemo, Component } from "react";
+/* ── Squircle radii ──────────────────────────────────────────────────────── */
+.r32{border-radius:32px;}.r24{border-radius:24px;}.r18{border-radius:18px;}.r14{border-radius:14px;}.r10{border-radius:10px;}
 
-// ─── Font & Viewport injection ────────────────────────────────────────────────
-(function bootstrap() {
-  // Fonts
-  const f = document.createElement("link");
-  f.rel = "stylesheet";
-  f.href = "https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap";
-  document.head.appendChild(f);
+/* ── Press feedback ──────────────────────────────────────────────────────── */
+.press{transition:transform .12s cubic-bezier(.34,1.56,.64,1);cursor:pointer;border:none;outline:none;background:none;padding:0;}
+.press:active{transform:scale(.95);}
 
-  // Viewport — lock zoom, fit cover
-  let vp = document.querySelector('meta[name="viewport"]');
-  if (!vp) { vp = document.createElement("meta"); vp.name = "viewport"; document.head.appendChild(vp); }
-  vp.content = "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover";
+/* ── Animations ──────────────────────────────────────────────────────────── */
+@keyframes aurora{0%,100%{opacity:.15;transform:scale(1);}50%{opacity:.28;transform:scale(1.1);}}
+@keyframes breathe{0%,100%{opacity:.13;transform:scale(1);}50%{opacity:.26;transform:scale(1.08);}}
+@keyframes blink{0%,100%{opacity:.45;}50%{opacity:1;}}
+@keyframes orbit-a{from{transform:rotate(0deg) translateX(32px) rotate(0deg);}to{transform:rotate(360deg) translateX(32px) rotate(-360deg);}}
+@keyframes orbit-b{from{transform:rotate(180deg) translateX(24px) rotate(-180deg);}to{transform:rotate(540deg) translateX(24px) rotate(-540deg);}}
+@keyframes shimmer{0%{background-position:-300% center;}100%{background-position:300% center;}}
+@keyframes fadein{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@keyframes slideup{from{transform:translateY(100%);}to{transform:translateY(0);}}
+@keyframes toastpop{0%{transform:translateX(-50%) scale(.6);opacity:0;}65%{transform:translateX(-50%) scale(1.04);}100%{transform:translateX(-50%) scale(1);opacity:1;}}
+@keyframes scan{0%{top:0;opacity:.9;}50%{opacity:.3;}100%{top:60px;opacity:.9;}}
+@keyframes facering{0%,100%{stroke-dashoffset:200;opacity:.3;}50%{stroke-dashoffset:0;opacity:1;}}
+@keyframes rocketfloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+@keyframes starglow{0%,100%{filter:drop-shadow(0 0 3px rgba(229,193,133,.4));opacity:.6;}50%{filter:drop-shadow(0 0 9px rgba(229,193,133,.9));opacity:1;}}
+@keyframes confettidrop{0%{opacity:1;transform:translateY(0) rotate(0deg);}100%{opacity:0;transform:translateY(120px) rotate(600deg);}}
+@keyframes logodraw{from{stroke-dashoffset:400;opacity:0;}to{stroke-dashoffset:0;opacity:1;}}
+@keyframes spinfwd{from{transform:rotate(0);}to{transform:rotate(360deg);}}
+@keyframes fabfloat{0%,100%{transform:translateX(-50%) translateY(0);}50%{transform:translateX(-50%) translateY(-5px);}}
+@keyframes splashout{from{opacity:1;filter:blur(0);}to{opacity:0;filter:blur(14px);}}
+@keyframes freezeshake{0%,100%{transform:translateX(0);}20%{transform:translateX(-4px);}40%{transform:translateX(4px);}60%{transform:translateX(-3px);}80%{transform:translateX(3px);}}
 
-  // Global CSS
-  const s = document.createElement("style");
-  s.textContent = `
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body, #root {
-      height: 100%; width: 100%;
-      background: #09090B;
-      color: #F4F4F5;
-      font-family: 'Noto Sans TC', sans-serif;
-      overflow: hidden;
-      overscroll-behavior: none;
-      touch-action: pan-y;
-      -webkit-tap-highlight-color: transparent;
-      -webkit-user-select: none;
-      user-select: none;
-      -webkit-touch-callout: none;
-    }
-    * {
-      -webkit-tap-highlight-color: transparent;
-      -webkit-touch-callout: none;
-    }
-    .mono { font-family: 'Geist Mono', monospace; }
-    .noto { font-family: 'Noto Sans TC', sans-serif; }
-    ::-webkit-scrollbar { display: none; }
-    .scroll-area { overflow-y: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+/* ── Skeleton ────────────────────────────────────────────────────────────── */
+.skeleton{background:linear-gradient(90deg,rgba(255,255,255,.03) 0%,rgba(255,255,255,.09) 50%,rgba(255,255,255,.03) 100%);background-size:300% 100%;animation:shimmer 1.8s ease-in-out infinite;border-radius:24px;}
 
-    /* Squircle radii */
-    .sq-xl  { border-radius: 32px; }
-    .sq-lg  { border-radius: 24px; }
-    .sq-md  { border-radius: 18px; }
-    .sq-sm  { border-radius: 14px; }
-    .sq-xs  { border-radius: 10px; }
+/* ── Layout ──────────────────────────────────────────────────────────────── */
+#app{position:fixed;inset:0;height:100dvh;z-index:1;}
+#cosmic{position:fixed;inset:0;z-index:0;background:#09090B;overflow:hidden;pointer-events:none;}
+.nebula{position:absolute;border-radius:50%;}
+.star-dot{position:absolute;border-radius:50%;background:rgba(255,255,255,.45);}
 
-    /* Glass surfaces */
-    .glass     { background: rgba(255,255,255,0.055); backdrop-filter: blur(24px) saturate(180%); border: 1px solid rgba(255,255,255,0.09); }
-    .glass-dk  { background: rgba(0,0,0,0.45);        backdrop-filter: blur(40px) saturate(200%); border: 1px solid rgba(255,255,255,0.07); }
-    .glass-in  { background: rgba(255,255,255,0.03);  border: 1px solid rgba(255,255,255,0.05);  border-radius: 16px; }
+/* ── Toast ───────────────────────────────────────────────────────────────── */
+#toast{
+  position:fixed;left:50%;z-index:9999;
+  top:calc(env(safe-area-inset-top,44px) + 10px);
+  backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);
+  background:rgba(10,10,14,.92);border-radius:28px;
+  padding:10px 22px;min-width:260px;max-width:84vw;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  pointer-events:none;opacity:0;transition:opacity .3s;
+}
+#toast.show{animation:toastpop .38s cubic-bezier(.34,1.56,.64,1) forwards;opacity:1;}
 
-    /* Press spring */
-    .press { transition: transform 0.12s cubic-bezier(0.34,1.56,0.64,1); }
-    .press:active { transform: scale(0.96); }
+/* ── Splash ──────────────────────────────────────────────────────────────── */
+#splash{
+  position:fixed;inset:0;z-index:300;background:#09090B;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+  transition:opacity .45s ease,filter .45s ease;
+}
+#splash.out{opacity:0;filter:blur(14px);pointer-events:none;}
+#splash-title{font-family:'Geist Mono',monospace;font-size:23px;font-weight:600;letter-spacing:.22em;color:#E5C185;opacity:0;transition:opacity .6s ease .8s;}
+#splash-sub{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.34em;color:rgba(255,255,255,.28);opacity:0;transition:opacity .5s ease 1.1s;}
+#splash.glow #splash-title,#splash.glow #splash-sub{opacity:1;}
+#splash-aurora{position:absolute;top:28%;left:50%;transform:translateX(-50%);width:220px;height:220px;background:radial-gradient(ellipse,rgba(229,193,133,.2) 0%,transparent 70%);border-radius:50%;animation:aurora 4s ease-in-out infinite;}
 
-    /* Keyframes */
-    @keyframes breathe {
-      0%,100% { opacity:.16; transform:scale(1); }
-      50%      { opacity:.30; transform:scale(1.07); }
-    }
-    @keyframes breathe-fast {
-      0%,100% { opacity:.5; }
-      50%      { opacity:1; }
-    }
-    @keyframes orbit-a {
-      from { transform: rotate(0deg)   translateX(34px) rotate(0deg); }
-      to   { transform: rotate(360deg) translateX(34px) rotate(-360deg); }
-    }
-    @keyframes orbit-b {
-      from { transform: rotate(180deg) translateX(28px) rotate(-180deg); }
-      to   { transform: rotate(540deg) translateX(28px) rotate(-540deg); }
-    }
-    @keyframes shimmer {
-      0%   { background-position: -200% center; }
-      100% { background-position:  200% center; }
-    }
-    @keyframes slide-up {
-      from { transform: translateY(100%); opacity: 0; }
-      to   { transform: translateY(0);    opacity: 1; }
-    }
-    @keyframes slide-down {
-      from { transform: translateY(0);    opacity: 1; }
-      to   { transform: translateY(30px); opacity: 0; }
-    }
-    @keyframes fade-in {
-      from { opacity: 0; transform: translateY(6px); }
-      to   { opacity: 1; transform: translateY(0);   }
-    }
-    @keyframes toast-in {
-      0%   { transform: translateX(-50%) scaleX(0.5) scaleY(0.7); opacity: 0; }
-      60%  { transform: translateX(-50%) scaleX(1.03) scaleY(1.02); }
-      100% { transform: translateX(-50%) scaleX(1) scaleY(1); opacity: 1; }
-    }
-    @keyframes scan {
-      0%   { transform: translateY(0);    opacity: .9; }
-      50%  { opacity: .35; }
-      100% { transform: translateY(60px); opacity: .9; }
-    }
-    @keyframes face-ring {
-      0%,100% { stroke-dashoffset: 200; opacity: .35; }
-      50%      { stroke-dashoffset: 0;   opacity: 1;   }
-    }
-    @keyframes confetti-fall {
-      0%   { opacity:1; transform: translateY(0)    rotate(0deg)   scale(1); }
-      100% { opacity:0; transform: translateY(110px) rotate(540deg) scale(.2); }
-    }
-    @keyframes rocket-float {
-      0%,100% { transform: translateY(0); }
-      50%      { transform: translateY(-4px); }
-    }
-    @keyframes star-glow {
-      0%,100% { filter: drop-shadow(0 0 3px rgba(229,193,133,.5));  opacity:.65; }
-      50%      { filter: drop-shadow(0 0 9px rgba(229,193,133,.85)); opacity:1; }
-    }
-    @keyframes flip-fwd {
-      from { transform: rotateY(0);    }
-      to   { transform: rotateY(180deg); }
-    }
-    @keyframes flip-back {
-      from { transform: rotateY(180deg); }
-      to   { transform: rotateY(0);    }
-    }
-    @keyframes freeze-shake {
-      0%,100% { transform:translateX(0); }
-      20% { transform:translateX(-3px); }
-      40% { transform:translateX( 3px); }
-      60% { transform:translateX(-2px); }
-      80% { transform:translateX( 2px); }
-    }
-    @keyframes logo-draw {
-      from { stroke-dashoffset: 400; opacity: 0; }
-      to   { stroke-dashoffset: 0;   opacity: 1; }
-    }
-    @keyframes logo-fade-out {
-      from { opacity:1; filter:blur(0); }
-      to   { opacity:0; filter:blur(12px); }
-    }
-    @keyframes aurora {
-      0%,100% { transform: scaleX(1)   scaleY(1);    opacity:.18; }
-      50%      { transform: scaleX(1.1) scaleY(1.15); opacity:.32; }
-    }
-    @keyframes sync-spin {
-      from { transform: rotate(0); }
-      to   { transform: rotate(360deg); }
-    }
-    @keyframes hold-fill {
-      from { stroke-dashoffset: 157; }
-      to   { stroke-dashoffset: 0; }
-    }
-  `;
-  document.head.appendChild(s);
-})();
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-const PALETTE = {
-  gold:    "#E5C185",
-  blue:    "#89AEC1",
-  mint:    "#A8E6CF",
-  amber:   "#E2D1A6",
-  void:    "#09090B",
-  surface: "rgba(255,255,255,0.055)",
-};
-
-const CURRENCIES = { TWD: { sym: "NT$", rate: 1 }, JPY: { sym: "¥", rate: 0.205 } };
-
-const CATS = [
-  { key: "dining",  label: "餐飲" },
-  { key: "grocery", label: "購物" },
-  { key: "transit", label: "交通" },
-  { key: "leisure", label: "娛樂" },
-  { key: "home",    label: "居家" },
-  { key: "health",  label: "健康" },
-  { key: "travel",  label: "旅遊" },
-  { key: "gift",    label: "禮物" },
-  { key: "cafe",    label: "咖啡" },
-];
-
-const BUDGET_MSGS = [
-  "燃料剩餘不多，本週開啟自煮模式，攜手共度星際風暴。",
-  "引力場微幅收縮，一頓溫馨家常是最省電的浪漫。",
-  "能量趨近臨界，本月剩餘星際幣留給最重要的彼此。",
-  "軌道修正中，宅家追劇比任何消費都更耐燃。",
-];
-
-const DEMO = {
-  sharedBudget: 20000,
-  sharedSpent:  14820,
-  myBalance:    8500,
-  myName:       "小星",
-  partnerName:  "小宇",
-  transactions: [
-    { id:1, desc:"藥師流拉麵",  amount:980,  cat:"dining",  date:"06/19", payer:"小宇", isConflict:false, memo:null },
-    { id:2, desc:"全聯採買",    amount:1240, cat:"grocery", date:"06/18", payer:"小星", isConflict:false, memo:"為你煮了一頓豐盛的週日早午餐" },
-    { id:3, desc:"新宿購物",    amount:3500, cat:"travel",  date:"06/17", payer:"小宇", isConflict:true,  memo:null },
-  ],
-  goal:{ name:"東京跨年基金", target:80000, saved:57600, msgs:["期待與你牽手倒數","想在淺草橋看煙火"] },
-  private:{ balance:12800, note:"下個月要買求婚戒指" },
-};
-
-// ─── Pure math helpers ────────────────────────────────────────────────────────
-const safeCalc = n => Math.round((n + Number.EPSILON) * 100) / 100;
-const pct       = (a, b) => safeCalc((a / b) * 100);
-const clamp     = (v, mn, mx) => Math.max(mn, Math.min(mx, v));
-
-// ─── Token bucket (1 save / sec) ─────────────────────────────────────────────
-class Bucket { constructor(cap,rate){this.cap=cap;this.tok=cap;this.rate=rate;this.last=Date.now();} consume(){const n=Date.now();this.tok=Math.min(this.cap,this.tok+(n-this.last)/1000*this.rate);this.last=n;if(this.tok>=1){this.tok--;return true;}return false;} }
-const saveBucket = new Bucket(1,1);
-
-// ─── Vector clock ─────────────────────────────────────────────────────────────
-let vc = { local:0, remote:0 };
-const tick = () => { vc.local++; return {...vc}; };
-
-// ─── Audio engine ─────────────────────────────────────────────────────────────
-const Earcon = (() => {
-  let ctx = null, muted = false;
-  const init = () => { if(!ctx) try{ ctx = new(window.AudioContext||window.webkitAudioContext)(); }catch(_){} };
-  const play = (type) => {
-    if(muted||!ctx) return;
-    try{
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.connect(g); g.connect(ctx.destination);
-      const t = ctx.currentTime;
-      const cases = {
-        tap:    ()=>{ o.type="sine";     o.frequency.setValueAtTime(880,t); g.gain.setValueAtTime(.07,t); g.gain.exponentialRampToValueAtTime(.001,t+.14); },
-        save:   ()=>{ o.type="triangle"; o.frequency.setValueAtTime(523,t); o.frequency.exponentialRampToValueAtTime(1046,t+.22); g.gain.setValueAtTime(.1,t); g.gain.exponentialRampToValueAtTime(.001,t+.28); },
-        unlock: ()=>{ o.type="sine";     o.frequency.setValueAtTime(440,t); o.frequency.setValueAtTime(660,t+.1); o.frequency.setValueAtTime(880,t+.2); g.gain.setValueAtTime(.1,t); g.gain.exponentialRampToValueAtTime(.001,t+.5); },
-        rocket: ()=>{ o.type="sawtooth"; o.frequency.setValueAtTime(180,t); o.frequency.exponentialRampToValueAtTime(820,t+.4); g.gain.setValueAtTime(.13,t); g.gain.exponentialRampToValueAtTime(.001,t+.65); },
-        boot:   ()=>{ o.type="sine";     o.frequency.setValueAtTime(120,t); o.frequency.exponentialRampToValueAtTime(240,t+.6); g.gain.setValueAtTime(.08,t); g.gain.exponentialRampToValueAtTime(.001,t+.8); },
-        freeze: ()=>{ o.type="square";   o.frequency.setValueAtTime(220,t); g.gain.setValueAtTime(.04,t); g.gain.exponentialRampToValueAtTime(.001,t+.3); },
-      };
-      (cases[type]||cases.tap)();
-      o.start(t); o.stop(t+.8);
-    }catch(_){}
-  };
-  return { init, play, mute: v => { muted=v; } };
-})();
-
-// ─── Error Boundary ───────────────────────────────────────────────────────────
-class ErrorBoundary extends Component {
-  constructor(p){ super(p); this.state={err:false}; }
-  static getDerivedStateFromError(){ return {err:true}; }
-  componentDidCatch(e){ console.error("[WeCount]",e); setTimeout(()=>this.setState({err:false}),3200); }
-  render(){
-    if(this.state.err) return(
-      <div style={{position:"fixed",inset:0,background:"#09090B",display:"flex",alignItems:"center",justifyContent:"center"}}>
-        <div className="glass sq-lg" style={{padding:"24px 32px",textAlign:"center",maxWidth:300}}>
-          <StarIcon size={28} color={PALETTE.gold} style={{margin:"0 auto 14px"}}/>
-          <div className="noto" style={{fontSize:13,opacity:.7,lineHeight:1.7}}>星際引力微幅擾動，系統已在背景全自動修復完畢。</div>
-        </div>
-      </div>
-    );
-    return this.props.children;
-  }
+/* ── Onboarding ──────────────────────────────────────────────────────────── */
+#onboarding{
+  position:fixed;inset:0;z-index:200;
+  display:flex;align-items:center;justify-content:center;padding:24px;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);background:rgba(0,0,0,.3);
+}
+.ob-card{
+  width:100%;max-width:360px;padding:32px;
+  display:flex;flex-direction:column;align-items:center;gap:24px;
+  animation:fadein .5s ease;
+}
+.ob-btn{
+  width:100%;padding:14px 20px;font-size:13px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  font-family:'Noto Sans TC',sans-serif;cursor:pointer;
 }
 
-// ─── SVG Icon Library (zero emoji) ───────────────────────────────────────────
-const SvgBase = ({size=20,color="currentColor",style,children,...rest})=>(
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0,...style}} {...rest}>{children}</svg>
-);
+/* ── Main scroll ─────────────────────────────────────────────────────────── */
+#main{
+  height:100dvh;
+  padding:calc(env(safe-area-inset-top,44px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 110px);
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+}
+/* ── Bento Grid ──────────────────────────────────────────────────────────── */
+.bento2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.card{padding:16px;margin-bottom:12px;}
 
-// Double-ring orbit (shared ledger icon)
-const OrbitIcon = ({size=20,color="currentColor",style})=>(
-  <SvgBase size={size} color={color} style={style}>
-    <circle cx="12" cy="12" r="3"/>
-    <ellipse cx="12" cy="12" rx="10" ry="4.5" style={{transform:"rotate(-30deg)",transformOrigin:"12px 12px"}}/>
-    <ellipse cx="12" cy="12" rx="10" ry="4.5" style={{transform:"rotate(30deg)",transformOrigin:"12px 12px"}}/>
-  </SvgBase>
-);
+/* ── Progress bar ────────────────────────────────────────────────────────── */
+.pbar-bg{background:rgba(255,255,255,.06);border-radius:6px;height:5px;overflow:hidden;}
+.pbar-fg{height:100%;border-radius:6px;transition:width .9s cubic-bezier(.34,1.56,.64,1);}
 
-// Shield + quantum dot (private vault icon)
-const ShieldIcon = ({size=20,color="currentColor",style})=>(
-  <SvgBase size={size} color={color} style={style}>
-    <path d="M12 2 L20 5.5 L20 11 C20 16 16 20 12 22 C8 20 4 16 4 11 L4 5.5 Z"/>
-    <circle cx="12" cy="12" r="2" fill={color} stroke="none"/>
-  </SvgBase>
-);
+/* ── Sheet overlay ───────────────────────────────────────────────────────── */
+.sheet-overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:flex-end;background:rgba(0,0,0,.2);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
+.sheet{
+  width:100%;border-radius:28px 28px 0 0;
+  padding:26px 18px;
+  padding-bottom:calc(env(safe-area-inset-bottom,0px) + 22px);
+  animation:slideup .35s cubic-bezier(.34,1.56,.64,1);
+  max-height:92dvh;overflow-y:auto;
+}
+.drag-pill{width:36px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;margin:0 auto 18px;}
 
-// Four-pointed star (sync / milestone icon)
-const StarIcon = ({size=20,color="currentColor",style})=>(
-  <SvgBase size={size} color={color} style={style}>
-    <path d="M12 2 L13.5 10.5 L22 12 L13.5 13.5 L12 22 L10.5 13.5 L2 12 L10.5 10.5 Z"/>
-  </SvgBase>
-);
+/* ── Numpad ──────────────────────────────────────────────────────────────── */
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:13px;}
+.numkey{
+  padding:15px 0;background:rgba(255,255,255,.058);border:none;border-radius:15px;
+  color:#F4F4F5;font-size:18px;font-family:'Geist Mono',monospace;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:transform .1s cubic-bezier(.34,1.56,.64,1);
+}
+.numkey:active{transform:scale(.93);}
 
-// Minimal triangle rocket
-const RocketIcon = ({size=20,color="currentColor",style})=>(
-  <SvgBase size={size} color={color} style={style}>
-    <polygon points="12,2 20,22 12,17 4,22"/>
-    <line x1="12" y1="17" x2="12" y2="22"/>
-  </SvgBase>
-);
+/* ── Toggle ──────────────────────────────────────────────────────────────── */
+.toggle-wrap{width:44px;height:26px;border-radius:13px;border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;}
+.toggle-dot{width:20px;height:20px;border-radius:50%;position:absolute;top:3px;transition:left .2s,background .2s;}
 
-// Volume / mute
-const VolumeIcon = ({size=20,color="currentColor",muted=false,style})=>(
-  <SvgBase size={size} color={color} style={style}>
-    <polygon points="5,9 10,9 15,4 15,20 10,15 5,15"/>
-    {muted ? <><line x1="18" y1="9" x2="23" y2="15"/><line x1="23" y1="9" x2="18" y2="15"/></> : <><path d="M18 9 Q21 12 18 15"/><path d="M19.5 6.5 Q24 12 19.5 17.5"/></>}
-  </SvgBase>
-);
+/* ── Face ID overlay ─────────────────────────────────────────────────────── */
+#faceid{
+  position:fixed;inset:0;z-index:250;
+  backdrop-filter:blur(32px) saturate(200%);-webkit-backdrop-filter:blur(32px) saturate(200%);background:rgba(0,0,0,.48);
+  display:flex;align-items:center;justify-content:center;
+}
+#faceid .inner{padding:44px;display:flex;flex-direction:column;align-items:center;gap:20px;}
+#scan-beam{position:absolute;left:18px;right:18px;height:1.4px;background:#E5C185;opacity:.6;animation:scan 1.1s ease-in-out infinite;}
 
-// Dual-ring orbit (smart alloc icon)
-const AllocIcon = ({size=20,color="currentColor",style})=>(
-  <SvgBase size={size} color={color} style={style}>
-    <circle cx="12" cy="12" r="2"/>
-    <circle cx="12" cy="12" r="6"/>
-    <circle cx="12" cy="12" r="10"/>
-    <circle cx="12" cy="6" r="1.5" fill={color} stroke="none"/>
-  </SvgBase>
-);
+/* ── Rocket track ────────────────────────────────────────────────────────── */
+#rocket-icon{animation:rocketfloat 2.2s ease-in-out infinite;}
 
-// Heart-orbit brand logo
-const BrandLogo = ({size=32,color="currentColor",animated=false})=>(
-  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    {/* heart path */}
-    <path d="M20 34 C20 34 6 25 6 15 A7 7 0 0 1 20 12 A7 7 0 0 1 34 15 C34 25 20 34 20 34Z"
-      style={animated?{strokeDasharray:120,strokeDashoffset:120,animation:"logo-draw 1.6s cubic-bezier(0.16,1,0.3,1) forwards"}:{}}/>
-    {/* orbit ring */}
-    <ellipse cx="20" cy="20" rx="17" ry="8"
-      style={animated?{strokeDasharray:120,strokeDashoffset:120,animation:"logo-draw 1.8s cubic-bezier(0.16,1,0.3,1) .2s forwards",transform:"rotate(-20deg)",transformOrigin:"20px 20px",opacity:.45}:{transform:"rotate(-20deg)",transformOrigin:"20px 20px",opacity:.45}}/>
-    {/* two stars on orbit */}
-    <circle cx="20" cy="3" r="1.5" fill={color} stroke="none"
-      style={animated?{opacity:0,animation:"logo-draw .3s ease .9s forwards"}:{}}/>
-    <circle cx="37" cy="20" r="1.2" fill={color} stroke="none"
-      style={animated?{opacity:0,animation:"logo-draw .3s ease 1.1s forwards"}:{}}/>
+/* ── FAB ─────────────────────────────────────────────────────────────────── */
+#fab{
+  position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);left:50%;
+  animation:fabfloat 3.5s ease-in-out infinite;z-index:50;
+}
+#fab button{
+  width:62px;height:62px;border-radius:22px;border:1px solid rgba(229,193,133,.4);
+  background:linear-gradient(135deg,rgba(229,193,133,.22),rgba(137,174,193,.18));
+  box-shadow:0 0 30px rgba(229,193,133,.2),0 8px 32px rgba(0,0,0,.5);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:transform .12s cubic-bezier(.34,1.56,.64,1);
+}
+#fab button:active{transform:scale(.94);}
+
+/* ── Cat icon colors ─────────────────────────────────────────────────────── */
+.cat-icon{flex-shrink:0;}
+
+/* ── Confetti ────────────────────────────────────────────────────────────── */
+.confetti-piece{position:absolute;pointer-events:none;animation:confettidrop 1.4s ease-out forwards;}
+
+/* ── Range ───────────────────────────────────────────────────────────────── */
+input[type=range]{width:100%;accent-color:#89AEC1;}
+input[type=number]{-moz-appearance:textfield;}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+
+/* ── Misc ────────────────────────────────────────────────────────────────── */
+.hidden{display:none!important;}
+.gold{color:#E5C185;}.blue{color:#89AEC1;}.amber{color:#E2D1A6;}.mint{color:#A8E6CF;}
+.op4{opacity:.4;}.op5{opacity:.5;}.op3{opacity:.3;}
+</style>
+</head>
+<body>
+
+<!-- ── Cosmic Background ────────────────────────────────────────────────── -->
+<div id="cosmic"></div>
+
+<!-- ── Toast ────────────────────────────────────────────────────────────── -->
+<div id="toast">
+  <svg id="toast-star" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#E5C185" stroke-width="1.5"><path d="M12 2 L13.5 10.5 L22 12 L13.5 13.5 L12 22 L10.5 13.5 L2 12 L10.5 10.5 Z"/></svg>
+  <span id="toast-msg" style="font-family:'Noto Sans TC',sans-serif;font-size:12.5px;color:#F4F4F5;letter-spacing:.02em;line-height:1.5;"></span>
+</div>
+
+<!-- ── Splash ────────────────────────────────────────────────────────────── -->
+<div id="splash">
+  <div id="splash-aurora"></div>
+  <svg id="brand-svg" width="68" height="68" viewBox="0 0 40 40" fill="none" stroke="#E5C185" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 34 C20 34 6 25 6 15 A7 7 0 0 1 20 12 A7 7 0 0 1 34 15 C34 25 20 34 20 34Z" style="stroke-dasharray:120;stroke-dashoffset:120;animation:logodraw 1.6s cubic-bezier(.16,1,.3,1) forwards;"/>
+    <ellipse cx="20" cy="20" rx="17" ry="8" style="transform:rotate(-20deg);transform-origin:20px 20px;opacity:.4;stroke-dasharray:120;stroke-dashoffset:120;animation:logodraw 1.8s cubic-bezier(.16,1,.3,1) .2s forwards;"/>
+    <circle cx="20" cy="3" r="1.5" fill="#E5C185" stroke="none" style="opacity:0;animation:logodraw .3s ease .9s forwards;"/>
+    <circle cx="37" cy="20" r="1.2" fill="#E5C185" stroke="none" style="opacity:0;animation:logodraw .3s ease 1.1s forwards;"/>
   </svg>
-);
+  <div id="splash-title">WECOUNT</div>
+  <div id="splash-sub">SYNCED VIA COSMIC CLOUD</div>
+</div>
 
-// Category icons — transparent bg, hair-line SVG
-const CatIcon = ({cat,size=18,color="rgba(255,255,255,0.55)"})=>{
-  const icons = {
-    dining:  <><path d="M12 2 V10"/><path d="M8 4 Q4 8 6 12 Q9 16 12 14 Q15 16 18 12 Q20 8 16 4"/><path d="M12 14 V22"/></>,
-    grocery: <><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10 Q8 4 12 4 Q16 4 16 10"/></>,
-    transit: <><rect x="4" y="6" width="16" height="13" rx="3"/><path d="M4 13 H20"/><circle cx="8" cy="20" r="1.5" fill={color} stroke="none"/><circle cx="16" cy="20" r="1.5" fill={color} stroke="none"/></>,
-    leisure: <><circle cx="12" cy="12" r="9"/><path d="M9 9 L12 12 L9 15"/><path d="M15 9 L15 15"/></>,
-    home:    <><path d="M3 11 L12 2 L21 11"/><path d="M5 9 V21 H10 V16 H14 V21 H19 V9"/></>,
-    health:  <><path d="M12 21 C12 21 3 15 3 8.5 A4.5 4.5 0 0 1 12 6.5 A4.5 4.5 0 0 1 21 8.5 C21 15 12 21 12 21"/></>,
-    travel:  <><polygon points="12,2 22,20 12,16 2,20"/><line x1="12" y1="16" x2="12" y2="22"/></>,
-    gift:    <><rect x="4" y="10" width="16" height="12" rx="2"/><rect x="2" y="6" width="20" height="4" rx="1"/><path d="M12 6 V22"/><path d="M12 6 Q12 2 8 2 Q6 2 6 5 Q6 6 8 6 H12"/><path d="M12 6 Q12 2 16 2 Q18 2 18 5 Q18 6 16 6 H12"/></>,
-    cafe:    <><path d="M6 3 V7"/><path d="M10 3 V7"/><path d="M14 3 V7"/><path d="M4 7 H18 Q18 17 11 17 Q4 17 4 7"/><path d="M18 9 Q22 9 22 13 Q22 17 18 17"/></>,
-  };
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      {icons[cat] || icons.cafe}
-    </svg>
-  );
-};
+<!-- ── App Shell ─────────────────────────────────────────────────────────── -->
+<div id="app" class="hidden">
 
-// Avatar SVGs for settings
-const AVATARS = [
-  { id:"pilot",  label:"星際飛行員",
-    Svg:()=><svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke={PALETTE.gold} strokeWidth="1.5" strokeLinecap="round"><circle cx="18" cy="14" r="7"/><path d="M9 28 Q9 22 18 22 Q27 22 27 28"/><path d="M12 10 Q13 8 18 8 Q23 8 24 10"/><circle cx="14" cy="14" r="1.5" fill={PALETTE.gold} stroke="none"/><circle cx="22" cy="14" r="1.5" fill={PALETTE.gold} stroke="none"/></svg> },
-  { id:"cat",    label:"外星貓咪",
-    Svg:()=><svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke={PALETTE.blue} strokeWidth="1.5" strokeLinecap="round"><path d="M10 10 L6 4 L10 14"/><path d="M26 10 L30 4 L26 14"/><ellipse cx="18" cy="18" rx="10" ry="9"/><path d="M14 18 Q18 22 22 18"/><circle cx="14" cy="15" r="1.5" fill={PALETTE.blue} stroke="none"/><circle cx="22" cy="15" r="1.5" fill={PALETTE.blue} stroke="none"/><path d="M15 20 L13 23"/><path d="M21 20 L23 23"/></svg> },
-  { id:"planet", label:"行星漫遊",
-    Svg:()=><svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke={PALETTE.mint} strokeWidth="1.5" strokeLinecap="round"><circle cx="18" cy="18" r="9"/><ellipse cx="18" cy="18" rx="17" ry="6" style={{transform:"rotate(-25deg)",transformOrigin:"18px 18px"}}/><circle cx="18" cy="13" r="2.5"/></svg> },
-];
-
-// ─── Cosmic Background ────────────────────────────────────────────────────────
-function CosmicBg() {
-  const [pal, setPal] = useState({c1:"#181035",c2:"#0C1E2D"});
-  useEffect(()=>{
-    const up=()=>{
-      const h=new Date().getHours();
-      if(h>=5&&h<8)   setPal({c1:"#2A1A06",c2:"#180E04"});
-      else if(h>=11&&h<14) setPal({c1:"#091522",c2:"#04090F"});
-      else            setPal({c1:"#181035",c2:"#0C1E2D"});
-    };
-    up(); const id=setInterval(up,60000); return()=>clearInterval(id);
-  },[]);
-  return(
-    <div style={{position:"fixed",inset:0,zIndex:0,background:"#09090B",overflow:"hidden",pointerEvents:"none"}}>
-      <div style={{position:"absolute",top:"-25%",left:"-25%",width:"75%",height:"75%",background:`radial-gradient(ellipse,${pal.c1} 0%,transparent 70%)`,borderRadius:"50%",animation:"aurora 9s ease-in-out infinite"}}/>
-      <div style={{position:"absolute",bottom:"-25%",right:"-25%",width:"75%",height:"75%",background:`radial-gradient(ellipse,${pal.c2} 0%,transparent 70%)`,borderRadius:"50%",animation:"aurora 13s ease-in-out infinite 3s"}}/>
-      {Array.from({length:30},(_,i)=>(
-        <div key={i} style={{position:"absolute",left:`${(i*41+7)%100}%`,top:`${(i*57+11)%100}%`,width:i%7===0?2:1,height:i%7===0?2:1,borderRadius:"50%",background:"rgba(255,255,255,.45)",animation:`breathe ${4+(i%7)}s ease-in-out infinite ${i*.28}s`}}/>
-      ))}
-    </div>
-  );
-}
-
-// ─── Toast (Dynamic Island style) ────────────────────────────────────────────
-function Toast({msg,accent,visible}){
-  if(!visible) return null;
-  return(
-    <div style={{position:"fixed",top:`calc(env(safe-area-inset-top,44px) + 8px)`,left:"50%",transform:"translateX(-50%)",zIndex:9999,animation:"toast-in .36s cubic-bezier(0.34,1.56,0.64,1) forwards",backdropFilter:"blur(40px) saturate(200%)",background:"rgba(12,12,16,.9)",border:`1px solid ${accent||"rgba(255,255,255,.12)"}`,borderRadius:28,padding:"10px 22px",minWidth:260,maxWidth:"82vw",textAlign:"center",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
-      <StarIcon size={12} color={accent||PALETTE.gold}/>
-      <span className="noto" style={{fontSize:12.5,color:"#F4F4F5",letterSpacing:".02em",lineHeight:1.5}}>{msg}</span>
-    </div>
-  );
-}
-
-// ─── Splash / Loading screen ──────────────────────────────────────────────────
-function SplashScreen({onDone}){
-  const [phase,setPhase]=useState("draw"); // draw -> glow -> out
-  useEffect(()=>{
-    Earcon.init();
-    const t1=setTimeout(()=>{ Earcon.play("boot"); setPhase("glow"); },1400);
-    const t2=setTimeout(()=>setPhase("out"),2200);
-    const t3=setTimeout(onDone,2600);
-    return()=>{ clearTimeout(t1);clearTimeout(t2);clearTimeout(t3); };
-  },[onDone]);
-  return(
-    <div style={{position:"fixed",inset:0,zIndex:300,background:"#09090B",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:20,transition:"opacity .4s ease, filter .4s ease",opacity:phase==="out"?0:1,filter:phase==="out"?"blur(10px)":"blur(0)"}}>
-      {/* Aurora pulse behind logo */}
-      <div style={{position:"absolute",top:"30%",left:"50%",transform:"translateX(-50%)",width:200,height:200,background:`radial-gradient(ellipse,rgba(229,193,133,.18) 0%,transparent 70%)`,borderRadius:"50%",animation:"aurora 4s ease-in-out infinite"}}/>
-      <BrandLogo size={64} color={PALETTE.gold} animated/>
-      <div className="mono" style={{fontSize:22,fontWeight:600,letterSpacing:"0.22em",color:PALETTE.gold,marginTop:4,opacity:phase==="draw"?0:1,transition:"opacity .6s ease .8s"}}>WECOUNT</div>
-      <div className="mono" style={{fontSize:10,letterSpacing:"0.35em",color:"rgba(255,255,255,.28)",opacity:phase==="draw"?0:1,transition:"opacity .5s ease 1s"}}>SYNCED VIA COSMIC CLOUD</div>
-    </div>
-  );
-}
-
-// ─── Skeleton shimmer card ────────────────────────────────────────────────────
-function Skeleton({h=80,style={}}){
-  return(
-    <div style={{height:h,borderRadius:24,background:"linear-gradient(90deg,rgba(255,255,255,.04) 0%,rgba(255,255,255,.09) 50%,rgba(255,255,255,.04) 100%)",backgroundSize:"200% 100%",animation:"shimmer 1.6s ease-in-out infinite",...style}}/>
-  );
-}
-
-// ─── Onboarding panel ─────────────────────────────────────────────────────────
-function OnboardingPanel({onDemo,onPasskeys}){
-  return(
-    <div style={{position:"fixed",inset:0,zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:24,backdropFilter:"blur(8px)",background:"rgba(0,0,0,.25)"}}>
-      <div className="glass-dk sq-lg" style={{width:"100%",maxWidth:360,padding:32,display:"flex",flexDirection:"column",alignItems:"center",gap:24,animation:"fade-in .5s ease"}}>
-        <BrandLogo size={44} color={PALETTE.gold}/>
-        <div style={{textAlign:"center"}}>
-          <div className="mono" style={{fontSize:18,fontWeight:600,letterSpacing:".15em",color:PALETTE.gold}}>WECOUNT</div>
-          <div className="noto" style={{fontSize:12.5,opacity:.5,marginTop:6,lineHeight:1.7}}>情侶雙軌財務，透明、安全、有溫度。</div>
-        </div>
-        <div style={{width:"100%",display:"flex",flexDirection:"column",gap:10}}>
-          <button className="press sq-md" onClick={onPasskeys} style={{width:"100%",padding:"14px 20px",background:"rgba(229,193,133,.14)",border:"1px solid rgba(229,193,133,.35)",color:PALETTE.gold,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:10,fontFamily:"Noto Sans TC, sans-serif"}}>
-            <ShieldIcon size={18} color={PALETTE.gold}/>
-            Passkeys 刷臉註冊雙人連線
-          </button>
-          <button className="press sq-md" onClick={onDemo} style={{width:"100%",padding:"14px 20px",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.1)",color:"rgba(255,255,255,.75)",fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:10,fontFamily:"Noto Sans TC, sans-serif"}}>
-            <StarIcon size={18} color="rgba(255,255,255,.6)"/>
-            訪客沙盒快速試玩
-          </button>
-        </div>
-        <div className="noto" style={{fontSize:10,opacity:.3,textAlign:"center",lineHeight:1.8}}>試玩模式不會儲存任何資料<br/>隨時可以升級至雙人實時同步</div>
+  <!-- Onboarding -->
+  <div id="onboarding" class="hidden">
+    <div class="ob-card glass-dk r24">
+      <svg width="48" height="48" viewBox="0 0 40 40" fill="none" stroke="#E5C185" stroke-width="1.5" stroke-linecap="round">
+        <path d="M20 34 C20 34 6 25 6 15 A7 7 0 0 1 20 12 A7 7 0 0 1 34 15 C34 25 20 34 20 34Z"/>
+        <ellipse cx="20" cy="20" rx="17" ry="8" style="transform:rotate(-20deg);transform-origin:20px 20px;opacity:.4;"/>
+        <circle cx="20" cy="3" r="1.5" fill="#E5C185" stroke="none"/>
+        <circle cx="37" cy="20" r="1.2" fill="#E5C185" stroke="none"/>
+      </svg>
+      <div style="text-align:center;">
+        <div class="mono" style="font-size:19px;font-weight:600;letter-spacing:.15em;color:#E5C185;">WECOUNT</div>
+        <div style="font-size:12.5px;opacity:.5;margin-top:8px;line-height:1.8;">情侶雙軌財務，透明、安全、有溫度。</div>
       </div>
+      <div style="width:100%;display:flex;flex-direction:column;gap:10px;">
+        <button id="btn-passkeys" class="ob-btn press r18" style="background:rgba(229,193,133,.13);border:1px solid rgba(229,193,133,.34);color:#E5C185;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E5C185" stroke-width="1.5" stroke-linecap="round"><path d="M12 2 L20 5.5 L20 11 C20 16 16 20 12 22 C8 20 4 16 4 11 L4 5.5 Z"/><circle cx="12" cy="12" r="2" fill="#E5C185" stroke="none"/></svg>
+          Passkeys 刷臉註冊雙人連線
+        </button>
+        <button id="btn-demo" class="ob-btn press r18" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.72);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.5"><path d="M12 2 L13.5 10.5 L22 12 L13.5 13.5 L12 22 L10.5 13.5 L2 12 L10.5 10.5 Z"/></svg>
+          訪客沙盒快速試玩
+        </button>
+      </div>
+      <div style="font-size:10px;opacity:.28;text-align:center;line-height:1.9;">試玩模式不會儲存任何資料<br/>隨時可以升級至雙人實時同步</div>
     </div>
-  );
-}
+  </div>
 
-// ─── Face ID scan overlay ─────────────────────────────────────────────────────
-function FaceIDOverlay({onSuccess}){
-  const [step,setStep]=useState(0);
-  useEffect(()=>{
-    const t=[
-      setTimeout(()=>setStep(1),700),
-      setTimeout(()=>setStep(2),1400),
-      setTimeout(()=>{ setStep(3); onSuccess(); },2000),
-    ];
-    return()=>t.forEach(clearTimeout);
-  },[onSuccess]);
-  return(
-    <div style={{position:"fixed",inset:0,zIndex:250,backdropFilter:"blur(32px) saturate(200%)",background:"rgba(0,0,0,.45)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-      <div className="glass sq-lg" style={{padding:40,display:"flex",flexDirection:"column",alignItems:"center",gap:18}}>
-        <svg width="96" height="96" viewBox="0 0 96 96" fill="none" stroke="rgba(229,193,133,.18)" strokeWidth="1" strokeLinecap="round">
-          <circle cx="48" cy="48" r="44"/>
-          <circle cx="48" cy="48" r="44" stroke={PALETTE.gold} strokeWidth="1.5" strokeDasharray="276" strokeLinecap="round" style={{animation:"face-ring 1.6s ease-in-out infinite",transformOrigin:"48px 48px",transform:"rotate(-90deg)"}}/>
-          <circle cx="48" cy="48" r="32" strokeOpacity=".3"/>
-          {step>=1&&<circle cx="48" cy="48" r="32" stroke={PALETTE.blue} strokeWidth="1.2" strokeDasharray="201" style={{animation:"face-ring 1.2s ease-in-out infinite .3s",transformOrigin:"48px 48px",transform:"rotate(-90deg)"}}/>}
-          {/* scan beam */}
-          <rect x="20" y="47" width="56" height="1.2" fill={PALETTE.gold} opacity=".55" style={{animation:"scan 1.1s ease-in-out infinite"}}/>
-          {step>=2&&<>
-            <circle cx="34" cy="40" r="5" stroke={PALETTE.gold} strokeWidth="1.2" strokeOpacity=".9"/>
-            <circle cx="62" cy="40" r="5" stroke={PALETTE.gold} strokeWidth="1.2" strokeOpacity=".9"/>
-            <path d="M36 58 Q48 66 60 58" strokeWidth="1.2" stroke={PALETTE.gold} strokeOpacity=".7"/>
-          </>}
-          {step>=3&&<circle cx="48" cy="48" r="14" stroke={PALETTE.gold} strokeWidth="1.2"/>}
+  <!-- Main content -->
+  <div id="main" class="scroll hidden">
+
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <svg width="30" height="30" viewBox="0 0 40 40" fill="none" id="header-logo" stroke="#E5C185" stroke-width="1.5" stroke-linecap="round">
+          <path d="M20 34 C20 34 6 25 6 15 A7 7 0 0 1 20 12 A7 7 0 0 1 34 15 C34 25 20 34 20 34Z"/>
+          <ellipse cx="20" cy="20" rx="17" ry="8" style="transform:rotate(-20deg);transform-origin:20px 20px;opacity:.4;"/>
+          <circle cx="20" cy="3" r="1.5" fill="#E5C185" stroke="none"/>
+          <circle cx="37" cy="20" r="1.2" fill="#E5C185" stroke="none"/>
         </svg>
-        <div className="noto" style={{fontSize:13,opacity:.6,textAlign:"center"}}>
-          {step<3?"Face ID 雙子星對焦驗證中…":"驗證成功，進入私密宇宙"}
+        <div>
+          <div class="mono" id="header-title" style="font-size:15px;font-weight:600;letter-spacing:.15em;color:#E5C185;line-height:1;">WECOUNT</div>
+          <div style="display:flex;align-items:center;gap:5px;margin-top:5px;">
+            <div id="sync-dot" style="width:5px;height:5px;border-radius:50%;background:#A8E6CF;animation:blink 2s ease-in-out infinite;"></div>
+            <div class="mono" style="font-size:9px;letter-spacing:.28em;color:rgba(255,255,255,.28);">SYNCED VIA COSMIC CLOUD</div>
+          </div>
         </div>
       </div>
+      <button id="btn-settings" class="press glass r14" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+        <svg width="16" height="14" viewBox="0 0 16 14" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="1.5" stroke-linecap="round">
+          <line x1="0" y1="2" x2="16" y2="2"/><line x1="0" y1="7" x2="16" y2="7"/><line x1="0" y1="12" x2="16" y2="12"/>
+        </svg>
+      </button>
     </div>
-  );
-}
 
-// ─── Confetti ─────────────────────────────────────────────────────────────────
-function Confetti({active}){
-  if(!active) return null;
-  const pieces=Array.from({length:20},(_,i)=>({
-    id:i, x:Math.random()*100, delay:Math.random()*.5,
-    c:[PALETTE.gold,PALETTE.blue,PALETTE.mint,"#B08AE5","#E58A8A","#F4F4F5"][i%6],
-    rot:Math.random()*360, sz:5+Math.random()*8,
-  }));
-  return(
-    <div style={{position:"absolute",inset:0,pointerEvents:"none",overflow:"hidden",borderRadius:"inherit",zIndex:10}}>
-      {pieces.map(p=>(
-        <div key={p.id} style={{position:"absolute",left:`${p.x}%`,top:"15%",animation:`confetti-fall 1.3s ${p.delay}s ease-out forwards`}}>
-          <svg width={p.sz} height={p.sz} viewBox="0 0 10 10">
-            <polygon points="5,0 6.5,3.5 10,3.8 7.5,6.2 8.1,10 5,7.9 1.9,10 2.5,6.2 0,3.8 3.5,3.5" fill={p.c}/>
+    <!-- Demo banner -->
+    <button id="demo-banner" class="press glass r24 hidden" style="width:100%;padding:12px 18px;border:1px solid rgba(137,174,193,.22);color:#89AEC1;font-size:12.5px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:9px;font-family:'Noto Sans TC',sans-serif;animation:blink 3s ease-in-out infinite;">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#89AEC1" stroke-width="1.5" stroke-linecap="round" style="animation:spinfwd 3s linear infinite;">
+        <circle cx="7" cy="7" r="5"/><path d="M7 2 A5 5 0 0 1 12 7"/><polyline points="10,5 12,7 14,5"/>
+      </svg>
+      開啟雙人實時同步（現正 Demo 模式）
+    </button>
+
+    <!-- Dual Bento -->
+    <div class="bento2">
+      <!-- Shared ledger -->
+      <div class="glass r32" style="padding:16px;min-height:172px;">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(229,193,133,.7)" stroke-width="1.5">
+            <circle cx="12" cy="12" r="3"/>
+            <ellipse cx="12" cy="12" rx="10" ry="4.5" style="transform:rotate(-30deg);transform-origin:12px 12px;"/>
+            <ellipse cx="12" cy="12" rx="10" ry="4.5" style="transform:rotate(30deg);transform-origin:12px 12px;"/>
+          </svg>
+          <div style="font-size:10px;opacity:.4;letter-spacing:.07em;">共同存摺</div>
+        </div>
+        <!-- Orbit viz -->
+        <div style="display:flex;justify-content:center;margin-bottom:8px;">
+          <svg width="72" height="72" viewBox="0 0 76 76" fill="none" style="overflow:visible;">
+            <ellipse cx="38" cy="38" rx="33" ry="16" stroke="rgba(229,193,133,.18)" stroke-width="1" style="transform:rotate(-20deg);transform-origin:38px 38px;"/>
+            <ellipse cx="38" cy="38" rx="26" ry="13" stroke="rgba(137,174,193,.18)" stroke-width="1" style="transform:rotate(25deg);transform-origin:38px 38px;"/>
+            <circle cx="38" cy="38" r="5" fill="rgba(229,193,133,.12)" stroke="rgba(229,193,133,.5)" stroke-width="1.2"/>
+            <circle cx="38" cy="38" r="2.5" fill="#E5C185"/>
+            <g style="transform-origin:38px 38px;animation:orbit-a 4s linear infinite;">
+              <circle cx="38" cy="6" r="4" fill="#E5C185" opacity=".9"/>
+            </g>
+            <g style="transform-origin:38px 38px;animation:orbit-b 6.5s linear infinite;">
+              <circle cx="38" cy="14" r="3" fill="#89AEC1" opacity=".85"/>
+            </g>
           </svg>
         </div>
-      ))}
-    </div>
-  );
-}
-
-// ─── Dual-star orbit SVG (large, for shared-ledger card) ─────────────────────
-function LargeOrbitViz(){
-  return(
-    <svg width="76" height="76" viewBox="0 0 76 76" fill="none" style={{overflow:"visible"}}>
-      <ellipse cx="38" cy="38" rx="33" ry="16" stroke="rgba(229,193,133,.18)" strokeWidth="1" style={{transform:"rotate(-20deg)",transformOrigin:"38px 38px"}}/>
-      <ellipse cx="38" cy="38" rx="26" ry="13" stroke="rgba(137,174,193,.18)" strokeWidth="1" style={{transform:"rotate(25deg)",transformOrigin:"38px 38px"}}/>
-      <circle cx="38" cy="38" r="5" fill="rgba(229,193,133,.12)" stroke="rgba(229,193,133,.5)" strokeWidth="1.2"/>
-      <circle cx="38" cy="38" r="2.5" fill={PALETTE.gold}/>
-      <g style={{transformOrigin:"38px 38px",animation:"orbit-a 4s linear infinite"}}>
-        <circle cx="38" cy="5" r="4" fill={PALETTE.gold} opacity=".9"/>
-      </g>
-      <g style={{transformOrigin:"38px 38px",animation:"orbit-b 6.5s linear infinite"}}>
-        <circle cx="38" cy="12" r="3" fill={PALETTE.blue} opacity=".85"/>
-      </g>
-    </svg>
-  );
-}
-
-// ─── Rocket Goal Card ─────────────────────────────────────────────────────────
-function RocketGoalCard({goal,onAddSavings}){
-  const p=pct(goal.saved,goal.target);
-  const [confetti,setConfetti]=useState(false);
-  const [flipped,setFlipped]=useState(null);
-  const [showPanel,setShowPanel]=useState(false);
-  const [amt,setAmt]=useState("");
-  const [memo,setMemo]=useState("");
-  const prevP=useRef(p);
-  const milestones=[20,50,100];
-
-  const handleAdd=()=>{
-    if(!saveBucket.consume()){ Earcon.play("freeze"); return; }
-    const n=parseFloat(amt);
-    if(!n||n<=0) return;
-    const newSaved=safeCalc(goal.saved+n);
-    const newP=pct(newSaved,goal.target);
-    if(milestones.some(m=>prevP.current<m&&newP>=m)){ setConfetti(true); setTimeout(()=>setConfetti(false),1500); }
-    prevP.current=newP;
-    Earcon.play("rocket");
-    onAddSavings(n,memo);
-    setAmt(""); setMemo(""); setShowPanel(false);
-  };
-
-  const rocketY=safeCalc(92-(p/100)*78);
-
-  return(
-    <div className="glass sq-xl" style={{padding:20,position:"relative",overflow:"hidden"}}>
-      <Confetti active={confetti}/>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
-        <div>
-          <div className="noto" style={{fontSize:10,opacity:.4,letterSpacing:".09em",marginBottom:4}}>宇宙築夢目標</div>
-          <div className="noto" style={{fontSize:14,fontWeight:500}}>{goal.name}</div>
+        <div class="mono" id="shared-remain" style="font-size:17px;font-weight:700;text-align:center;letter-spacing:-.01em;">NT$5,180</div>
+        <div style="font-size:9.5px;opacity:.35;text-align:center;margin-top:2px;">剩餘共享預算</div>
+        <div class="pbar-bg" style="margin-top:9px;">
+          <div id="shared-pbar" class="pbar-fg" style="width:25.9%;background:linear-gradient(90deg,#89AEC1,#E5C185);"></div>
         </div>
-        <div className="mono" style={{fontSize:22,fontWeight:700,color:PALETTE.gold}}>{Math.round(p)}%</div>
+        <div id="aa-label" style="margin-top:9px;padding:5px 8px;background:rgba(255,255,255,.04);border-radius:9px;font-size:9px;opacity:.5;line-height:1.7;">AA 淨額：小宇欠 NT$2,260</div>
       </div>
-      <div style={{display:"flex",gap:14,alignItems:"flex-start"}}>
-        {/* Rocket orbit track */}
-        <svg width="34" height="112" viewBox="0 0 34 112" style={{flexShrink:0}}>
-          <line x1="17" y1="4" x2="17" y2="108" stroke="rgba(255,255,255,.07)" strokeWidth="1.5"/>
-          {milestones.map((m,i)=>{
-            const y=105-(m/100)*98;
-            const reached=p>=m;
-            return(
-              <g key={i}>
-                <circle cx="17" cy={y} r="3.5" fill={reached?PALETTE.gold:"rgba(255,255,255,.1)"} stroke={reached?"none":"rgba(255,255,255,.12)"} strokeWidth="1"/>
-                {/* four-pointed star milestone */}
-                {!reached&&<g style={{transformOrigin:`17px ${y}px`,animation:"star-glow 2.5s ease-in-out infinite"}}>
-                  <path d={`M17 ${y-3} L17.8 ${y-.8} L20 ${y} L17.8 ${y+.8} L17 ${y+3} L16.2 ${y+.8} L14 ${y} L16.2 ${y-.8} Z`} fill="rgba(229,193,133,.35)" stroke="none"/>
-                </g>}
-                <text x="23" y={y+3.5} fontSize="7" fill={reached?PALETTE.gold:"rgba(255,255,255,.25)"} fontFamily="Geist Mono,monospace">{m}%</text>
-              </g>
-            );
-          })}
-          {/* rocket icon */}
-          <g style={{animation:"rocket-float 2.2s ease-in-out infinite"}}>
-            <g transform={`translate(8,${rocketY-14})`}>
-              <polygon points="9,0 18,20 9,15 0,20" fill="none" stroke={PALETTE.gold} strokeWidth="1.3" strokeLinejoin="round"/>
+
+      <!-- Private vault -->
+      <div id="vault-card" class="glass r32" style="padding:16px;min-height:172px;cursor:pointer;">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(137,174,193,.7)" stroke-width="1.5">
+            <path d="M12 2 L20 5.5 L20 11 C20 16 16 20 12 22 C8 20 4 16 4 11 L4 5.5 Z"/>
+            <circle cx="12" cy="12" r="2" fill="rgba(137,174,193,.7)" stroke="none"/>
+          </svg>
+          <div style="font-size:10px;opacity:.4;letter-spacing:.07em;">私人小金庫</div>
+        </div>
+        <div id="vault-locked" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:calc(100% - 40px);gap:16px;">
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="rgba(137,174,193,.45)" stroke-width="1.5" stroke-linecap="round">
+            <path d="M12 2 L20 5.5 L20 11 C20 16 16 20 12 22 C8 20 4 16 4 11 L4 5.5 Z"/>
+            <circle cx="12" cy="12" r="2" fill="rgba(137,174,193,.45)" stroke="none"/>
+          </svg>
+          <div style="font-size:11px;opacity:.45;text-align:center;line-height:1.8;">Face ID 解鎖<br/>平行私密宇宙</div>
+        </div>
+        <div id="vault-unlocked" class="hidden" style="animation:fadein .4s ease;">
+          <div class="mono" style="font-size:22px;font-weight:700;color:#89AEC1;margin-top:6px;">NT$12,800</div>
+          <div style="font-size:10px;opacity:.4;margin-top:3px;">安全可支配餘額</div>
+          <div style="margin-top:10px;font-size:11px;opacity:.6;background:rgba(137,174,193,.07);border-radius:10px;padding:8px 10px;line-height:1.7;">下個月要買求婚戒指</div>
+          <div style="font-size:9px;opacity:.28;margin-top:8px;text-align:right;">點擊重新鎖定</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Low budget warning -->
+    <div id="low-budget-warn" class="glass r18 hidden" style="padding:13px 16px;margin-bottom:12px;border-color:rgba(226,209,166,.18);animation:fadein .4s ease;">
+      <div style="font-size:12.5px;color:#E2D1A6;line-height:1.8;display:flex;align-items:flex-start;gap:9px;">
+        <svg style="flex-shrink:0;margin-top:2px;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E2D1A6" stroke-width="1.5"><path d="M12 2 L13.5 10.5 L22 12 L13.5 13.5 L12 22 L10.5 13.5 L2 12 L10.5 10.5 Z"/></svg>
+        <span id="low-budget-msg"></span>
+      </div>
+    </div>
+
+    <!-- Rocket Goal Card -->
+    <div class="glass r32 card" style="position:relative;overflow:hidden;">
+      <div id="confetti-container" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:inherit;z-index:10;"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+        <div>
+          <div style="font-size:10px;opacity:.4;letter-spacing:.09em;margin-bottom:4px;">宇宙築夢目標</div>
+          <div style="font-size:14px;font-weight:500;">東京跨年基金</div>
+        </div>
+        <div class="mono" id="goal-pct" style="font-size:24px;font-weight:700;color:#E5C185;">72%</div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:flex-start;">
+        <!-- Rocket track SVG -->
+        <svg width="34" height="116" viewBox="0 0 34 116" style="flex-shrink:0;">
+          <line x1="17" y1="4" x2="17" y2="112" stroke="rgba(255,255,255,.06)" stroke-width="1.5"/>
+          <!-- 20% milestone -->
+          <circle cx="17" cy="108" r="3.5" fill="#E5C185"/>
+          <text x="24" y="111.5" font-size="7" fill="#E5C185" font-family="Geist Mono,monospace">20%</text>
+          <!-- 50% milestone -->
+          <circle cx="17" cy="59" r="3.5" fill="#E5C185"/>
+          <text x="24" y="62.5" font-size="7" fill="#E5C185" font-family="Geist Mono,monospace">50%</text>
+          <!-- 100% milestone -->
+          <g style="animation:starglow 2.5s ease-in-out infinite;">
+            <path d="M17 7 L17.9 9.2 L20.5 10 L17.9 10.8 L17 13 L16.1 10.8 L13.5 10 L16.1 9.2 Z" fill="rgba(229,193,133,.35)" stroke="none"/>
+          </g>
+          <text x="24" y="13" font-size="7" fill="rgba(255,255,255,.25)" font-family="Geist Mono,monospace">100%</text>
+          <!-- Rocket at 72% -->
+          <g id="rocket-icon" style="animation:rocketfloat 2.2s ease-in-out infinite;">
+            <g transform="translate(8,24)">
+              <polygon points="9,0 18,20 9,15 0,20" fill="none" stroke="#E5C185" stroke-width="1.4" stroke-linejoin="round"/>
             </g>
           </g>
         </svg>
-        <div style={{flex:1}}>
-          <div className="mono" style={{fontSize:12,color:"rgba(255,255,255,.45)",marginBottom:6}}>
-            NT$ {goal.saved.toLocaleString()} / {goal.target.toLocaleString()}
+        <div style="flex:1;">
+          <div class="mono" id="goal-amounts" style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:8px;">NT$ 57,600 / 80,000</div>
+          <div class="pbar-bg" style="margin-bottom:14px;">
+            <div id="goal-pbar" class="pbar-fg" style="width:72%;background:linear-gradient(90deg,#E5C185,#89AEC1);"></div>
           </div>
-          <div style={{background:"rgba(255,255,255,.06)",borderRadius:8,height:5,overflow:"hidden",marginBottom:12}}>
-            <div style={{height:"100%",width:`${clamp(p,0,100)}%`,background:`linear-gradient(90deg,${PALETTE.gold},${PALETTE.blue})`,borderRadius:8,transition:"width .9s cubic-bezier(0.34,1.56,0.64,1)"}}/>
-          </div>
-          {/* memo stars */}
-          <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:12}}>
-            {(goal.msgs||[]).map((m,i)=>(
-              <div key={i} onClick={()=>{Earcon.play("tap");setFlipped(flipped===i?null:i);}} style={{cursor:"pointer",width:26,height:26,position:"relative"}}>
-                <div style={{width:"100%",height:"100%",transformStyle:"preserve-3d",perspective:600,animation:flipped===i?"flip-fwd .5s forwards":"flip-back .5s forwards"}}>
-                  <svg width="26" height="26" viewBox="0 0 26 26" fill="none" style={{position:"absolute",backfaceVisibility:"hidden",animation:"star-glow 2.5s ease-in-out infinite"}}>
-                    <path d="M13 1 L15.5 9.5 L24 9.5 L17.5 15 L20 23 L13 18 L6 23 L8.5 15 L2 9.5 L10.5 9.5 Z" stroke={PALETTE.gold} strokeWidth="1.4" fill="rgba(229,193,133,.15)"/>
-                  </svg>
-                  {flipped===i&&(
-                    <div style={{position:"absolute",inset:0,background:"rgba(229,193,133,.12)",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",backfaceVisibility:"hidden",transform:"rotateY(180deg)"}}>
-                      <div className="noto" style={{fontSize:7,color:PALETTE.gold,padding:2,lineHeight:1.3,textAlign:"center"}}>{m}</div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-          <button className="press sq-sm" onClick={()=>{Earcon.play("tap");setShowPanel(v=>!v);}} style={{padding:"6px 14px",background:"rgba(229,193,133,.1)",border:`1px solid rgba(229,193,133,.22)`,color:PALETTE.gold,fontSize:12,cursor:"pointer",display:"flex",alignItems:"center",gap:7,fontFamily:"Noto Sans TC, sans-serif"}}>
-            <RocketIcon size={14} color={PALETTE.gold}/>
+          <!-- Memo stars -->
+          <div id="memo-stars" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;"></div>
+          <button id="btn-fuel" class="press r14" style="padding:6px 14px;background:rgba(229,193,133,.1);border:1px solid rgba(229,193,133,.22);color:#E5C185;font-size:12px;display:flex;align-items:center;gap:7px;font-family:'Noto Sans TC',sans-serif;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E5C185" stroke-width="1.5"><polygon points="12,2 20,22 12,17 4,22"/><line x1="12" y1="17" x2="12" y2="22"/></svg>
             注入燃料
           </button>
         </div>
       </div>
-      {showPanel&&(
-        <div style={{marginTop:12,display:"flex",flexDirection:"column",gap:8,animation:"fade-in .2s ease"}}>
-          <input value={amt} onChange={e=>setAmt(e.target.value)} type="number" placeholder="金額 NT$" className="glass-in mono" style={{padding:"9px 14px",color:"#F4F4F5",fontSize:14,outline:"none",border:"1px solid rgba(255,255,255,.07)",background:"rgba(255,255,255,.03)"}}/>
-          <input value={memo} onChange={e=>setMemo(e.target.value)} placeholder="附上一句愛的心得（可選）" className="glass-in noto" style={{padding:"9px 14px",color:"#F4F4F5",fontSize:12.5,outline:"none",border:"1px solid rgba(255,255,255,.07)",background:"rgba(255,255,255,.03)"}}/>
-          <button className="press sq-sm" onClick={handleAdd} style={{padding:10,background:"rgba(229,193,133,.15)",border:`1px solid rgba(229,193,133,.3)`,color:PALETTE.gold,fontSize:13,cursor:"pointer",fontFamily:"Noto Sans TC, sans-serif",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
-            <RocketIcon size={15} color={PALETTE.gold}/>
-            啟動補給
+      <!-- Fuel panel -->
+      <div id="fuel-panel" class="hidden" style="margin-top:14px;display:flex;flex-direction:column;gap:8px;animation:fadein .2s ease;">
+        <input id="fuel-amt" type="number" placeholder="金額 NT$" class="mono" style="padding:10px 14px;color:#F4F4F5;font-size:14px;outline:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;width:100%;"/>
+        <input id="fuel-memo" type="text" placeholder="附上一句愛的心得（可選）" style="padding:10px 14px;color:#F4F4F5;font-size:12.5px;outline:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;width:100%;font-family:'Noto Sans TC',sans-serif;"/>
+        <button id="btn-fuel-save" class="press r14" style="padding:11px;background:rgba(229,193,133,.15);border:1px solid rgba(229,193,133,.3);color:#E5C185;font-size:13px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Noto Sans TC',sans-serif;width:100%;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#E5C185" stroke-width="1.5"><polygon points="12,2 20,22 12,17 4,22"/><line x1="12" y1="17" x2="12" y2="22"/></svg>
+          啟動補給
+        </button>
+      </div>
+    </div>
+
+    <!-- Transactions -->
+    <div class="glass r32" style="padding:16px 16px 6px;margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="font-size:13px;font-weight:500;">最近帳目</div>
+        <div class="mono" id="tx-total" style="font-size:11px;opacity:.38;">本月 NT$14,820</div>
+      </div>
+      <div id="tx-list"></div>
+    </div>
+
+    <!-- Stats mini -->
+    <div class="bento2">
+      <div class="glass r18" style="padding:14px;">
+        <div style="font-size:10px;opacity:.38;margin-bottom:5px;">小星支出</div>
+        <div class="mono" id="stat-mine" style="font-size:15px;font-weight:600;color:#89AEC1;">NT$1,240</div>
+      </div>
+      <div class="glass r18" style="padding:14px;">
+        <div style="font-size:10px;opacity:.38;margin-bottom:5px;">小宇支出</div>
+        <div class="mono" id="stat-theirs" style="font-size:15px;font-weight:600;color:#E5C185;">NT$4,480</div>
+      </div>
+    </div>
+
+    <!-- Smart alloc status -->
+    <div id="alloc-status" class="glass r18" style="padding:12px 14px;margin-top:12px;display:flex;justify-content:space-between;align-items:center;">
+      <div style="display:flex;align-items:center;gap:7px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(137,174,193,.7)" stroke-width="1.5"><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="10"/><circle cx="12" cy="6" r="1.5" fill="rgba(137,174,193,.7)" stroke="none"/></svg>
+        <div id="alloc-label" style="font-size:11px;opacity:.55;">引力抽成 5% 啟用中</div>
+      </div>
+      <div class="mono" id="alloc-total" style="font-size:11px;color:#89AEC1;">NT$741</div>
+    </div>
+  </div><!-- /#main -->
+
+  <!-- FAB -->
+  <div id="fab">
+    <button id="btn-add">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#E5C185" stroke-width="1.7" stroke-linecap="round">
+        <line x1="11" y1="2" x2="11" y2="20"/><line x1="2" y1="11" x2="20" y2="11"/>
+      </svg>
+    </button>
+  </div>
+</div><!-- /#app -->
+
+<!-- ── Add Expense Sheet ──────────────────────────────────────────────────── -->
+<div id="add-sheet" class="sheet-overlay hidden">
+  <div class="sheet glass-dk">
+    <div class="drag-pill"></div>
+    <div style="font-size:15px;font-weight:500;text-align:center;margin-bottom:14px;">記一筆帳</div>
+    <!-- Currency toggle -->
+    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;">
+      <button data-cur="TWD" class="cur-btn press" style="padding:6px 22px;border-radius:20px;border:none;background:rgba(229,193,133,.18);color:#E5C185;font-size:12.5px;font-family:'Geist Mono',monospace;">TWD</button>
+      <button data-cur="JPY" class="cur-btn press" style="padding:6px 22px;border-radius:20px;border:none;background:rgba(255,255,255,.06);color:rgba(255,255,255,.45);font-size:12.5px;font-family:'Geist Mono',monospace;">JPY</button>
+    </div>
+    <!-- Amount -->
+    <div style="text-align:center;margin-bottom:12px;">
+      <div class="mono" id="add-display" style="font-size:38px;font-weight:700;letter-spacing:-.02em;min-height:48px;line-height:1.2;">NT$0</div>
+      <div id="add-jpy-equiv" class="mono hidden" style="font-size:13px;color:#89AEC1;margin-top:4px;"></div>
+      <div id="add-boost-hint" class="mono hidden" style="font-size:11px;color:rgba(229,193,133,.65);margin-top:5px;display:flex;align-items:center;justify-content:center;gap:5px;">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(229,193,133,.65)" stroke-width="1.5"><polygon points="12,2 20,22 12,17 4,22"/></svg>
+        <span id="add-boost-text"></span>
+      </div>
+    </div>
+    <!-- Desc -->
+    <input id="add-desc" type="text" placeholder="花費說明…" style="width:100%;padding:10px 16px;color:#F4F4F5;font-size:14px;outline:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;margin-bottom:10px;font-family:'Noto Sans TC',sans-serif;"/>
+    <!-- Category -->
+    <div id="cat-strip" style="display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;"></div>
+    <!-- Payer -->
+    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;">
+      <button data-payer="小星" class="payer-btn press" style="padding:7px 22px;border-radius:20px;border:none;background:rgba(137,174,193,.15);color:#89AEC1;font-size:13px;font-family:'Noto Sans TC',sans-serif;">小星 付</button>
+      <button data-payer="小宇" class="payer-btn press" style="padding:7px 22px;border-radius:20px;border:none;background:rgba(255,255,255,.05);color:rgba(255,255,255,.38);font-size:13px;font-family:'Noto Sans TC',sans-serif;">小宇 付</button>
+    </div>
+    <!-- Numpad -->
+    <div class="numpad" id="numpad"></div>
+    <!-- Save -->
+    <button id="btn-save-expense" class="press r18" style="width:100%;padding:15px 0;background:rgba(229,193,133,.14);border:1px solid rgba(229,193,133,.33);color:#E5C185;font-size:14.5px;display:flex;align-items:center;justify-content:center;gap:9px;font-family:'Noto Sans TC',sans-serif;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#E5C185" stroke-width="1.5"><path d="M12 2 L13.5 10.5 L22 12 L13.5 13.5 L12 22 L10.5 13.5 L2 12 L10.5 10.5 Z"/></svg>
+      儲存這筆帳
+    </button>
+  </div>
+</div>
+
+<!-- ── Settings Sheet ─────────────────────────────────────────────────────── -->
+<div id="settings-sheet" class="sheet-overlay hidden">
+  <div class="sheet glass-dk">
+    <div class="drag-pill"></div>
+    <div style="font-size:15px;font-weight:500;text-align:center;margin-bottom:20px;">設定</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+      <!-- Zen -->
+      <div class="glass r18" style="padding:16px;">
+        <div style="font-size:10.5px;opacity:.45;margin-bottom:10px;">靜音禪模式</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <svg id="vol-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.5"><polygon points="5,9 10,9 15,4 15,20 10,15 5,15"/><path d="M18 9 Q21 12 18 15"/><path d="M19.5 6.5 Q24 12 19.5 17.5"/></svg>
+          <button id="zen-toggle" class="toggle-wrap" style="background:rgba(255,255,255,.09);">
+            <div class="toggle-dot" style="left:3px;background:rgba(255,255,255,.38);"></div>
           </button>
         </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Transaction row ──────────────────────────────────────────────────────────
-function TxRow({tx,onResolve}){
-  const [gone,setGone]=useState(false);
-  if(gone) return null;
-  return(
-    <div style={{display:"flex",alignItems:"center",gap:12,padding:"11px 0",borderBottom:"1px solid rgba(255,255,255,.04)",animation:"fade-in .3s ease"}}>
-      <div style={{width:34,height:34,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-        <CatIcon cat={tx.cat} size={18}/>
       </div>
-      <div style={{flex:1,minWidth:0}}>
-        <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
-          <span className="noto" style={{fontSize:13.5,fontWeight:500}}>{tx.desc}</span>
-          {tx.isConflict&&(
-            <button onClick={()=>{Earcon.play("tap");onResolve(tx.id);setGone(true);}} style={{fontSize:9.5,background:"rgba(234,179,8,.08)",border:"1px solid rgba(234,179,8,.22)",borderRadius:6,padding:"2px 7px",color:"#D4A800",cursor:"pointer",flexShrink:0,fontFamily:"Noto Sans TC, sans-serif"}}>待確認重複</button>
-          )}
+      <!-- Alloc -->
+      <div class="glass r18" style="padding:16px;">
+        <div style="font-size:10.5px;opacity:.45;margin-bottom:10px;">引力自動抽成</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.5"><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="10"/><circle cx="12" cy="6" r="1.5" fill="rgba(255,255,255,.55)" stroke="none"/></svg>
+          <button id="alloc-toggle" class="toggle-wrap" style="background:rgba(137,174,193,.28);">
+            <div class="toggle-dot" style="left:21px;background:rgb(137,174,193);"></div>
+          </button>
         </div>
-        <div className="noto" style={{fontSize:10.5,opacity:.35,marginTop:2}}>{tx.date} · {tx.payer}</div>
-      </div>
-      <div className="mono" style={{fontSize:14.5,fontWeight:600,color:tx.payer==="小星"?PALETTE.blue:PALETTE.gold,flexShrink:0}}>
-        -NT${tx.amount.toLocaleString()}
+        <div class="mono" id="alloc-pct-label" style="font-size:11px;color:#89AEC1;margin-bottom:5px;">抽成 5%</div>
+        <input id="alloc-range" type="range" min="1" max="20" value="5"/>
       </div>
     </div>
-  );
-}
-
-// ─── Number pad ───────────────────────────────────────────────────────────────
-function NumPad({value,onChange}){
-  const keys=["1","2","3","4","5","6","7","8","9",".","0","⌫"];
-  const handle=k=>{
-    Earcon.play("tap");
-    if(k==="⌫") onChange(value.slice(0,-1));
-    else if(k==="."&&value.includes(".")) return;
-    else if(value.length<10) onChange(value+k);
-  };
-  return(
-    <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
-      {keys.map(k=>(
-        <button key={k} className="press" onClick={()=>handle(k)} style={{padding:"14px 0",background:"rgba(255,255,255,.055)",border:"none",borderRadius:15,color:"#F4F4F5",fontSize:18,fontFamily:"Geist Mono, monospace",cursor:"pointer",letterSpacing:k==="⌫"?0:undefined}}>
-          {k==="⌫"
-            ? <svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M6 1 L17 1 Q18 1 18 7 Q18 13 17 13 L6 13 L1 7 Z"/><line x1="9" y1="4" x2="14" y2="10"/><line x1="14" y1="4" x2="9" y2="10"/></svg>
-            : k}
-        </button>
-      ))}
+    <!-- Avatars -->
+    <div class="glass r18" style="padding:16px;margin-bottom:10px;">
+      <div style="font-size:10.5px;opacity:.45;margin-bottom:14px;">星際頭像</div>
+      <div id="avatar-list" style="display:flex;gap:14px;"></div>
     </div>
-  );
-}
-
-// ─── Add expense sheet ────────────────────────────────────────────────────────
-function AddSheet({onClose,onSave,smartAlloc,allocPct}){
-  const [amount,setAmount]=useState("");
-  const [desc,setDesc]=useState("");
-  const [cat,setCat]=useState("dining");
-  const [currency,setCurrency]=useState("TWD");
-  const [payer,setPayer]=useState("小星");
-  const [frozen,setFrozen]=useState(false);
-  const [cd,setCd]=useState(0);
-
-  const twdEquiv=useMemo(()=>{
-    const n=parseFloat(amount||"0");
-    if(!n) return null;
-    if(currency==="JPY") return safeCalc(n*CURRENCIES.JPY.rate);
-    return null;
-  },[amount,currency]);
-
-  const rocketBoost=useMemo(()=>{
-    if(!smartAlloc||!amount) return 0;
-    const n=parseFloat(amount||"0");
-    const twd=currency==="JPY"?safeCalc(n*CURRENCIES.JPY.rate):n;
-    return safeCalc(twd*(allocPct/100));
-  },[smartAlloc,amount,currency,allocPct]);
-
-  const handleSave=()=>{
-    if(!saveBucket.consume()){ Earcon.play("freeze"); setFrozen(true); let c=3; setCd(c); const t=setInterval(()=>{ c--; setCd(c); if(c<=0){clearInterval(t);setFrozen(false);} },1000); return; }
-    const n=parseFloat(amount||"0");
-    if(!n||!desc) return;
-    const twd=currency==="JPY"?safeCalc(n*CURRENCIES.JPY.rate):n;
-    tick();
-    onSave({desc,amount:twd,cat,payer,currency,origAmt:n,boost:rocketBoost});
-    Earcon.play("save");
-    onClose();
-  };
-
-  return(
-    <div style={{position:"fixed",inset:0,zIndex:100,display:"flex",alignItems:"flex-end"}} onClick={onClose}>
-      <div className="glass-dk" onClick={e=>e.stopPropagation()} style={{width:"100%",borderRadius:"28px 28px 0 0",padding:"26px 18px",paddingBottom:"calc(env(safe-area-inset-bottom,0px) + 20px)",animation:"slide-up .35s cubic-bezier(0.34,1.56,0.64,1)"}}>
-        <div style={{width:36,height:4,background:"rgba(255,255,255,.18)",borderRadius:2,margin:"0 auto 18px"}}/>
-        <div className="noto" style={{fontSize:15,fontWeight:600,marginBottom:14,textAlign:"center"}}>記一筆帳</div>
-
-        {/* Currency toggle */}
-        <div style={{display:"flex",gap:8,justifyContent:"center",marginBottom:10}}>
-          {Object.keys(CURRENCIES).map(c=>(
-            <button key={c} className="press" onClick={()=>{Earcon.play("tap");setCurrency(c);}} style={{padding:"6px 22px",borderRadius:20,border:"none",background:currency===c?"rgba(229,193,133,.18)":"rgba(255,255,255,.06)",color:currency===c?PALETTE.gold:"rgba(255,255,255,.45)",fontSize:12.5,cursor:"pointer",fontFamily:"Geist Mono, monospace"}}>
-              {c}
-            </button>
-          ))}
-        </div>
-
-        {/* Amount display */}
-        <div style={{textAlign:"center",marginBottom:10}}>
-          <div className="mono" style={{fontSize:36,fontWeight:700,letterSpacing:"-.02em",minHeight:46,lineHeight:1.2}}>
-            {CURRENCIES[currency].sym}{amount||"0"}
-          </div>
-          {twdEquiv!==null&&(
-            <div className="mono" style={{fontSize:12.5,color:PALETTE.blue,marginTop:2}}>
-              {CURRENCIES.JPY.sym}{parseFloat(amount).toLocaleString()} ⇄ NT${twdEquiv.toLocaleString()} TWD
-            </div>
-          )}
-          {smartAlloc&&amount&&(
-            <div className="mono" style={{fontSize:11,color:"rgba(229,193,133,.65)",marginTop:4,display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
-              <RocketIcon size={11} color="rgba(229,193,133,.65)"/>
-              自動空投 {allocPct}% = NT${rocketBoost.toLocaleString()} 至火箭基金
-            </div>
-          )}
-        </div>
-
-        {/* Description */}
-        <input value={desc} onChange={e=>setDesc(e.target.value)} placeholder="花費說明…" className="noto" style={{width:"100%",background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.07)",borderRadius:16,padding:"10px 16px",color:"#F4F4F5",fontSize:14,outline:"none",marginBottom:10}}/>
-
-        {/* Category strip */}
-        <div className="scroll-area" style={{display:"flex",gap:8,marginBottom:12,overflowX:"auto",paddingBottom:4}}>
-          {CATS.map(c=>(
-            <button key={c.key} className="press" onClick={()=>setCat(c.key)} style={{padding:"6px 12px",borderRadius:14,border:"none",background:cat===c.key?"rgba(137,174,193,.18)":"rgba(255,255,255,.05)",color:cat===c.key?PALETTE.blue:"rgba(255,255,255,.45)",fontSize:12,cursor:"pointer",whiteSpace:"nowrap",display:"flex",alignItems:"center",gap:6,fontFamily:"Noto Sans TC, sans-serif"}}>
-              <CatIcon cat={c.key} size={13} color={cat===c.key?PALETTE.blue:"rgba(255,255,255,.4)"}/>
-              {c.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Payer */}
-        <div style={{display:"flex",gap:8,justifyContent:"center",marginBottom:12}}>
-          {["小星","小宇"].map(p=>(
-            <button key={p} className="press" onClick={()=>setPayer(p)} style={{padding:"7px 22px",borderRadius:20,border:"none",background:payer===p?"rgba(137,174,193,.14)":"rgba(255,255,255,.05)",color:payer===p?PALETTE.blue:"rgba(255,255,255,.38)",fontSize:13,cursor:"pointer",fontFamily:"Noto Sans TC, sans-serif"}}>{p} 付</button>
-          ))}
-        </div>
-
-        <NumPad value={amount} onChange={setAmount}/>
-
-        <button className="press sq-md" onClick={handleSave} disabled={frozen} style={{width:"100%",marginTop:13,padding:"15px 0",background:frozen?"rgba(255,255,255,.03)":"rgba(229,193,133,.14)",border:`1px solid ${frozen?"rgba(255,255,255,.07)":"rgba(229,193,133,.33)"}`,color:frozen?"rgba(255,255,255,.25)":PALETTE.gold,fontSize:14.5,cursor:frozen?"not-allowed":"pointer",fontFamily:"Noto Sans TC, sans-serif",display:"flex",alignItems:"center",justifyContent:"center",gap:8,animation:frozen?"freeze-shake .3s ease":undefined}}>
-          {frozen
-            ? <><StarIcon size={14} color="rgba(255,255,255,.25)"/>星際冷卻中 {cd}s</>
-            : <><StarIcon size={14} color={PALETTE.gold}/>儲存這筆帳</>}
-        </button>
+    <!-- Danger -->
+    <div class="glass r18" style="padding:16px;border-color:rgba(200,60,60,.15);">
+      <div style="font-size:10.5px;opacity:.45;margin-bottom:12px;">危險區域</div>
+      <div style="position:relative;display:inline-block;">
+        <button id="btn-breakup" style="padding:10px 24px;border-radius:14px;background:rgba(200,60,60,.09);border:1px solid rgba(200,60,60,.2);color:rgba(220,80,80,.7);font-size:13px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">解除關係（長按 3 秒）</button>
+        <svg id="breakup-ring" style="position:absolute;top:-7px;right:-7px;display:none;transform:rotate(-90deg);" width="26" height="26" viewBox="0 0 26 26">
+          <circle cx="13" cy="13" r="11" fill="none" stroke="rgba(200,60,60,.3)" stroke-width="2"/>
+          <circle id="breakup-arc" cx="13" cy="13" r="11" fill="none" stroke="rgba(220,80,80,.85)" stroke-width="2" stroke-dasharray="69" stroke-dashoffset="69" stroke-linecap="round"/>
+        </svg>
       </div>
     </div>
-  );
-}
+  </div>
+</div>
 
-// ─── Settings panel ───────────────────────────────────────────────────────────
-function SettingsPanel({onClose,zenMode,onToggleZen,smartAlloc,onToggleAlloc,allocPct,onChangeAllocPct}){
-  const [avatar,setAvatar]=useState("pilot");
-  const [holding,setHolding]=useState(false);
-  const [holdP,setHoldP]=useState(0);
-  const hRef=useRef(null);
-
-  const startHold=()=>{
-    setHolding(true);
-    const start=Date.now();
-    hRef.current=setInterval(()=>{
-      const e=clamp((Date.now()-start)/3000,0,1);
-      setHoldP(e);
-      if(e>=1){ clearInterval(hRef.current); setHolding(false); setHoldP(0); alert("已進入 14 天冷靜期隔離沙盒"); }
-    },50);
-  };
-  const endHold=()=>{ clearInterval(hRef.current); setHolding(false); setHoldP(0); };
-
-  const Toggle=({on,onToggle,colorOn})=>(
-    <button onClick={onToggle} style={{width:44,height:26,borderRadius:13,border:"none",background:on?`rgba(${colorOn||"229,193,133"},.28)`:"rgba(255,255,255,.09)",cursor:"pointer",position:"relative",transition:"background .2s",flexShrink:0}}>
-      <div style={{width:20,height:20,borderRadius:"50%",background:on?(colorOn?`rgb(${colorOn})`:"#E5C185"):"rgba(255,255,255,.38)",position:"absolute",top:3,left:on?21:3,transition:"left .2s, background .2s"}}/>
-    </button>
-  );
-
-  return(
-    <div style={{position:"fixed",inset:0,zIndex:100,display:"flex",alignItems:"flex-end"}} onClick={onClose}>
-      <div className="glass-dk" onClick={e=>e.stopPropagation()} style={{width:"100%",maxHeight:"88dvh",overflowY:"auto",borderRadius:"28px 28px 0 0",padding:"26px 18px",paddingBottom:"calc(env(safe-area-inset-bottom,0px) + 24px)",animation:"slide-up .35s cubic-bezier(0.34,1.56,0.64,1)"}}>
-        <div style={{width:36,height:4,background:"rgba(255,255,255,.18)",borderRadius:2,margin:"0 auto 18px"}}/>
-        <div className="noto" style={{fontSize:15,fontWeight:600,textAlign:"center",marginBottom:20}}>設定</div>
-
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
-          {/* Zen mode */}
-          <div className="glass sq-md" style={{padding:16}}>
-            <div className="noto" style={{fontSize:10.5,opacity:.45,marginBottom:10}}>靜音禪模式</div>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-              <VolumeIcon size={22} color="rgba(255,255,255,.55)" muted={zenMode}/>
-              <Toggle on={zenMode} onToggle={()=>{Earcon.play("tap");onToggleZen();}}/>
-            </div>
-          </div>
-          {/* Smart alloc */}
-          <div className="glass sq-md" style={{padding:16}}>
-            <div className="noto" style={{fontSize:10.5,opacity:.45,marginBottom:10}}>引力自動抽成</div>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:smartAlloc?8:0}}>
-              <AllocIcon size={22} color="rgba(255,255,255,.55)"/>
-              <Toggle on={smartAlloc} onToggle={()=>{Earcon.play("tap");onToggleAlloc();}} colorOn="137,174,193"/>
-            </div>
-            {smartAlloc&&<>
-              <div className="mono" style={{fontSize:11,color:PALETTE.blue,marginBottom:5}}>抽成 {allocPct}%</div>
-              <input type="range" min="1" max="20" value={allocPct} onChange={e=>onChangeAllocPct(Number(e.target.value))} style={{width:"100%",accentColor:PALETTE.blue}}/>
-            </>}
-          </div>
-        </div>
-
-        {/* Avatars */}
-        <div className="glass sq-md" style={{padding:16,marginBottom:10}}>
-          <div className="noto" style={{fontSize:10.5,opacity:.45,marginBottom:12}}>星際頭像</div>
-          <div style={{display:"flex",gap:14}}>
-            {AVATARS.map(a=>(
-              <div key={a.id} onClick={()=>{Earcon.play("tap");setAvatar(a.id);}} style={{cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
-                <div style={{width:52,height:52,borderRadius:18,background:"rgba(255,255,255,.05)",display:"flex",alignItems:"center",justifyContent:"center",border:`1.5px solid ${avatar===a.id?"rgba(229,193,133,.6)":"transparent"}`,boxShadow:avatar===a.id?"0 0 14px rgba(229,193,133,.28)":"none",transition:"all .2s"}}>
-                  <a.Svg/>
-                </div>
-                <div className="noto" style={{fontSize:9,opacity:avatar===a.id?.9:.35,textAlign:"center",lineHeight:1.4}}>{a.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Danger zone */}
-        <div className="glass sq-md" style={{padding:16,borderColor:"rgba(200,60,60,.15)"}}>
-          <div className="noto" style={{fontSize:10.5,opacity:.45,marginBottom:12}}>危險區域</div>
-          <div style={{position:"relative",display:"inline-block"}}>
-            <button onPointerDown={startHold} onPointerUp={endHold} onPointerLeave={endHold} style={{padding:"10px 24px",borderRadius:14,background:"rgba(200,60,60,.09)",border:"1px solid rgba(200,60,60,.2)",color:"rgba(220,80,80,.7)",fontSize:13,cursor:"pointer",fontFamily:"Noto Sans TC, sans-serif"}}>
-              解除關係（長按 3 秒）
-            </button>
-            {holding&&(
-              <svg style={{position:"absolute",top:-7,right:-7,pointerEvents:"none",transform:"rotate(-90deg)"}} width="26" height="26" viewBox="0 0 26 26">
-                <circle cx="13" cy="13" r="11" fill="none" stroke="rgba(200,60,60,.3)" strokeWidth="2"/>
-                <circle cx="13" cy="13" r="11" fill="none" stroke="rgba(220,80,80,.8)" strokeWidth="2" strokeDasharray="69" strokeDashoffset={safeCalc(69*(1-holdP))} strokeLinecap="round"/>
-              </svg>
-            )}
-          </div>
-        </div>
-      </div>
+<!-- ── Face ID Overlay ────────────────────────────────────────────────────── -->
+<div id="faceid" class="hidden">
+  <div class="inner glass r24">
+    <div style="position:relative;width:100px;height:100px;">
+      <svg width="100" height="100" viewBox="0 0 96 96" fill="none" stroke-linecap="round">
+        <circle cx="48" cy="48" r="44" stroke="rgba(229,193,133,.18)" stroke-width="1"/>
+        <circle cx="48" cy="48" r="44" stroke="#E5C185" stroke-width="1.5" stroke-dasharray="276" style="animation:facering 1.6s ease-in-out infinite;transform-origin:48px 48px;transform:rotate(-90deg);"/>
+        <circle cx="48" cy="48" r="32" stroke="rgba(255,255,255,.3)" stroke-width="1"/>
+        <circle id="faceid-ring2" cx="48" cy="48" r="32" stroke="#89AEC1" stroke-width="1.2" stroke-dasharray="201" style="transform-origin:48px 48px;transform:rotate(-90deg);opacity:0;"/>
+      </svg>
+      <div id="scan-beam" style="position:absolute;left:18px;right:18px;height:1.4px;background:#E5C185;opacity:.6;top:47px;animation:scan 1.1s ease-in-out infinite;"></div>
+      <svg id="faceid-eyes" width="100" height="100" viewBox="0 0 96 96" fill="none" style="position:absolute;top:0;left:0;opacity:0;">
+        <circle cx="33" cy="40" r="5.5" stroke="#E5C185" stroke-width="1.3"/>
+        <circle cx="63" cy="40" r="5.5" stroke="#E5C185" stroke-width="1.3"/>
+        <path d="M35 58 Q48 67 61 58" stroke="#E5C185" stroke-width="1.3"/>
+      </svg>
+      <svg id="faceid-done" width="100" height="100" viewBox="0 0 96 96" fill="none" style="position:absolute;top:0;left:0;opacity:0;">
+        <circle cx="48" cy="48" r="15" stroke="#E5C185" stroke-width="1.3"/>
+      </svg>
     </div>
-  );
+    <div id="faceid-msg" style="font-size:13.5px;opacity:.65;text-align:center;">Face ID 雙子星對焦驗證中…</div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ── State ──────────────────────────────────────────────────────────────────
+const safe = n => Math.round((n + Number.EPSILON) * 100) / 100;
+const clamp = (v,lo,hi) => Math.max(lo, Math.min(hi, v));
+
+const WARN_MSGS = [
+  '燃料剩餘不多，本週開啟自煮模式，攜手共度星際風暴。',
+  '引力場微幅收縮，一頓溫馨家常是最省電的浪漫。',
+  '能量趨近臨界，本月剩餘星際幣留給最重要的彼此。',
+  '軌道修正中，宅家追劇比任何消費都更耐燃。',
+];
+
+const CATS = [
+  {key:'dining',label:'餐飲'},
+  {key:'grocery',label:'購物'},
+  {key:'transit',label:'交通'},
+  {key:'leisure',label:'娛樂'},
+  {key:'home',label:'居家'},
+  {key:'health',label:'健康'},
+  {key:'travel',label:'旅遊'},
+  {key:'gift',label:'禮物'},
+  {key:'cafe',label:'咖啡'},
+];
+
+const CAT_PATHS = {
+  dining:  '<path d="M12 2 V10"/><path d="M8 4 Q4 8 6 12 Q9 16 12 14 Q15 16 18 12 Q20 8 16 4"/><path d="M12 14 V22"/>',
+  grocery: '<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10 Q8 4 12 4 Q16 4 16 10"/>',
+  transit: '<rect x="4" y="6" width="16" height="13" rx="3"/><path d="M4 13 H20"/><circle cx="8" cy="20" r="1.5" fill="currentColor" stroke="none"/><circle cx="16" cy="20" r="1.5" fill="currentColor" stroke="none"/>',
+  leisure: '<circle cx="12" cy="12" r="9"/><path d="M9 9 L12 12 L9 15"/><path d="M15 9 L15 15"/>',
+  home:    '<path d="M3 11 L12 2 L21 11"/><path d="M5 9 V21 H10 V16 H14 V21 H19 V9"/>',
+  health:  '<path d="M12 21 C12 21 3 15 3 8.5 A4.5 4.5 0 0 1 12 6.5 A4.5 4.5 0 0 1 21 8.5 C21 15 12 21 12 21"/>',
+  travel:  '<polygon points="12,2 22,20 12,16 2,20" fill="none"/><line x1="12" y1="16" x2="12" y2="22"/>',
+  gift:    '<rect x="4" y="10" width="16" height="12" rx="2"/><rect x="2" y="6" width="20" height="4" rx="1"/><path d="M12 6 V22"/><path d="M12 6 Q12 2 8 2 Q6 2 6 5 Q6 6 8 6 H12"/><path d="M12 6 Q12 2 16 2 Q18 2 18 5 Q18 6 16 6 H12"/>',
+  cafe:    '<path d="M6 3 V7"/><path d="M10 3 V7"/><path d="M14 3 V7"/><path d="M4 7 H18 Q18 17 11 17 Q4 17 4 7"/><path d="M18 9 Q22 9 22 13 Q22 17 18 17"/>',
+};
+
+const AVATARS_SVG = [
+  { id:'pilot', label:'星際飛行員', svg:`<svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="#E5C185" stroke-width="1.5" stroke-linecap="round"><circle cx="18" cy="14" r="7"/><path d="M9 28 Q9 22 18 22 Q27 22 27 28"/><path d="M12 10 Q13 8 18 8 Q23 8 24 10"/><circle cx="14" cy="14" r="1.5" fill="#E5C185" stroke="none"/><circle cx="22" cy="14" r="1.5" fill="#E5C185" stroke="none"/></svg>` },
+  { id:'cat',   label:'外星貓咪',  svg:`<svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="#89AEC1" stroke-width="1.5" stroke-linecap="round"><path d="M10 10 L6 4 L10 14"/><path d="M26 10 L30 4 L26 14"/><ellipse cx="18" cy="18" rx="10" ry="9"/><path d="M14 18 Q18 22 22 18"/><circle cx="14" cy="15" r="1.5" fill="#89AEC1" stroke="none"/><circle cx="22" cy="15" r="1.5" fill="#89AEC1" stroke="none"/><path d="M15 20 L13 23"/><path d="M21 20 L23 23"/></svg>` },
+  { id:'planet',label:'行星漫遊',  svg:`<svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="#A8E6CF" stroke-width="1.5" stroke-linecap="round"><circle cx="18" cy="18" r="9"/><ellipse cx="18" cy="18" rx="17" ry="6" style="transform:rotate(-25deg);transform-origin:18px 18px;"/><circle cx="18" cy="13" r="2.5"/></svg>` },
+];
+
+let state = {
+  sharedBudget: 20000,
+  sharedSpent:  14820,
+  txs: [
+    { id:1, desc:'藥師流拉麵', amount:980,  cat:'dining',  date:'06/19', payer:'小宇', conflict:false },
+    { id:2, desc:'全聯採買',   amount:1240, cat:'grocery', date:'06/18', payer:'小星', conflict:false },
+    { id:3, desc:'新宿購物',   amount:3500, cat:'travel',  date:'06/17', payer:'小宇', conflict:true  },
+  ],
+  goalSaved:  57600,
+  goalTarget: 80000,
+  goalMsgs:   ['期待與你牽手倒數','想在淺草橋看煙火'],
+  zenMode:    false,
+  smartAlloc: true,
+  allocPct:   5,
+  currency:   'TWD',
+  addAmount:  '',
+  addCat:     'dining',
+  addPayer:   '小星',
+  privateUnlocked: false,
+  selectedAvatar:  'pilot',
+};
+
+// ── Audio ──────────────────────────────────────────────────────────────────
+let audioCtx = null;
+function initAudio() {
+  if(!audioCtx) try { audioCtx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){}
+}
+document.addEventListener('touchstart', initAudio, { once:true });
+document.addEventListener('click', initAudio, { once:true });
+
+function earcon(type) {
+  if(state.zenMode || !audioCtx) return;
+  try {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    const t = audioCtx.currentTime;
+    const fx = {
+      tap:    ()=>{ o.type='sine';     o.frequency.setValueAtTime(880,t); g.gain.setValueAtTime(.07,t); g.gain.exponentialRampToValueAtTime(.001,t+.14); },
+      save:   ()=>{ o.type='triangle'; o.frequency.setValueAtTime(523,t); o.frequency.exponentialRampToValueAtTime(1046,t+.22); g.gain.setValueAtTime(.1,t); g.gain.exponentialRampToValueAtTime(.001,t+.28); },
+      unlock: ()=>{ o.type='sine';     o.frequency.setValueAtTime(440,t); o.frequency.setValueAtTime(660,t+.1); o.frequency.setValueAtTime(880,t+.2); g.gain.setValueAtTime(.1,t); g.gain.exponentialRampToValueAtTime(.001,t+.5); },
+      rocket: ()=>{ o.type='sawtooth'; o.frequency.setValueAtTime(180,t); o.frequency.exponentialRampToValueAtTime(820,t+.4); g.gain.setValueAtTime(.12,t); g.gain.exponentialRampToValueAtTime(.001,t+.65); },
+      boot:   ()=>{ o.type='sine';     o.frequency.setValueAtTime(120,t); o.frequency.exponentialRampToValueAtTime(240,t+.6); g.gain.setValueAtTime(.08,t); g.gain.exponentialRampToValueAtTime(.001,t+.8); },
+      freeze: ()=>{ o.type='square';   o.frequency.setValueAtTime(220,t); g.gain.setValueAtTime(.04,t); g.gain.exponentialRampToValueAtTime(.001,t+.3); },
+    };
+    (fx[type]||fx.tap)();
+    o.start(t); o.stop(t+.9);
+  } catch(e){}
 }
 
-// ─── Main App ─────────────────────────────────────────────────────────────────
-function WeCountApp(){
-  // App lifecycle state machine
-  const [appState,setAppState]=useState("loading"); // loading | onboarding | demo | live
-  const [data,setData]=useState(DEMO);
-  const [showAdd,setShowAdd]=useState(false);
-  const [showSettings,setShowSettings]=useState(false);
-  const [showFaceID,setShowFaceID]=useState(false);
-  const [privateUnlocked,setPrivateUnlocked]=useState(false);
-  const [zenMode,setZenMode]=useState(false);
-  const [smartAlloc,setSmartAlloc]=useState(true);
-  const [allocPct,setAllocPct]=useState(5);
-  const [toast,setToast]=useState({visible:false,msg:"",color:""});
-  const [online,setOnline]=useState(navigator.onLine);
-  const notifRef=useRef(null);
+// ── Toast ──────────────────────────────────────────────────────────────────
+let toastTimer = null;
+function showToast(msg, color) {
+  const el = document.getElementById('toast');
+  const star = document.getElementById('toast-star');
+  const msgEl = document.getElementById('toast-msg');
+  msgEl.textContent = msg;
+  const c = color || '#E5C185';
+  el.style.borderColor = c;
+  star.setAttribute('stroke', c);
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.classList.remove('show'); el.style.opacity=0; }, 2800);
+}
 
-  // Derived values
-  const budgetLeft=safeCalc(data.sharedBudget-data.sharedSpent);
-  const budgetPct=pct(budgetLeft,data.sharedBudget);
-  const lowBudget=budgetPct<=20;
-  const warningMsg=useMemo(()=>BUDGET_MSGS[Math.floor(Math.random()*BUDGET_MSGS.length)],[lowBudget]);
+// ── Cosmic background ──────────────────────────────────────────────────────
+function buildCosmic() {
+  const wrap = document.getElementById('cosmic');
+  const hr = new Date().getHours();
+  let c1 = '#181035', c2 = '#0C1E2D';
+  if(hr>=5&&hr<8)        { c1='#2A1A06'; c2='#180E04'; }
+  else if(hr>=11&&hr<14) { c1='#091522'; c2='#04090F'; }
 
-  const aaBalance=useMemo(()=>{
-    let mine=0,theirs=0;
-    data.transactions.forEach(t=>{ if(t.payer==="小星") mine=safeCalc(mine+t.amount); else theirs=safeCalc(theirs+t.amount); });
-    return { mine, theirs, diff:safeCalc(mine-theirs) };
-  },[data.transactions]);
+  wrap.innerHTML = `
+    <div class="nebula" style="top:-25%;left:-25%;width:75%;height:75%;background:radial-gradient(ellipse,${c1} 0%,transparent 70%);animation:aurora 9s ease-in-out infinite;"></div>
+    <div class="nebula" style="bottom:-25%;right:-25%;width:75%;height:75%;background:radial-gradient(ellipse,${c2} 0%,transparent 70%);animation:aurora 13s ease-in-out infinite 3s;"></div>
+    <div class="nebula" style="top:25%;left:50%;transform:translateX(-50%);width:280px;height:280px;background:radial-gradient(ellipse,rgba(229,193,133,.06) 0%,transparent 70%);animation:aurora 7s ease-in-out infinite 1s;"></div>
+  `;
+  for(let i=0;i<32;i++){
+    const d = document.createElement('div');
+    d.className = 'star-dot';
+    const sz = i%7===0 ? 2 : 1;
+    d.style.cssText = `left:${(i*41+7)%100}%;top:${(i*57+11)%100}%;width:${sz}px;height:${sz}px;animation:breathe ${4+(i%7)}s ease-in-out infinite ${(i*.28).toFixed(1)}s;`;
+    wrap.appendChild(d);
+  }
+}
 
-  const showToast=useCallback((msg,color="",dur=2800)=>{
-    setToast({visible:true,msg,color});
-    setTimeout(()=>setToast(t=>({...t,visible:false})),dur);
-  },[]);
+// ── Computed values ────────────────────────────────────────────────────────
+function computeAA() {
+  let mine=0, theirs=0;
+  state.txs.forEach(t => {
+    if(t.payer==='小星') mine = safe(mine+t.amount);
+    else theirs = safe(theirs+t.amount);
+  });
+  return { mine, theirs, diff: safe(mine-theirs) };
+}
 
-  // Lifecycle hooks
-  useEffect(()=>{
-    const on=()=>{ setOnline(true); showToast("量子通道已重建，資料同步完畢"); };
-    const off=()=>{ setOnline(false); showToast("離線模式：帳目已安全暫存本機",PALETTE.amber); };
-    window.addEventListener("online",on); window.addEventListener("offline",off);
-    return()=>{ window.removeEventListener("online",on); window.removeEventListener("offline",off); };
-  },[showToast]);
-
-  useEffect(()=>{
-    const fn=()=>{ if(document.visibilityState==="visible"&&appState==="demo") showToast("星際連線已重新校正完畢",PALETTE.blue,2000); };
-    document.addEventListener("visibilitychange",fn);
-    return()=>document.removeEventListener("visibilitychange",fn);
-  },[appState,showToast]);
-
-  useEffect(()=>{ Earcon.mute(zenMode); },[zenMode]);
-
-  // First touch audio init
-  useEffect(()=>{
-    const fn=()=>{ Earcon.init(); document.removeEventListener("touchstart",fn); };
-    document.addEventListener("touchstart",fn);
-    return()=>document.removeEventListener("touchstart",fn);
-  },[]);
-
-  const handleSaveExpense=useCallback(tx=>{
-    const boost=tx.boost||0;
-    setData(d=>({
-      ...d,
-      sharedSpent:safeCalc(d.sharedSpent+tx.amount),
-      goal:{...d.goal,saved:safeCalc(d.goal.saved+boost)},
-      transactions:[{id:Date.now(),...tx,isConflict:false,memo:null,date:new Date().toLocaleDateString("zh-TW",{month:"2-digit",day:"2-digit"})},{...d.transactions[0]},...d.transactions.slice(1)],
-    }));
-    clearTimeout(notifRef.current);
-    notifRef.current=setTimeout(()=>showToast(`${tx.payer} 記了一筆 NT$${tx.amount.toLocaleString()}`),300);
-  },[showToast]);
-
-  const handleAddSavings=useCallback((amt,memo)=>{
-    setData(d=>({...d,goal:{...d.goal,saved:safeCalc(d.goal.saved+amt),msgs:memo?[...(d.goal.msgs||[]),memo]:d.goal.msgs}}));
-    showToast("燃料注入成功！");
-  },[showToast]);
-
-  const handleResolve=useCallback(id=>{
-    setData(d=>({...d,transactions:d.transactions.map(t=>t.id===id?{...t,isConflict:false}:t)}));
-    showToast("重複記錄已消除");
-  },[showToast]);
-
-  // Cosmic background color for low budget
-  const islandAccent = lowBudget ? PALETTE.amber : PALETTE.gold;
-
-  // ── Render: Loading ─────────────────────────────────────────────────────────
-  if(appState==="loading") return(
-    <>
-      <CosmicBg/>
-      <SplashScreen onDone={()=>setAppState("onboarding")}/>
-    </>
-  );
-
-  // ── Render: Onboarding ──────────────────────────────────────────────────────
-  if(appState==="onboarding") return(
-    <>
-      <CosmicBg/>
-      {/* skeleton preview behind panel */}
-      <div style={{position:"fixed",inset:0,zIndex:1,padding:"calc(env(safe-area-inset-top,44px) + 16px) 16px 100px",display:"flex",flexDirection:"column",gap:12}}>
-        <Skeleton h={40} style={{width:"60%",marginBottom:4}}/>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><Skeleton h={160}/><Skeleton h={160}/></div>
-        <Skeleton h={200}/>
-        <Skeleton h={120}/>
+// ── Render transactions ────────────────────────────────────────────────────
+function renderTxList() {
+  const list = document.getElementById('tx-list');
+  list.innerHTML = '';
+  state.txs.slice(0,7).forEach(tx => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);animation:fadein .3s ease;';
+    const iconColor = tx.payer==='小星' ? '#89AEC1' : '#E5C185';
+    const paths = CAT_PATHS[tx.cat] || CAT_PATHS.cafe;
+    row.innerHTML = `
+      <div style="width:34px;height:34px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>
       </div>
-      <Toast msg={toast.msg} accent={toast.color} visible={toast.visible}/>
-      <OnboardingPanel
-        onDemo={()=>{ Earcon.play("tap"); setAppState("demo"); showToast("訪客沙盒已啟動，盡情體驗"); }}
-        onPasskeys={()=>{ Earcon.play("tap"); showToast("Passkeys 雙人連線功能即將開放"); }}
-      />
-    </>
-  );
-
-  // ── Render: Demo / Live ─────────────────────────────────────────────────────
-  return(
-    <>
-      <CosmicBg/>
-      <Toast msg={toast.msg} accent={toast.color||islandAccent} visible={toast.visible}/>
-      {showFaceID&&<FaceIDOverlay onSuccess={()=>{ setShowFaceID(false); setPrivateUnlocked(true); Earcon.play("unlock"); showToast("私密宇宙已解鎖",PALETTE.gold); }}/>}
-
-      <div className="scroll-area" style={{position:"fixed",inset:0,zIndex:2,display:"flex",flexDirection:"column",height:"100dvh"}}>
-        <div className="scroll-area" style={{flex:1,paddingTop:"calc(env(safe-area-inset-top,44px) + 14px)",padding:"calc(env(safe-area-inset-top,44px) + 14px) 16px 110px"}}>
-
-          {/* ── Header ─────────────────────────────────────────────────── */}
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
-            {/* Brand mark */}
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <BrandLogo size={28} color={islandAccent}/>
-              <div>
-                <div className="mono" style={{fontSize:15,fontWeight:600,letterSpacing:".15em",color:islandAccent,lineHeight:1}}>WECOUNT</div>
-                <div style={{display:"flex",alignItems:"center",gap:5,marginTop:4}}>
-                  <div style={{width:5,height:5,borderRadius:"50%",background:online?PALETTE.mint:"rgba(255,255,255,.2)",animation:online?"breathe-fast 2s ease-in-out infinite":undefined}}/>
-                  <div className="mono" style={{fontSize:9,letterSpacing:".28em",color:"rgba(255,255,255,.28)",lineHeight:1}}>SYNCED VIA COSMIC CLOUD</div>
-                </div>
-              </div>
-            </div>
-            <button className="press" onClick={()=>{ Earcon.play("tap"); setShowSettings(true); }} style={{width:36,height:36,borderRadius:12,background:"rgba(255,255,255,.055)",border:"1px solid rgba(255,255,255,.09)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>
-              <svg width="16" height="14" viewBox="0 0 16 14" fill="none" stroke="rgba(255,255,255,.6)" strokeWidth="1.5" strokeLinecap="round"><line x1="0" y1="2" x2="16" y2="2"/><line x1="0" y1="7" x2="16" y2="7"/><line x1="0" y1="12" x2="16" y2="12"/></svg>
-            </button>
-          </div>
-
-          {/* ── Demo Banner ─────────────────────────────────────────────── */}
-          {appState==="demo"&&(
-            <button className="press glass sq-lg" onClick={()=>{ Earcon.play("tap"); showToast("Passkeys 雙人連線即將開放"); }} style={{width:"100%",padding:"12px 18px",border:"1px solid rgba(137,174,193,.22)",color:PALETTE.blue,fontSize:12.5,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:9,marginBottom:14,fontFamily:"Noto Sans TC, sans-serif",animation:"breathe-fast 3s ease-in-out infinite"}}>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke={PALETTE.blue} strokeWidth="1.5" strokeLinecap="round" style={{animation:"sync-spin 3s linear infinite"}}><circle cx="7" cy="7" r="5"/><path d="M7 2 A5 5 0 0 1 12 7"/><polyline points="10,5 12,7 14,5"/></svg>
-              開啟雙人實時同步（現正 Demo 模式）
-            </button>
-          )}
-
-          {/* ── Dual Bento Top ──────────────────────────────────────────── */}
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
-            {/* Shared ledger */}
-            <div className="glass sq-xl" style={{padding:16,minHeight:168}}>
-              <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:10}}>
-                <OrbitIcon size={15} color="rgba(229,193,133,.7)"/>
-                <div className="noto" style={{fontSize:10,opacity:.4,letterSpacing:".07em"}}>共同存摺</div>
-              </div>
-              <div style={{display:"flex",justifyContent:"center",marginBottom:8}}><LargeOrbitViz/></div>
-              <div className="mono" style={{fontSize:17,fontWeight:700,textAlign:"center",letterSpacing:"-.01em"}}>{budgetLeft<0?"-":""}NT${Math.abs(budgetLeft).toLocaleString()}</div>
-              <div className="noto" style={{fontSize:9.5,opacity:.35,textAlign:"center",marginTop:2}}>剩餘共享預算</div>
-              <div style={{marginTop:8,background:"rgba(255,255,255,.06)",borderRadius:5,height:4,overflow:"hidden"}}>
-                <div style={{height:"100%",width:`${clamp(budgetPct,0,100)}%`,background:lowBudget?`linear-gradient(90deg,${PALETTE.amber},${PALETTE.gold})`:`linear-gradient(90deg,${PALETTE.blue},${PALETTE.gold})`,transition:"all .9s ease"}}/>
-              </div>
-              <div className="noto" style={{marginTop:9,padding:"5px 8px",background:"rgba(255,255,255,.04)",borderRadius:9,fontSize:9,opacity:.5,lineHeight:1.6}}>
-                AA 淨額：{aaBalance.diff>0?`小宇欠 NT$${Math.abs(aaBalance.diff).toLocaleString()}`:aaBalance.diff<0?`小星欠 NT$${Math.abs(aaBalance.diff).toLocaleString()}`:"雙方持平"}
-              </div>
-            </div>
-
-            {/* Private vault */}
-            <div className="glass sq-xl" style={{padding:16,minHeight:168,cursor:"pointer"}} onClick={()=>{ Earcon.play("tap"); if(!privateUnlocked) setShowFaceID(true); else setPrivateUnlocked(false); }}>
-              <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:10}}>
-                <ShieldIcon size={15} color="rgba(137,174,193,.7)"/>
-                <div className="noto" style={{fontSize:10,opacity:.4,letterSpacing:".07em"}}>私人小金庫</div>
-              </div>
-              {privateUnlocked?(
-                <div style={{animation:"fade-in .4s ease"}}>
-                  <div className="mono" style={{fontSize:22,fontWeight:700,color:PALETTE.blue,marginTop:8}}>NT${data.private.balance.toLocaleString()}</div>
-                  <div className="noto" style={{fontSize:10,opacity:.4,marginTop:3}}>安全可支配餘額</div>
-                  <div className="noto" style={{marginTop:10,fontSize:11,opacity:.6,background:"rgba(137,174,193,.07)",borderRadius:10,padding:"8px 10px",lineHeight:1.6}}>{data.private.note}</div>
-                  <div className="noto" style={{fontSize:9,opacity:.28,marginTop:8,textAlign:"right"}}>點擊重新鎖定</div>
-                </div>
-              ):(
-                <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"calc(100% - 40px)",gap:14}}>
-                  <ShieldIcon size={36} color="rgba(137,174,193,.5)"/>
-                  <div className="noto" style={{fontSize:11,opacity:.45,textAlign:"center",lineHeight:1.7}}>Face ID 解鎖<br/>平行私密宇宙</div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Low budget warning strip */}
-          {lowBudget&&(
-            <div className="glass sq-md" style={{padding:"12px 16px",marginBottom:12,borderColor:"rgba(226,209,166,.18)",animation:"fade-in .4s ease"}}>
-              <div className="noto" style={{fontSize:12.5,color:PALETTE.amber,lineHeight:1.7,display:"flex",alignItems:"flex-start",gap:9}}>
-                <StarIcon size={14} color={PALETTE.amber} style={{flexShrink:0,marginTop:2}}/>
-                {warningMsg}
-              </div>
-            </div>
-          )}
-
-          {/* ── Rocket Goal Card ────────────────────────────────────────── */}
-          <div style={{marginBottom:12}}>
-            <RocketGoalCard goal={data.goal} onAddSavings={handleAddSavings}/>
-          </div>
-
-          {/* ── Transactions ────────────────────────────────────────────── */}
-          <div className="glass sq-xl" style={{padding:"16px 16px 4px",marginBottom:12}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-              <div className="noto" style={{fontSize:13,fontWeight:500}}>最近帳目</div>
-              <div className="mono" style={{fontSize:11,opacity:.38}}>本月 NT${data.sharedSpent.toLocaleString()}</div>
-            </div>
-            {data.transactions.slice(0,7).map(tx=><TxRow key={tx.id} tx={tx} onResolve={handleResolve}/>)}
-          </div>
-
-          {/* ── Stats mini bento ────────────────────────────────────────── */}
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
-            <div className="glass sq-md" style={{padding:14}}>
-              <div className="noto" style={{fontSize:10,opacity:.38,marginBottom:5}}>小星支出</div>
-              <div className="mono" style={{fontSize:15.5,fontWeight:600,color:PALETTE.blue}}>NT${aaBalance.mine.toLocaleString()}</div>
-            </div>
-            <div className="glass sq-md" style={{padding:14}}>
-              <div className="noto" style={{fontSize:10,opacity:.38,marginBottom:5}}>小宇支出</div>
-              <div className="mono" style={{fontSize:15.5,fontWeight:600,color:PALETTE.gold}}>NT${aaBalance.theirs.toLocaleString()}</div>
-            </div>
-          </div>
-
-          {/* Smart alloc status */}
-          {smartAlloc&&(
-            <div className="glass sq-md" style={{padding:"12px 14px",marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <div style={{display:"flex",alignItems:"center",gap:7}}>
-                <AllocIcon size={15} color="rgba(137,174,193,.7)"/>
-                <div className="noto" style={{fontSize:11,opacity:.55}}>引力抽成 {allocPct}% 啟用中</div>
-              </div>
-              <div className="mono" style={{fontSize:11,color:PALETTE.blue}}>NT${safeCalc(data.sharedSpent*(allocPct/100)).toLocaleString()}</div>
-            </div>
-          )}
-
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <span style="font-size:13.5px;font-weight:500;">${tx.desc}</span>
+          ${tx.conflict ? `<button class="conflict-btn" data-id="${tx.id}" style="font-size:9.5px;background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.22);border-radius:6px;padding:2px 7px;color:#D4A800;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">待確認重複</button>` : ''}
         </div>
+        <div style="font-size:10.5px;opacity:.34;margin-top:2px;">${tx.date} · ${tx.payer}</div>
       </div>
-
-      {/* ── FAB ─────────────────────────────────────────────────────────── */}
-      <div style={{position:"fixed",bottom:"calc(env(safe-area-inset-bottom,0px) + 22px)",left:"50%",transform:"translateX(-50%)",zIndex:50}}>
-        <button className="press" onClick={()=>{ Earcon.play("tap"); setShowAdd(true); }} style={{width:62,height:62,borderRadius:22,background:`linear-gradient(135deg,rgba(229,193,133,.22),rgba(137,174,193,.18))`,border:`1px solid rgba(229,193,133,.38)`,boxShadow:"0 0 28px rgba(229,193,133,.18),0 8px 32px rgba(0,0,0,.45)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",animation:"rocket-float 3.5s ease-in-out infinite"}}>
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke={PALETTE.gold} strokeWidth="1.6" strokeLinecap="round"><line x1="11" y1="2" x2="11" y2="20"/><line x1="2" y1="11" x2="20" y2="11"/></svg>
-        </button>
-      </div>
-
-      {/* ── Sheets ──────────────────────────────────────────────────────── */}
-      {showAdd&&<AddSheet onClose={()=>setShowAdd(false)} onSave={handleSaveExpense} smartAlloc={smartAlloc} allocPct={allocPct}/>}
-      {showSettings&&<SettingsPanel onClose={()=>setShowSettings(false)} zenMode={zenMode} onToggleZen={()=>setZenMode(v=>!v)} smartAlloc={smartAlloc} onToggleAlloc={()=>setSmartAlloc(v=>!v)} allocPct={allocPct} onChangeAllocPct={setAllocPct}/>}
-    </>
-  );
+      <div class="mono" style="font-size:14.5px;font-weight:600;flex-shrink:0;color:${iconColor};">-NT$${tx.amount.toLocaleString()}</div>
+    `;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('.conflict-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      earcon('tap');
+      const id = parseInt(btn.dataset.id);
+      state.txs = state.txs.map(t => t.id===id ? {...t,conflict:false} : t);
+      renderTxList();
+      showToast('重複記錄已消除');
+    });
+  });
 }
 
-// ─── Root ─────────────────────────────────────────────────────────────────────
-export default function App(){
-  return <ErrorBoundary><WeCountApp/></ErrorBoundary>;
+// ── Render memo stars ──────────────────────────────────────────────────────
+function renderMemoStars() {
+  const wrap = document.getElementById('memo-stars');
+  wrap.innerHTML = '';
+  state.goalMsgs.forEach((m, i) => {
+    const star = document.createElement('div');
+    star.style.cssText = 'cursor:pointer;width:28px;height:28px;position:relative;';
+    star.innerHTML = `
+      <svg width="28" height="28" viewBox="0 0 26 26" fill="none" style="animation:starglow 2.5s ease-in-out infinite;">
+        <path d="M13 1 L15.5 9.5 L24 9.5 L17.5 15 L20 23 L13 18 L6 23 L8.5 15 L2 9.5 L10.5 9.5 Z" stroke="#E5C185" stroke-width="1.4" fill="rgba(229,193,133,.15)"/>
+      </svg>
+    `;
+    let flipped = false;
+    star.addEventListener('click', () => {
+      earcon('tap');
+      flipped = !flipped;
+      if(flipped) {
+        star.innerHTML = `<div style="position:absolute;inset:0;background:rgba(229,193,133,.14);border-radius:8px;display:flex;align-items:center;justify-content:center;animation:fadein .3s ease;"><div style="font-size:7px;color:#E5C185;padding:2px;line-height:1.4;text-align:center;">${m}</div></div>`;
+      } else {
+        renderMemoStars();
+      }
+    });
+    wrap.appendChild(star);
+  });
 }
+
+// ── Full UI update ─────────────────────────────────────────────────────────
+function updateUI() {
+  const budgetLeft = safe(state.sharedBudget - state.sharedSpent);
+  const budgetPct  = clamp(safe((budgetLeft/state.sharedBudget)*100), 0, 100);
+  const lowBudget  = budgetPct <= 20;
+  const aa         = computeAA();
+  const goalPct    = clamp(Math.round(safe((state.goalSaved/state.goalTarget)*100)), 0, 100);
+
+  // Header accent
+  const accent = lowBudget ? '#E2D1A6' : '#E5C185';
+  document.getElementById('header-title').style.color = accent;
+  document.getElementById('header-logo').setAttribute('stroke', accent);
+
+  // Shared ledger
+  document.getElementById('shared-remain').textContent = `${budgetLeft<0?'-':''}NT$${Math.abs(budgetLeft).toLocaleString()}`;
+  document.getElementById('shared-pbar').style.width = budgetPct+'%';
+  document.getElementById('shared-pbar').style.background = lowBudget
+    ? 'linear-gradient(90deg,#E2D1A6,#E5C185)'
+    : 'linear-gradient(90deg,#89AEC1,#E5C185)';
+
+  // AA label
+  const aaEl = document.getElementById('aa-label');
+  if(aa.diff > 0)       aaEl.textContent = `AA 淨額：小宇欠 NT$${Math.abs(aa.diff).toLocaleString()}`;
+  else if(aa.diff < 0)  aaEl.textContent = `AA 淨額：小星欠 NT$${Math.abs(aa.diff).toLocaleString()}`;
+  else                  aaEl.textContent = 'AA 淨額：雙方持平';
+
+  // Low budget warning
+  const warnEl = document.getElementById('low-budget-warn');
+  if(lowBudget) {
+    warnEl.classList.remove('hidden');
+    document.getElementById('low-budget-msg').textContent = WARN_MSGS[Math.floor(Math.random()*WARN_MSGS.length)];
+  } else {
+    warnEl.classList.add('hidden');
+  }
+
+  // Goal
+  document.getElementById('goal-pct').textContent    = goalPct+'%';
+  document.getElementById('goal-pbar').style.width   = goalPct+'%';
+  document.getElementById('goal-amounts').textContent = `NT$ ${state.goalSaved.toLocaleString()} / ${state.goalTarget.toLocaleString()}`;
+
+  // TX total
+  document.getElementById('tx-total').textContent = `本月 NT$${state.sharedSpent.toLocaleString()}`;
+
+  // Stats
+  document.getElementById('stat-mine').textContent   = `NT$${aa.mine.toLocaleString()}`;
+  document.getElementById('stat-theirs').textContent = `NT$${aa.theirs.toLocaleString()}`;
+
+  // Alloc
+  const allocTotal = safe(state.sharedSpent * (state.allocPct/100));
+  document.getElementById('alloc-label').textContent  = `引力抽成 ${state.allocPct}% 啟用中`;
+  document.getElementById('alloc-total').textContent  = `NT$${allocTotal.toLocaleString()}`;
+  document.getElementById('alloc-status').style.display = state.smartAlloc ? 'flex' : 'none';
+
+  renderTxList();
+  renderMemoStars();
+}
+
+// ── Confetti ───────────────────────────────────────────────────────────────
+function spawnConfetti() {
+  const wrap = document.getElementById('confetti-container');
+  wrap.innerHTML = '';
+  const colors = ['#E5C185','#89AEC1','#A8E6CF','#B08AE5','#E58A8A','#F4F4F5'];
+  for(let i=0;i<22;i++){
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    const sz = 5 + Math.random()*9;
+    const c  = colors[i%6];
+    const delay = (Math.random()*.55).toFixed(2);
+    el.style.cssText = `left:${Math.random()*100}%;top:12%;animation-delay:${delay}s;`;
+    el.innerHTML = `<svg width="${sz}" height="${sz}" viewBox="0 0 10 10"><polygon points="5,0 6.5,3.5 10,3.8 7.5,6.2 8.1,10 5,7.9 1.9,10 2.5,6.2 0,3.8 3.5,3.5" fill="${c}"/></svg>`;
+    wrap.appendChild(el);
+  }
+  setTimeout(() => { wrap.innerHTML = ''; }, 1600);
+}
+
+// ── Token bucket ───────────────────────────────────────────────────────────
+class Bucket {
+  constructor(cap,rate){ this.cap=cap; this.tok=cap; this.rate=rate; this.last=Date.now(); }
+  consume(){
+    const now=Date.now();
+    this.tok=Math.min(this.cap,this.tok+(now-this.last)/1000*this.rate);
+    this.last=now;
+    if(this.tok>=1){this.tok--;return true;}
+    return false;
+  }
+}
+const saveBucket = new Bucket(1,1);
+
+// ── Add expense sheet ──────────────────────────────────────────────────────
+function buildNumpad() {
+  const pad = document.getElementById('numpad');
+  pad.innerHTML = '';
+  const keys = ['1','2','3','4','5','6','7','8','9','.','0','⌫'];
+  keys.forEach(k => {
+    const btn = document.createElement('button');
+    btn.className = 'numkey';
+    if(k==='⌫') {
+      btn.innerHTML = `<svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5" stroke-linecap="round"><path d="M6 1 L17 1 Q18 1 18 7 Q18 13 17 13 L6 13 L1 7 Z" fill="none"/><line x1="9" y1="4" x2="14" y2="10"/><line x1="14" y1="4" x2="9" y2="10"/></svg>`;
+    } else {
+      btn.textContent = k;
+    }
+    btn.addEventListener('click', () => {
+      earcon('tap');
+      if(k==='⌫') { state.addAmount = state.addAmount.slice(0,-1); }
+      else if(k==='.' && state.addAmount.includes('.')) { return; }
+      else if(state.addAmount.length < 10) { state.addAmount += k; }
+      updateAddDisplay();
+    });
+    pad.appendChild(btn);
+  });
+}
+
+function buildCatStrip() {
+  const strip = document.getElementById('cat-strip');
+  strip.innerHTML = '';
+  CATS.forEach(c => {
+    const btn = document.createElement('button');
+    const isActive = state.addCat === c.key;
+    const col = isActive ? '#89AEC1' : 'rgba(255,255,255,.4)';
+    btn.className = 'press';
+    btn.style.cssText = `padding:6px 12px;border-radius:14px;border:none;background:${isActive?'rgba(137,174,193,.18)':'rgba(255,255,255,.05)'};color:${isActive?'#89AEC1':'rgba(255,255,255,.45)'};font-size:12px;white-space:nowrap;display:flex;align-items:center;gap:6px;font-family:'Noto Sans TC',sans-serif;flex-shrink:0;`;
+    const paths = CAT_PATHS[c.key]||CAT_PATHS.cafe;
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>${c.label}`;
+    btn.addEventListener('click', () => { earcon('tap'); state.addCat = c.key; buildCatStrip(); });
+    strip.appendChild(btn);
+  });
+}
+
+function updateAddDisplay() {
+  const sym = state.currency === 'JPY' ? '¥' : 'NT$';
+  document.getElementById('add-display').textContent = sym + (state.addAmount||'0');
+  const n = parseFloat(state.addAmount||'0');
+  const jpyEl = document.getElementById('add-jpy-equiv');
+  const boostEl = document.getElementById('add-boost-hint');
+  const boostTxt = document.getElementById('add-boost-text');
+  if(state.currency==='JPY' && n) {
+    const twd = safe(n*0.205);
+    jpyEl.textContent = `¥${n.toLocaleString()} ⇄ NT$${twd.toLocaleString()} TWD`;
+    jpyEl.classList.remove('hidden');
+  } else { jpyEl.classList.add('hidden'); }
+  if(state.smartAlloc && n) {
+    const twd = state.currency==='JPY' ? safe(n*0.205) : n;
+    const boost = safe(twd*(state.allocPct/100));
+    boostTxt.textContent = `自動空投 ${state.allocPct}% = NT$${boost.toLocaleString()} 至火箭基金`;
+    boostEl.classList.remove('hidden');
+  } else { boostEl.classList.add('hidden'); }
+}
+
+function openAddSheet() {
+  state.addAmount = '';
+  state.addCat = 'dining';
+  state.addPayer = '小星';
+  buildNumpad();
+  buildCatStrip();
+  updateAddDisplay();
+  updatePayerBtns();
+  document.getElementById('add-desc').value = '';
+  document.getElementById('add-sheet').classList.remove('hidden');
+}
+function closeAddSheet() { document.getElementById('add-sheet').classList.add('hidden'); }
+
+function updatePayerBtns() {
+  document.querySelectorAll('.payer-btn').forEach(btn => {
+    const isActive = btn.dataset.payer === state.addPayer;
+    btn.style.background = isActive ? 'rgba(137,174,193,.15)' : 'rgba(255,255,255,.05)';
+    btn.style.color = isActive ? '#89AEC1' : 'rgba(255,255,255,.38)';
+  });
+}
+
+// ── Currency buttons ───────────────────────────────────────────────────────
+document.querySelectorAll('.cur-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    earcon('tap');
+    state.currency = btn.dataset.cur;
+    document.querySelectorAll('.cur-btn').forEach(b => {
+      const on = b.dataset.cur === state.currency;
+      b.style.background = on ? 'rgba(229,193,133,.18)' : 'rgba(255,255,255,.06)';
+      b.style.color = on ? '#E5C185' : 'rgba(255,255,255,.45)';
+    });
+    updateAddDisplay();
+  });
+});
+
+// ── Payer buttons ──────────────────────────────────────────────────────────
+document.querySelectorAll('.payer-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    earcon('tap');
+    state.addPayer = btn.dataset.payer;
+    updatePayerBtns();
+  });
+});
+
+// ── Save expense ───────────────────────────────────────────────────────────
+document.getElementById('btn-save-expense').addEventListener('click', () => {
+  if(!saveBucket.consume()) {
+    earcon('freeze');
+    const saveBtn = document.getElementById('btn-save-expense');
+    saveBtn.style.animation = 'freezeshake .3s ease';
+    saveBtn.textContent = '星際冷卻中 3s';
+    saveBtn.disabled = true;
+    let cd = 3;
+    const t = setInterval(() => {
+      cd--;
+      saveBtn.textContent = `星際冷卻中 ${cd}s`;
+      if(cd<=0){
+        clearInterval(t);
+        saveBtn.disabled=false;
+        saveBtn.style.animation='';
+        saveBtn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#E5C185" stroke-width="1.5"><path d="M12 2 L13.5 10.5 L22 12 L13.5 13.5 L12 22 L10.5 13.5 L2 12 L10.5 10.5 Z"/></svg>儲存這筆帳`;
+      }
+    },1000);
+    return;
+  }
+  const n = parseFloat(state.addAmount||'0');
+  const desc = document.getElementById('add-desc').value.trim();
+  if(!n || !desc) { showToast('請輸入金額與說明'); return; }
+  const twd = state.currency==='JPY' ? safe(n*0.205) : n;
+  const boost = state.smartAlloc ? safe(twd*(state.allocPct/100)) : 0;
+  const today = new Date().toLocaleDateString('zh-TW',{month:'2-digit',day:'2-digit'});
+  state.txs.unshift({ id:Date.now(), desc, amount:twd, cat:state.addCat, date:today, payer:state.addPayer, conflict:false });
+  state.sharedSpent = safe(state.sharedSpent + twd);
+  state.goalSaved   = safe(state.goalSaved + boost);
+  earcon('save');
+  closeAddSheet();
+  updateUI();
+  setTimeout(() => showToast(`${state.addPayer} 記了一筆 NT$${twd.toLocaleString()}`), 200);
+});
+
+// ── Fuel panel ─────────────────────────────────────────────────────────────
+document.getElementById('btn-fuel').addEventListener('click', () => {
+  earcon('tap');
+  const panel = document.getElementById('fuel-panel');
+  panel.classList.toggle('hidden');
+});
+
+document.getElementById('btn-fuel-save').addEventListener('click', () => {
+  const n = parseFloat(document.getElementById('fuel-amt').value||'0');
+  const memo = document.getElementById('fuel-memo').value.trim();
+  if(!n||n<=0) return;
+  const prevPct = safe((state.goalSaved/state.goalTarget)*100);
+  state.goalSaved = safe(state.goalSaved + n);
+  const newPct = safe((state.goalSaved/state.goalTarget)*100);
+  earcon('rocket');
+  if([20,50,100].some(m => prevPct < m && newPct >= m)) spawnConfetti();
+  if(memo) { state.goalMsgs.push(memo); }
+  document.getElementById('fuel-amt').value = '';
+  document.getElementById('fuel-memo').value = '';
+  document.getElementById('fuel-panel').classList.add('hidden');
+  updateUI();
+  showToast('燃料注入成功！');
+});
+
+// ── Settings ───────────────────────────────────────────────────────────────
+function buildAvatars() {
+  const list = document.getElementById('avatar-list');
+  list.innerHTML = '';
+  AVATARS_SVG.forEach(a => {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;';
+    const isActive = state.selectedAvatar === a.id;
+    wrap.innerHTML = `
+      <div style="width:52px;height:52px;border-radius:18px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;border:1.5px solid ${isActive?'rgba(229,193,133,.65)':'transparent'};box-shadow:${isActive?'0 0 16px rgba(229,193,133,.3)':'none'};transition:all .2s;">${a.svg}</div>
+      <div style="font-size:9px;opacity:${isActive?.9:.32};text-align:center;line-height:1.4;">${a.label}</div>
+    `;
+    wrap.addEventListener('click', () => { earcon('tap'); state.selectedAvatar = a.id; buildAvatars(); });
+    list.appendChild(wrap);
+  });
+}
+
+// Zen toggle
+let zenOn = false;
+document.getElementById('zen-toggle').addEventListener('click', () => {
+  earcon('tap');
+  zenOn = !zenOn;
+  state.zenMode = zenOn;
+  const btn = document.getElementById('zen-toggle');
+  const dot = btn.querySelector('.toggle-dot');
+  btn.style.background = zenOn ? 'rgba(229,193,133,.28)' : 'rgba(255,255,255,.09)';
+  dot.style.left = zenOn ? '21px' : '3px';
+  dot.style.background = zenOn ? '#E5C185' : 'rgba(255,255,255,.38)';
+  // Update volume icon
+  const vi = document.getElementById('vol-icon');
+  vi.innerHTML = zenOn
+    ? '<polygon points="5,9 10,9 15,4 15,20 10,15 5,15"/><line x1="18" y1="9" x2="23" y2="15"/><line x1="23" y1="9" x2="18" y2="15"/>'
+    : '<polygon points="5,9 10,9 15,4 15,20 10,15 5,15"/><path d="M18 9 Q21 12 18 15"/><path d="M19.5 6.5 Q24 12 19.5 17.5"/>';
+});
+
+// Alloc toggle
+let allocOn = true;
+document.getElementById('alloc-toggle').addEventListener('click', () => {
+  earcon('tap');
+  allocOn = !allocOn;
+  state.smartAlloc = allocOn;
+  const btn = document.getElementById('alloc-toggle');
+  const dot = btn.querySelector('.toggle-dot');
+  btn.style.background = allocOn ? 'rgba(137,174,193,.28)' : 'rgba(255,255,255,.09)';
+  dot.style.left = allocOn ? '21px' : '3px';
+  dot.style.background = allocOn ? 'rgb(137,174,193)' : 'rgba(255,255,255,.38)';
+  document.getElementById('alloc-pct-label').style.opacity = allocOn ? 1 : .3;
+  document.getElementById('alloc-range').disabled = !allocOn;
+  updateUI();
+});
+
+// Alloc range
+document.getElementById('alloc-range').addEventListener('input', e => {
+  state.allocPct = parseInt(e.target.value);
+  document.getElementById('alloc-pct-label').textContent = `抽成 ${state.allocPct}%`;
+  updateUI();
+});
+
+// Breakup hold
+let holdTimer = null;
+const breakupBtn = document.getElementById('btn-breakup');
+const breakupRing = document.getElementById('breakup-ring');
+const breakupArc  = document.getElementById('breakup-arc');
+
+breakupBtn.addEventListener('pointerdown', () => {
+  breakupRing.style.display = 'block';
+  const start = Date.now();
+  holdTimer = setInterval(() => {
+    const p = clamp((Date.now()-start)/3000, 0, 1);
+    breakupArc.setAttribute('stroke-dashoffset', safe(69*(1-p)));
+    if(p >= 1) {
+      clearInterval(holdTimer);
+      breakupRing.style.display = 'none';
+      breakupArc.setAttribute('stroke-dashoffset','69');
+      alert('已進入 14 天冷靜期隔離沙盒');
+    }
+  }, 50);
+});
+['pointerup','pointerleave','pointercancel'].forEach(ev => {
+  breakupBtn.addEventListener(ev, () => {
+    clearInterval(holdTimer);
+    breakupRing.style.display = 'none';
+    breakupArc.setAttribute('stroke-dashoffset','69');
+  });
+});
+
+// ── Face ID ────────────────────────────────────────────────────────────────
+function openFaceID() {
+  const overlay = document.getElementById('faceid');
+  overlay.classList.remove('hidden');
+  document.getElementById('faceid-ring2').style.opacity = 0;
+  document.getElementById('faceid-eyes').style.opacity = 0;
+  document.getElementById('faceid-done').style.opacity = 0;
+  document.getElementById('faceid-msg').textContent = 'Face ID 雙子星對焦驗證中…';
+  setTimeout(() => { document.getElementById('faceid-ring2').style.cssText += 'opacity:1;animation:facering 1.2s ease-in-out infinite .3s;'; }, 700);
+  setTimeout(() => { document.getElementById('faceid-eyes').style.opacity = 1; }, 1400);
+  setTimeout(() => {
+    document.getElementById('faceid-done').style.opacity = 1;
+    document.getElementById('faceid-msg').textContent = '驗證成功，進入私密宇宙';
+    earcon('unlock');
+  }, 2100);
+  setTimeout(() => {
+    overlay.classList.add('hidden');
+    state.privateUnlocked = true;
+    document.getElementById('vault-locked').classList.add('hidden');
+    document.getElementById('vault-unlocked').classList.remove('hidden');
+    showToast('私密宇宙已解鎖', '#E5C185');
+  }, 2600);
+}
+
+document.getElementById('vault-card').addEventListener('click', () => {
+  earcon('tap');
+  if(!state.privateUnlocked) { openFaceID(); }
+  else {
+    state.privateUnlocked = false;
+    document.getElementById('vault-locked').classList.remove('hidden');
+    document.getElementById('vault-unlocked').classList.add('hidden');
+  }
+});
+
+// ── Button wiring ──────────────────────────────────────────────────────────
+document.getElementById('btn-add').addEventListener('click', () => { earcon('tap'); openAddSheet(); });
+document.getElementById('add-sheet').addEventListener('click', e => { if(e.target===document.getElementById('add-sheet')) closeAddSheet(); });
+
+document.getElementById('btn-settings').addEventListener('click', () => {
+  earcon('tap');
+  buildAvatars();
+  document.getElementById('settings-sheet').classList.remove('hidden');
+});
+document.getElementById('settings-sheet').addEventListener('click', e => {
+  if(e.target===document.getElementById('settings-sheet')) document.getElementById('settings-sheet').classList.add('hidden');
+});
+
+document.getElementById('btn-passkeys').addEventListener('click', () => { earcon('tap'); showToast('Passkeys 雙人連線功能即將開放'); });
+
+document.getElementById('btn-demo').addEventListener('click', () => {
+  earcon('tap');
+  document.getElementById('onboarding').classList.add('hidden');
+  document.getElementById('demo-banner').classList.remove('hidden');
+  document.getElementById('main').classList.remove('hidden');
+  showToast('訪客沙盒已啟動，盡情體驗');
+});
+
+document.getElementById('demo-banner').addEventListener('click', () => { earcon('tap'); showToast('Passkeys 雙人連線即將開放'); });
+
+// ── Lifecycle ──────────────────────────────────────────────────────────────
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState==='visible') showToast('星際連線已重新校正完畢', '#89AEC1');
+});
+window.addEventListener('online',  () => { document.getElementById('sync-dot').style.background='#A8E6CF'; showToast('量子通道已重建，資料同步完畢'); });
+window.addEventListener('offline', () => { document.getElementById('sync-dot').style.background='rgba(255,255,255,.2)'; showToast('離線模式：帳目已安全暫存本機','#E2D1A6'); });
+
+// ── Boot sequence ──────────────────────────────────────────────────────────
+buildCosmic();
+document.getElementById('app').classList.remove('hidden');
+
+// Splash
+setTimeout(() => {
+  earcon('boot');
+  document.getElementById('splash').classList.add('glow');
+}, 1400);
+setTimeout(() => {
+  document.getElementById('splash').classList.add('out');
+}, 2300);
+setTimeout(() => {
+  document.getElementById('splash').style.display = 'none';
+  document.getElementById('onboarding').classList.remove('hidden');
+  updateUI();
+}, 2800);
+</script>
+</body>
+</html>
