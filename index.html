@@ -103,10 +103,20 @@ input,textarea{-webkit-user-select:text;user-select:text;-webkit-touch-callout:d
 .sheet{width:100%;border-radius:28px 28px 0 0;padding:26px 18px;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 22px);animation:slideup .35s cubic-bezier(.34,1.56,.64,1);max-height:94dvh;overflow-y:auto;}
 .drag-pill{width:36px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;margin:0 auto 18px;}
 
-/* Numpad */
-.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:13px;}
-.numkey{padding:15px 0;background:rgba(255,255,255,.06);border:none;border-radius:15px;color:#F4F4F5;font-size:18px;font-family:'Geist Mono',monospace;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .1s cubic-bezier(.34,1.56,.64,1);}
-.numkey:active{transform:scale(.93);}
+/* Numpad — premium dark */
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:10px;}
+.numkey{
+  padding:0;height:50px;
+  background:rgba(255,255,255,.055);
+  border:none;border-radius:14px;
+  color:#F4F4F5;font-size:20px;
+  font-family:'Geist Mono',monospace;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:transform .1s cubic-bezier(.34,1.56,.64,1), background .12s;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07);
+}
+.numkey:active{transform:scale(.92);background:rgba(255,255,255,.1);}
+.numkey.zero{grid-column:span 1;}
 
 /* Toggle */
 .toggle-wrap{width:44px;height:26px;border-radius:13px;border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;}
@@ -141,8 +151,32 @@ input,textarea{-webkit-user-select:text;user-select:text;-webkit-touch-callout:d
 .inp.mono{font-family:'Geist Mono',monospace;}
 
 /* Amount display */
-.amount-display{text-align:center;margin-bottom:12px;}
-.amount-big{font-family:'Geist Mono',monospace;font-size:40px;font-weight:700;letter-spacing:-.02em;min-height:50px;line-height:1.2;}
+.amount-display{
+  text-align:center;
+  padding:6px 0 14px;
+  position:relative;
+}
+.amount-big{
+  font-family:'Geist Mono',monospace;
+  font-size:48px;font-weight:700;
+  letter-spacing:-.03em;
+  min-height:58px;line-height:1.1;
+  background:linear-gradient(160deg,#F4F4F5 40%,rgba(244,244,245,.55));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  transition:all .15s;
+}
+.amount-big.has-value{
+  background:linear-gradient(160deg,#E5C185 0%,#F4C76A 60%,#E5C185 100%);
+  -webkit-background-clip:text;background-clip:text;
+}
+.amount-big.personal-mode{
+  background:linear-gradient(160deg,#89AEC1 0%,#A8D8EA 60%,#89AEC1 100%);
+  -webkit-background-clip:text;background-clip:text;
+}
+.amount-big.income-mode{
+  background:linear-gradient(160deg,#A8E6CF 0%,#7DD6B0 60%,#A8E6CF 100%);
+  -webkit-background-clip:text;background-clip:text;
+}
 
 /* Confirm btn */
 .btn-primary{width:100%;padding:15px 0;border-radius:18px;font-size:14.5px;display:flex;align-items:center;justify-content:center;gap:9px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:transform .12s cubic-bezier(.34,1.56,.64,1),opacity .2s;}
@@ -150,14 +184,40 @@ input,textarea{-webkit-user-select:text;user-select:text;-webkit-touch-callout:d
 .btn-ghost{width:100%;padding:13px 0;border-radius:18px;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);transition:transform .12s cubic-bezier(.34,1.56,.64,1);}
 .btn-ghost:active{transform:scale(.97);}
 
-/* Segment control */
-.seg{display:flex;background:rgba(255,255,255,.05);border-radius:12px;padding:3px;margin-bottom:14px;}
-.seg-btn{flex:1;padding:8px 0;border-radius:10px;border:none;font-size:12.5px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;color:rgba(255,255,255,.45);transition:all .2s;}
-.seg-btn.active{background:rgba(229,193,133,.18);color:#E5C185;}
+/* Segment — pill style, no white bg */
+.seg{display:flex;background:rgba(255,255,255,.04);border-radius:14px;padding:3px;margin-bottom:16px;gap:2px;}
+.seg-btn{
+  flex:1;padding:9px 0;border-radius:11px;border:none;
+  font-size:12px;cursor:pointer;
+  font-family:'Noto Sans TC',sans-serif;
+  color:rgba(255,255,255,.38);
+  background:transparent;
+  transition:all .22s cubic-bezier(.34,1.56,.64,1);
+  letter-spacing:.02em;
+}
+.seg-btn.active{
+  background:rgba(229,193,133,.14);
+  color:#E5C185;
+  box-shadow:0 0 0 1px rgba(229,193,133,.22);
+}
+.seg-btn.active.personal-out{background:rgba(137,174,193,.14);color:#89AEC1;box-shadow:0 0 0 1px rgba(137,174,193,.22);}
+.seg-btn.active.personal-in{background:rgba(168,230,207,.12);color:#A8E6CF;box-shadow:0 0 0 1px rgba(168,230,207,.2);}
 
-/* Category chips */
-.cat-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-bottom:12px;}
-.cat-chip{padding:6px 12px;border-radius:12px;border:none;font-size:12px;white-space:nowrap;display:flex;align-items:center;gap:6px;font-family:'Noto Sans TC',sans-serif;flex-shrink:0;cursor:pointer;transition:all .15s;}
+/* Category chips — minimal icon only style */
+.cat-strip{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-bottom:14px;}
+.cat-chip{
+  padding:7px 13px;border-radius:24px;border:1px solid rgba(255,255,255,.07);
+  font-size:11.5px;white-space:nowrap;
+  display:flex;align-items:center;gap:5px;
+  font-family:'Noto Sans TC',sans-serif;flex-shrink:0;cursor:pointer;
+  background:rgba(255,255,255,.04);color:rgba(255,255,255,.38);
+  transition:all .16s;
+}
+.cat-chip.active{
+  background:rgba(229,193,133,.12);
+  border-color:rgba(229,193,133,.3);
+  color:#E5C185;
+}
 
 input[type=range]{width:100%;accent-color:#89AEC1;}
 input[type=number]{-moz-appearance:textfield;}
@@ -222,27 +282,26 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 <div id="page-home" class="page">
   <div class="page-scroll sc">
 
-    <!-- Header -->
+    <!-- Header — Avatar + Brand + Greeting -->
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
       <div style="display:flex;align-items:center;gap:10px;">
-        <svg width="28" height="28" viewBox="0 0 40 40" fill="none" id="header-logo" stroke="#E5C185" stroke-width="1.5" stroke-linecap="round">
-          <path d="M20 34 C20 34 6 25 6 15 A7 7 0 0 1 20 12 A7 7 0 0 1 34 15 C34 25 20 34 20 34Z"/>
-          <ellipse cx="20" cy="20" rx="17" ry="8" style="transform:rotate(-20deg);transform-origin:20px 20px;opacity:.4;"/>
-          <circle cx="20" cy="3" r="1.5" fill="#E5C185" stroke="none"/><circle cx="37" cy="20" r="1.2" fill="#E5C185" stroke="none"/>
-        </svg>
+        <!-- Avatar circle (from settings) -->
+        <div id="header-avatar" style="width:36px;height:36px;border-radius:50%;background:rgba(229,193,133,.12);border:1.5px solid rgba(229,193,133,.3);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;" onclick="switchTab('settings')"></div>
         <div>
-          <div class="mono" id="header-title" style="font-size:15px;font-weight:600;letter-spacing:.15em;color:#E5C185;line-height:1;">WECOUNT</div>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <div class="mono" id="header-title" style="font-size:15px;font-weight:600;letter-spacing:.15em;color:#E5C185;line-height:1;">WECOUNT</div>
+          </div>
           <div style="display:flex;align-items:center;gap:5px;margin-top:4px;">
             <div id="sync-dot" style="width:5px;height:5px;border-radius:50%;background:#A8E6CF;animation:blink 2s ease-in-out infinite;"></div>
             <div class="mono" style="font-size:9px;letter-spacing:.25em;color:rgba(255,255,255,.28);">SYNCED VIA COSMIC CLOUD</div>
           </div>
         </div>
       </div>
-      <button id="btn-settings" class="press glass r14" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
-        <svg width="15" height="13" viewBox="0 0 15 13" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="1.5" stroke-linecap="round">
-          <line x1="0" y1="1.5" x2="15" y2="1.5"/><line x1="0" y1="6.5" x2="15" y2="6.5"/><line x1="0" y1="11.5" x2="15" y2="11.5"/>
-        </svg>
-      </button>
+      <!-- Right: current user pill -->
+      <div id="header-user-pill" style="display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:20px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);">
+        <div style="width:6px;height:6px;border-radius:50%;background:#A8E6CF;animation:blink 2.5s ease-in-out infinite;"></div>
+        <span id="header-username" class="mono" style="font-size:11px;color:rgba(255,255,255,.6);letter-spacing:.04em;">小星</span>
+      </div>
     </div>
 
     <!-- Dual Bento Cards -->
@@ -536,6 +595,15 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
   <div class="page-scroll sc">
     <div style="font-size:16px;font-weight:600;margin-bottom:16px;">設定</div>
 
+    <!-- Current user switcher -->
+    <div class="glass r18" style="padding:15px;margin-bottom:10px;">
+      <div style="font-size:10.5px;opacity:.45;margin-bottom:12px;">目前登入身份</div>
+      <div style="display:flex;gap:8px;">
+        <button id="switch-me" class="press" style="flex:1;padding:10px 0;border-radius:14px;font-size:13px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:all .2s;"></button>
+        <button id="switch-partner" class="press" style="flex:1;padding:10px 0;border-radius:14px;font-size:13px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:all .2s;"></button>
+      </div>
+      <div style="font-size:10px;opacity:.28;margin-top:8px;line-height:1.7;">切換身份後，記帳將自動以該用戶名義記錄。實際產品中每人使用自己的裝置登入。</div>
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
       <div class="glass r18" style="padding:15px;">
         <div style="font-size:10.5px;opacity:.45;margin-bottom:10px;">靜音禪模式</div>
@@ -643,62 +711,88 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 
 <!-- ════════════════ SHEETS ════════════════ -->
 
-<!-- Add/Edit Transaction Sheet -->
+<!-- Add/Edit Transaction Sheet — One-screen, no scroll -->
 <div id="tx-sheet" class="sheet-overlay hidden">
-  <div class="sheet glass-dk">
-    <div class="drag-pill"></div>
-    <div id="tx-sheet-title" style="font-size:15px;font-weight:500;text-align:center;margin-bottom:14px;">新增支出</div>
+  <div class="sheet glass-dk" style="
+    padding:14px 16px;
+    padding-bottom:calc(env(safe-area-inset-bottom,0px) + 12px);
+    max-height:100dvh;
+    overflow:hidden;
+    display:flex;flex-direction:column;gap:0;
+    border-radius:28px 28px 0 0;
+  ">
+    <div class="drag-pill" style="margin-bottom:12px;"></div>
 
-    <!-- Shared / Personal segment -->
-    <div id="tx-type-seg" class="seg">
-      <button class="seg-btn active" data-type="shared">共同支出</button>
-      <button class="seg-btn" data-type="personal-out">個人支出</button>
-      <button class="seg-btn" data-type="personal-in">個人收入</button>
+    <!-- Row 1: Type segment + currency micro-pills in same row -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+      <div id="tx-type-seg" class="seg" style="flex:1;margin-bottom:0;">
+        <button class="seg-btn active" data-type="shared">共同</button>
+        <button class="seg-btn" data-type="personal-out">個人支出</button>
+        <button class="seg-btn" data-type="personal-in">個人收入</button>
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0;">
+        <button data-cur="TWD" class="cur-btn" style="padding:4px 9px;border-radius:20px;border:1px solid rgba(229,193,133,.3);background:rgba(229,193,133,.12);color:#E5C185;font-size:10px;font-family:'Geist Mono',monospace;cursor:pointer;">TWD</button>
+        <button data-cur="JPY" class="cur-btn" style="padding:4px 9px;border-radius:20px;border:1px solid rgba(255,255,255,.08);background:transparent;color:rgba(255,255,255,.35);font-size:10px;font-family:'Geist Mono',monospace;cursor:pointer;">JPY</button>
+      </div>
     </div>
 
-    <!-- Currency toggle -->
-    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;">
-      <button data-cur="TWD" class="cur-btn press" style="padding:5px 20px;border-radius:18px;border:none;background:rgba(229,193,133,.18);color:#E5C185;font-size:12px;font-family:'Geist Mono',monospace;">TWD</button>
-      <button data-cur="JPY" class="cur-btn press" style="padding:5px 20px;border-radius:18px;border:none;background:rgba(255,255,255,.06);color:rgba(255,255,255,.45);font-size:12px;font-family:'Geist Mono',monospace;">JPY</button>
-    </div>
-
-    <!-- Amount display -->
-    <div class="amount-display">
-      <div class="amount-big" id="tx-amount-display">NT$0</div>
-      <div id="tx-jpy-equiv" class="mono hidden" style="font-size:12.5px;color:#89AEC1;margin-top:3px;"></div>
-      <div id="tx-boost-hint" class="hidden" style="font-size:11px;color:rgba(229,193,133,.65);margin-top:4px;display:flex;align-items:center;justify-content:center;gap:5px;font-family:'Geist Mono',monospace;">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(229,193,133,.65)" stroke-width="1.5"><polygon points="12,2 20,22 12,17 4,22"/></svg>
+    <!-- Row 2: Amount hero — compact -->
+    <div class="amount-display" style="padding:2px 0 6px;">
+      <div class="amount-big" id="tx-amount-display" style="font-size:42px;">NT$0</div>
+      <div id="tx-jpy-equiv" class="mono hidden" style="font-size:11px;color:#89AEC1;margin-top:2px;"></div>
+      <div id="tx-boost-hint" class="hidden" style="font-size:10px;color:rgba(229,193,133,.6);margin-top:3px;display:flex;align-items:center;justify-content:center;gap:4px;font-family:'Geist Mono',monospace;">
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="rgba(229,193,133,.6)" stroke-width="1.5"><polygon points="12,2 20,22 12,17 4,22"/></svg>
         <span id="tx-boost-text"></span>
       </div>
     </div>
 
-    <!-- Description -->
-    <input id="tx-desc" type="text" placeholder="說明（如：藥師流拉麵）" class="inp" style="margin-bottom:10px;"/>
-
-    <!-- Category strip -->
-    <div id="tx-cat-strip" class="cat-strip"></div>
-
-    <!-- Payer (shared only) -->
-    <div id="tx-payer-row" style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;">
-      <button data-payer="小星" class="payer-btn press" style="padding:6px 20px;border-radius:18px;border:none;background:rgba(137,174,193,.15);color:#89AEC1;font-size:12.5px;font-family:'Noto Sans TC',sans-serif;">小星 付</button>
-      <button data-payer="小宇" class="payer-btn press" style="padding:6px 20px;border-radius:18px;border:none;background:rgba(255,255,255,.05);color:rgba(255,255,255,.38);font-size:12.5px;font-family:'Noto Sans TC',sans-serif;">小宇 付</button>
+    <!-- Row 3: Description — full width, no payer (auto-detected from logged-in user) -->
+    <div style="margin-bottom:8px;">
+      <input id="tx-desc" type="text" placeholder="說明這筆消費…" style="
+        width:100%;padding:9px 13px;
+        color:#F4F4F5;font-size:13.5px;outline:none;
+        background:rgba(255,255,255,.05);
+        border:1px solid rgba(255,255,255,.07);
+        border-radius:14px;
+        font-family:'Noto Sans TC',sans-serif;
+      "/>
+    </div>
+    <!-- Hidden payer (auto = current user, only visible in shared for override) -->
+    <div id="tx-payer-row" style="display:none;gap:4px;margin-bottom:8px;align-items:center;">
+      <span style="font-size:9.5px;opacity:.35;letter-spacing:.04em;font-family:'Geist Mono',monospace;flex-shrink:0;">誰付？</span>
+      <button data-payer="小星" class="payer-btn" style="padding:5px 12px;border-radius:20px;border:1px solid rgba(137,174,193,.3);background:rgba(137,174,193,.12);color:#89AEC1;font-size:11px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:all .18s;">小星</button>
+      <button data-payer="小宇" class="payer-btn" style="padding:5px 12px;border-radius:20px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.04);color:rgba(255,255,255,.35);font-size:11px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:all .18s;">小宇</button>
     </div>
 
-    <!-- Goal selector for boost (shared only) -->
-    <div id="tx-goal-row" style="margin-bottom:12px;">
-      <div style="font-size:10px;opacity:.4;margin-bottom:6px;">自動存入目標</div>
-      <div id="tx-goal-select" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+    <!-- Row 4: Category chips — single scroll row -->
+    <div id="tx-cat-strip" class="cat-strip" style="margin-bottom:6px;"></div>
+
+    <!-- Row 5: Goal auto-save (shared + smartAlloc only) — single line -->
+    <div id="tx-goal-row" style="margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+      <span style="font-size:9.5px;opacity:.35;letter-spacing:.05em;font-family:'Geist Mono',monospace;white-space:nowrap;flex-shrink:0;">空投至</span>
+      <div id="tx-goal-select" style="display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;"></div>
     </div>
 
-    <!-- Numpad -->
-    <div class="numpad" id="tx-numpad"></div>
+    <!-- Row 6: Numpad — reduced key height -->
+    <div class="numpad" id="tx-numpad" style="margin-bottom:8px;"></div>
 
-    <!-- Save -->
-    <button id="btn-tx-save" class="btn-primary" style="background:rgba(229,193,133,.14);border:1px solid rgba(229,193,133,.33);color:#E5C185;">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#E5C185" stroke-width="1.5"><path d="M12 2 L13.5 10.5 L22 12 L13.5 13.5 L12 22 L10.5 13.5 L2 12 L10.5 10.5 Z"/></svg>
-      儲存
+    <!-- Row 7: Save CTA -->
+    <button id="btn-tx-save" style="
+      width:100%;padding:14px 0;
+      border-radius:18px;font-size:14.5px;
+      display:flex;align-items:center;justify-content:center;gap:8px;
+      font-family:'Noto Sans TC',sans-serif;cursor:pointer;
+      background:linear-gradient(135deg,rgba(229,193,133,.22),rgba(229,193,133,.12));
+      border:1px solid rgba(229,193,133,.35);
+      color:#E5C185;
+      box-shadow:0 0 20px rgba(229,193,133,.1);
+      transition:transform .12s cubic-bezier(.34,1.56,.64,1);
+      flex-shrink:0;
+    ">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E5C185" stroke-width="1.5"><path d="M12 2 L13.5 10.5 L22 12 L13.5 13.5 L12 22 L10.5 13.5 L2 12 L10.5 10.5 Z"/></svg>
+      儲存記錄
     </button>
-    <button id="btn-tx-delete" class="btn-ghost hidden" style="margin-top:8px;color:rgba(220,80,80,.7);border-color:rgba(200,60,60,.2);">刪除這筆記錄</button>
+    <button id="btn-tx-delete" class="hidden" style="margin-top:6px;width:100%;padding:10px 0;border-radius:14px;font-size:12.5px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;background:transparent;border:1px solid rgba(200,60,60,.15);color:rgba(220,80,80,.55);flex-shrink:0;">刪除這筆記錄</button>
   </div>
 </div>
 
@@ -832,12 +926,23 @@ const CAT_PATHS = {
   travel:  '<polygon points="12,2 22,20 12,16 2,20" fill="none"/><line x1="12" y1="16" x2="12" y2="22"/>',
   gift:    '<rect x="4" y="10" width="16" height="12" rx="2"/><rect x="2" y="6" width="20" height="4" rx="1"/><path d="M12 6 V22"/>',
   cafe:    '<path d="M6 3 V7"/><path d="M10 3 V7"/><path d="M14 3 V7"/><path d="M4 7 H18 Q18 17 11 17 Q4 17 4 7"/><path d="M18 9 Q22 9 22 13 Q22 17 18 17"/>',
-  income:  '<line x1="12" y1="19" x2="12" y2="5"/><polyline points="5,12 12,5 19,12"/>',
+  // Income categories
+  salary:  '<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7 V5 A2 2 0 0 0 8 5 V7"/><circle cx="12" cy="14" r="2"/>',
+  bonus:   '<polygon points="12,2 15,8.5 22,9.5 17,14.5 18.5,21.5 12,18 5.5,21.5 7,14.5 2,9.5 9,8.5"/><circle cx="12" cy="12" r="3" fill="none"/>',
+  invest:  '<polyline points="2,20 7,14 12,17 18,8 22,11"/><line x1="22" y1="6" x2="22" y2="11"/><line x1="17" y1="11" x2="22" y2="11"/>',
+  transfer:'<path d="M5 12 H19"/><polyline points="12,5 19,12 12,19"/><path d="M5 8 L2 12 L5 16" stroke-linejoin="round"/>',
+  other_in:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>',
 };
 const CATS = [
-  {key:'dining',label:'餐飲'},{key:'grocery',label:'購物'},{key:'transit',label:'交通'},
-  {key:'leisure',label:'娛樂'},{key:'home',label:'居家'},{key:'health',label:'健康'},
+  {key:'dining',label:'餐飲'},{key:'grocery',label:'購物'},
+  {key:'transit',label:'交通'},{key:'leisure',label:'娛樂'},
+  {key:'home',label:'居家'},{key:'health',label:'健康'},
   {key:'travel',label:'旅遊'},{key:'gift',label:'禮物'},{key:'cafe',label:'咖啡'},
+];
+const INCOME_CATS = [
+  {key:'salary', label:'薪資'},{key:'bonus', label:'獎金'},
+  {key:'invest', label:'投資'},  {key:'transfer',label:'轉帳'},
+  {key:'other_in',label:'其他'},
 ];
 const WARN_MSGS = [
   '燃料剩餘不多，本週開啟自煮模式，攜手共度星際風暴。',
@@ -854,6 +959,7 @@ const AVATARS = [
 // ── State ──────────────────────────────────────────────────────────────────
 let S = {
   myName: '小星', partnerName: '小宇',
+  currentUser: '小星',   // ← the "logged in" user; payer defaults to this
   sharedBudget: 20000, sharedSpent: 14820,
   zenMode: false, smartAlloc: true, allocPct: 5, allocGoalId: null,
   selectedAvatar: 'pilot', personalUnlocked: false,
@@ -864,8 +970,8 @@ let S = {
     {id:3, desc:'新宿購物',   amount:3500, cat:'travel',  date:'06/17', payer:'小宇', conflict:true},
   ],
   personalTxs: [
-    {id:101, desc:'健身房月費', amount:1200, cat:'health', date:'06/01', type:'out'},
-    {id:102, desc:'六月薪資',   amount:45000, cat:'income', date:'06/05', type:'in'},
+    {id:101, desc:'健身房月費', amount:1200, cat:'health',  date:'06/01', type:'out'},
+    {id:102, desc:'六月薪資',   amount:45000, cat:'salary', date:'06/05', type:'in'},
   ],
   goals: [
     {id:'g1', name:'東京跨年基金', target:80000, saved:57600, msgs:['期待與你牽手倒數','想在淺草橋看煙火']},
@@ -875,7 +981,7 @@ let S = {
 // tx form state
 let txForm = {
   editId: null, editLedger: null,
-  type: 'shared', currency: 'TWD', amount: '', cat: 'dining', payer: '小星',
+  type: 'shared', currency: 'TWD', amount: '', cat: 'dining', payer: S.currentUser,
 };
 let budgetAmount = '';
 let goalForm = { editId: null };
@@ -1045,9 +1151,14 @@ function updateUI() {
   const gPct=primaryGoal?goalPct(primaryGoal):0;
   const accent=lowBudget?'#E2D1A6':'#E5C185';
 
-  // Header
-  document.getElementById('header-title').style.color=accent;
-  document.getElementById('header-logo').setAttribute('stroke',accent);
+  // Header avatar + username
+  const av = AVATARS.find(a=>a.id===S.selectedAvatar)||AVATARS[0];
+  const avatarEl = document.getElementById('header-avatar');
+  if(avatarEl) avatarEl.innerHTML = av.svg.replace('width="36" height="36"','width="22" height="22"');
+  const usernameEl = document.getElementById('header-username');
+  if(usernameEl) usernameEl.textContent = S.currentUser;
+  const headerTitle = document.getElementById('header-title');
+  if(headerTitle) headerTitle.style.color = lowBudget ? '#E2D1A6' : '#E5C185';
 
   // ── HOME PAGE ──
   document.getElementById('h-shared-remain').textContent=`${budgetLeft<0?'-':''}${fmt(budgetLeft)}`;
@@ -1184,6 +1295,8 @@ function updateUI() {
   // Name inputs
   document.getElementById('my-name-input').value=S.myName;
   document.getElementById('partner-name-input').value=S.partnerName;
+  // Switcher buttons
+  updateSwitcherBtns();
 
   // Update vault-locked / unlocked payer names
   document.querySelectorAll('.payer-btn').forEach(btn=>{
@@ -1235,15 +1348,15 @@ function buildNumpad(numpadId, displayId, valueGetter, valueSetter, onUpdate) {
   });
 }
 
-function buildCatStrip(containerId, currentCat, onSelect) {
+function buildCatStrip(containerId, currentCat, onSelect, isIncome) {
   const strip=document.getElementById(containerId); if(!strip) return;
   strip.innerHTML='';
-  CATS.forEach(c=>{
+  const list = isIncome ? INCOME_CATS : CATS;
+  list.forEach(c=>{
     const btn=document.createElement('button');
     const on=currentCat===c.key;
-    btn.className='cat-chip press';
-    btn.style.cssText=`background:${on?'rgba(137,174,193,.18)':'rgba(255,255,255,.05)'};color:${on?'#89AEC1':'rgba(255,255,255,.45)'};`;
-    const col=on?'#89AEC1':'rgba(255,255,255,.4)';
+    btn.className='cat-chip'+(on?' active':'');
+    const col=on?'#E5C185':'rgba(255,255,255,.38)';
     btn.innerHTML=`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${CAT_PATHS[c.key]||''}</svg>${c.label}`;
     btn.addEventListener('click',()=>{ earcon('tap'); onSelect(c.key); });
     strip.appendChild(btn);
@@ -1252,7 +1365,11 @@ function buildCatStrip(containerId, currentCat, onSelect) {
 
 function updateTxDisplay() {
   const sym=txForm.currency==='JPY'?'¥':'NT$';
-  document.getElementById('tx-amount-display').textContent=sym+(txForm.amount||'0');
+  const display=document.getElementById('tx-amount-display');
+  display.textContent=sym+(txForm.amount||'0');
+  // Color gradient based on type and whether value entered
+  const hasVal=!!(txForm.amount&&parseFloat(txForm.amount)>0);
+  display.className='amount-big'+(hasVal?' has-value':'')+(txForm.type==='personal-out'?' personal-mode':txForm.type==='personal-in'?' income-mode':'');
   const n=parseFloat(txForm.amount||'0');
   const jpyEl=document.getElementById('tx-jpy-equiv');
   const boostEl=document.getElementById('tx-boost-hint');
@@ -1261,14 +1378,15 @@ function updateTxDisplay() {
   const isShared=txForm.type==='shared';
   if(S.smartAlloc&&isShared&&n&&S.allocGoalId){
     const twd=txForm.currency==='JPY'?safe(n*.205):n;
-    document.getElementById('tx-boost-text').textContent=`自動空投 ${S.allocPct}% = ${fmt(safe(twd*(S.allocPct/100)))} 至 ${getGoal(S.allocGoalId)?.name||'目標'}`;
+    document.getElementById('tx-boost-text').textContent=`空投 ${S.allocPct}% → ${fmt(safe(twd*(S.allocPct/100)))} 至 ${getGoal(S.allocGoalId)?.name||'目標'}`;
     boostEl.classList.remove('hidden');
   } else boostEl.classList.add('hidden');
 }
 
 function openAddTx(defaultType) {
-  txForm={editId:null,editLedger:null,type:defaultType||'shared',currency:'TWD',amount:'',cat:'dining',payer:S.myName};
-  document.getElementById('tx-sheet-title').textContent='新增記錄';
+  txForm={editId:null,editLedger:null,type:defaultType||'shared',currency:'TWD',amount:'',
+    cat: defaultType==='personal-in' ? 'salary' : 'dining',
+    payer:S.currentUser};
   document.getElementById('btn-tx-delete').classList.add('hidden');
   setupTxSheet();
   document.getElementById('tx-sheet').classList.remove('hidden');
@@ -1281,70 +1399,113 @@ function openEditTx(tx, ledger) {
     currency:'TWD', amount:String(tx.amount), cat:tx.cat||'dining',
     payer:tx.payer||S.myName,
   };
-  document.getElementById('tx-sheet-title').textContent='編輯記錄';
   document.getElementById('btn-tx-delete').classList.remove('hidden');
   setupTxSheet();
-  document.getElementById('tx-desc').value=tx.desc;
+  // restore desc AFTER setupTxSheet clears it
+  document.getElementById('tx-desc').value=tx.desc||'';
   document.getElementById('tx-sheet').classList.remove('hidden');
 }
 
 function setupTxSheet() {
-  // Segment
+  const isShared = txForm.type==='shared';
+  const isIn     = txForm.type==='personal-in';
+
+  // Segment active state + color class
   document.querySelectorAll('#tx-type-seg .seg-btn').forEach(b=>{
-    b.classList.toggle('active', b.dataset.type===txForm.type);
+    const on=b.dataset.type===txForm.type;
+    b.classList.toggle('active',on);
+    b.classList.remove('personal-out','personal-in');
+    if(on&&b.dataset.type==='personal-out') b.classList.add('personal-out');
+    if(on&&b.dataset.type==='personal-in')  b.classList.add('personal-in');
   });
-  // Payer row
-  const isShared=txForm.type==='shared';
-  document.getElementById('tx-payer-row').style.display=isShared?'flex':'none';
-  document.getElementById('tx-goal-row').style.display=(isShared&&S.smartAlloc)?'block':'none';
-  // Currency
+
+  // Payer row: only show for shared, and only if partner is different
+  // In demo (both users could pay) — show a compact override
+  const payerRow=document.getElementById('tx-payer-row');
+  payerRow.style.display = isShared ? 'flex' : 'none';
+
+  // Goal row
+  document.getElementById('tx-goal-row').style.display=(isShared&&S.smartAlloc)?'flex':'none';
+
+  // Auto-set payer to current user when switching to shared
+  if(isShared && !txForm.editId) txForm.payer = S.currentUser;
+
+  // Default cat: income gets salary, others get dining
+  if(isIn && !txForm.editId) txForm.cat='salary';
+  if(!isIn && txForm.cat==='salary') txForm.cat='dining';
+
+  // Save button color
+  const saveBtn=document.getElementById('btn-tx-save');
+  const svgEl=saveBtn.querySelector('svg');
+  if(isIn){
+    saveBtn.style.background='linear-gradient(135deg,rgba(168,230,207,.2),rgba(168,230,207,.1))';
+    saveBtn.style.borderColor='rgba(168,230,207,.3)'; saveBtn.style.color='#A8E6CF';
+    svgEl.setAttribute('stroke','#A8E6CF');
+  } else if(!isShared){
+    saveBtn.style.background='linear-gradient(135deg,rgba(137,174,193,.2),rgba(137,174,193,.1))';
+    saveBtn.style.borderColor='rgba(137,174,193,.3)'; saveBtn.style.color='#89AEC1';
+    svgEl.setAttribute('stroke','#89AEC1');
+  } else {
+    saveBtn.style.background='linear-gradient(135deg,rgba(229,193,133,.22),rgba(229,193,133,.12))';
+    saveBtn.style.borderColor='rgba(229,193,133,.35)'; saveBtn.style.color='#E5C185';
+    svgEl.setAttribute('stroke','#E5C185');
+  }
+
+  // Currency buttons
   document.querySelectorAll('.cur-btn').forEach(b=>{
     const on=b.dataset.cur===txForm.currency;
-    b.style.background=on?'rgba(229,193,133,.18)':'rgba(255,255,255,.06)';
-    b.style.color=on?'#E5C185':'rgba(255,255,255,.45)';
+    b.style.background=on?'rgba(229,193,133,.12)':'transparent';
+    b.style.borderColor=on?'rgba(229,193,133,.3)':'rgba(255,255,255,.08)';
+    b.style.color=on?'#E5C185':'rgba(255,255,255,.35)';
   });
+
   // Numpad
   buildNumpad('tx-numpad','tx-amount-display',()=>txForm.amount,(v)=>{txForm.amount=v;},updateTxDisplay);
-  // Cat strip
-  buildCatStrip('tx-cat-strip', txForm.cat, (k)=>{ txForm.cat=k; buildCatStrip('tx-cat-strip',k,(k2)=>{txForm.cat=k2;buildCatStrip('tx-cat-strip',k2,()=>{});});});
-  // Payer btns
+
+  // Category strip — switch list based on type
+  const catOnSelect = k=>{
+    txForm.cat=k;
+    buildCatStrip('tx-cat-strip',k,catOnSelect,isIn);
+  };
+  buildCatStrip('tx-cat-strip',txForm.cat,catOnSelect,isIn);
+
+  // Payer buttons
   updatePayerBtns();
-  // Goal selector
+
+  // Goal select
   const gs=document.getElementById('tx-goal-select');
   gs.innerHTML='';
   S.goals.forEach(g=>{
     const on=S.allocGoalId===g.id;
     const b=document.createElement('button');
-    b.className='press r10';b.style.cssText=`padding:5px 10px;border:1px solid ${on?'rgba(229,193,133,.3)':'rgba(255,255,255,.1)'};background:${on?'rgba(229,193,133,.1)':'rgba(255,255,255,.04)'};color:${on?'#E5C185':'rgba(255,255,255,.45)'};font-size:11.5px;font-family:'Noto Sans TC',sans-serif;`;
+    b.style.cssText=`padding:4px 11px;border-radius:20px;border:1px solid ${on?'rgba(229,193,133,.3)':'rgba(255,255,255,.08)'};background:${on?'rgba(229,193,133,.12)':'rgba(255,255,255,.04)'};color:${on?'#E5C185':'rgba(255,255,255,.4)'};font-size:11px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:all .15s;white-space:nowrap;`;
     b.textContent=g.name;
     b.addEventListener('click',()=>{S.allocGoalId=on?null:g.id;setupTxSheet();});
     gs.appendChild(b);
   });
+
   document.getElementById('tx-desc').value='';
   updateTxDisplay();
 }
 
 function updatePayerBtns() {
   document.querySelectorAll('.payer-btn').forEach(btn=>{
-    const on=btn.dataset.payer===txForm.payer||btn.dataset.payer===S.myName&&txForm.payer===S.myName;
-    // reset first
-  });
-  document.querySelectorAll('.payer-btn').forEach(btn=>{
     const on=btn.dataset.payer===txForm.payer;
-    btn.style.background=on?'rgba(137,174,193,.15)':'rgba(255,255,255,.05)';
-    btn.style.color=on?'#89AEC1':'rgba(255,255,255,.38)';
+    btn.style.background=on?'rgba(137,174,193,.14)':'rgba(255,255,255,.04)';
+    btn.style.borderColor=on?'rgba(137,174,193,.32)':'rgba(255,255,255,.07)';
+    btn.style.color=on?'#89AEC1':'rgba(255,255,255,.32)';
   });
 }
 
 // Segment clicks
 document.querySelectorAll('#tx-type-seg .seg-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{
-    earcon('tap'); txForm.type=btn.dataset.type;
-    const isShared=txForm.type==='shared';
-    document.getElementById('tx-payer-row').style.display=isShared?'flex':'none';
-    document.getElementById('tx-goal-row').style.display=(isShared&&S.smartAlloc)?'block':'none';
-    document.querySelectorAll('#tx-type-seg .seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.type===btn.dataset.type));
-    updateTxDisplay();
+    earcon('tap');
+    txForm.type=btn.dataset.type;
+    const isIn=txForm.type==='personal-in';
+    // auto-switch default category
+    txForm.cat = isIn ? 'salary' : 'dining';
+    setupTxSheet();
   });
 });
 // Currency
@@ -1353,8 +1514,9 @@ document.querySelectorAll('.cur-btn').forEach(btn=>{
     earcon('tap'); txForm.currency=btn.dataset.cur;
     document.querySelectorAll('.cur-btn').forEach(b=>{
       const on=b.dataset.cur===txForm.currency;
-      b.style.background=on?'rgba(229,193,133,.18)':'rgba(255,255,255,.06)';
-      b.style.color=on?'#E5C185':'rgba(255,255,255,.45)';
+      b.style.background=on?'rgba(229,193,133,.12)':'transparent';
+      b.style.borderColor=on?'rgba(229,193,133,.3)':'rgba(255,255,255,.08)';
+      b.style.color=on?'#E5C185':'rgba(255,255,255,.35)';
     });
     updateTxDisplay();
   });
@@ -1363,7 +1525,6 @@ document.querySelectorAll('.cur-btn').forEach(btn=>{
 document.querySelectorAll('.payer-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{ earcon('tap'); txForm.payer=btn.dataset.payer; updatePayerBtns(); });
 });
-// Close tx sheet backdrop
 document.getElementById('tx-sheet').addEventListener('click',e=>{ if(e.target===document.getElementById('tx-sheet')){document.getElementById('tx-sheet').classList.add('hidden');}});
 
 // Save tx
@@ -1585,7 +1746,8 @@ document.getElementById('btn-add-personal').addEventListener('click',()=>{
 });
 
 // ── Settings ────────────────────────────────────────────────────────────────
-document.getElementById('btn-settings').addEventListener('click',()=>{ earcon('tap'); switchTab('settings'); });
+const settingsBtn = document.getElementById('btn-settings');
+if(settingsBtn) settingsBtn.addEventListener('click',()=>{ earcon('tap'); switchTab('settings'); });
 let zenOn=false;
 document.getElementById('zen-toggle').addEventListener('click',()=>{
   earcon('tap'); zenOn=!zenOn; S.zenMode=zenOn;
@@ -1632,8 +1794,25 @@ bBtn.addEventListener('pointerdown',()=>{
 });
 ['pointerup','pointerleave','pointercancel'].forEach(ev=>bBtn.addEventListener(ev,()=>{clearInterval(holdTmr);bRing.style.display='none';bArc.setAttribute('stroke-dashoffset','69');}));
 
-// Passkeys
-document.getElementById('btn-passkeys').addEventListener('click',()=>{ earcon('tap'); showToast('Passkeys 雙人連線即將開放'); });
+// User switcher buttons
+function updateSwitcherBtns() {
+  const me = document.getElementById('switch-me');
+  const pt = document.getElementById('switch-partner');
+  if(!me||!pt) return;
+  const meOn = S.currentUser===S.myName;
+  me.textContent = S.myName;
+  pt.textContent = S.partnerName;
+  me.style.cssText += `;background:${meOn?'rgba(229,193,133,.14)':'rgba(255,255,255,.04)'};border:1px solid ${meOn?'rgba(229,193,133,.3)':'rgba(255,255,255,.07)'};color:${meOn?'#E5C185':'rgba(255,255,255,.4)'};`;
+  pt.style.cssText += `;background:${!meOn?'rgba(137,174,193,.14)':'rgba(255,255,255,.04)'};border:1px solid ${!meOn?'rgba(137,174,193,.3)':'rgba(255,255,255,.07)'};color:${!meOn?'#89AEC1':'rgba(255,255,255,.4)'};`;
+}
+document.getElementById('switch-me').addEventListener('click',()=>{
+  earcon('tap'); S.currentUser=S.myName; updateSwitcherBtns(); updateUI();
+  showToast(`已切換至 ${S.myName} 的視角`);
+});
+document.getElementById('switch-partner').addEventListener('click',()=>{
+  earcon('tap'); S.currentUser=S.partnerName; updateSwitcherBtns(); updateUI();
+  showToast(`已切換至 ${S.partnerName} 的視角`);
+});
 
 // ── Lifecycle ────────────────────────────────────────────────────────────────
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') showToast('星際連線已重新校正完畢','#89AEC1'); });
@@ -1648,6 +1827,10 @@ setTimeout(()=>{ earcon('boot'); document.getElementById('splash').classList.add
 setTimeout(()=>{ document.getElementById('splash').classList.add('out'); }, 2300);
 setTimeout(()=>{ document.getElementById('splash').style.display='none'; }, 2800);
 
+// Passkeys
+document.getElementById('btn-passkeys').addEventListener('click',()=>{ earcon('tap'); showToast('Passkeys 雙人連線即將開放'); });
+
+// Demo entry
 document.getElementById('btn-demo').addEventListener('click',()=>{
   earcon('tap');
   document.getElementById('onboarding').classList.add('hidden');
@@ -1656,6 +1839,7 @@ document.getElementById('btn-demo').addEventListener('click',()=>{
   document.getElementById('di').classList.remove('hidden');
   switchTab('home');
   updateUI();
+  updateSwitcherBtns();
   expandDI('Demo 模式');
   S.allocGoalId=S.goals[0]?.id||null;
 });
